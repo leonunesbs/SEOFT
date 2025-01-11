@@ -5,18 +5,19 @@ import {
 } from "~/components/ui/sidebar";
 import { auth, signOut } from "~/server/auth";
 
-import Form from "next/form";
-import { cookies } from "next/headers";
-import Image from "next/image";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { MdLogout } from "react-icons/md";
-import { ThemeToggle } from "~/components/atoms/theme-toggle";
-import { CustomBreadcrumbs } from "~/components/molecules/custom-breadcrumbs";
 import { AppSidebar } from "~/components/organisms/app-sidebar";
 import { Button } from "~/components/ui/button";
-import { db } from "~/server/db";
+import { CustomBreadcrumbs } from "~/components/molecules/custom-breadcrumbs";
+import Form from "next/form";
 import { HydrateClient } from "~/trpc/server";
+import Image from "next/image";
+import { IntegraButton } from "~/components/atoms/integra-button";
+import Link from "next/link";
+import { MdLogout } from "react-icons/md";
+import { ThemeToggle } from "~/components/atoms/theme-toggle";
+import { cookies } from "next/headers";
+import { db } from "~/server/db";
+import { redirect } from "next/navigation";
 
 export default async function Layout({
   children,
@@ -73,6 +74,7 @@ export default async function Layout({
             </HydrateClient>
           </div>
           <div className="flex items-center gap-2">
+            <IntegraButton />
             <ThemeToggle />
             <Form
               action={async () => {

@@ -2,6 +2,7 @@ import { Button } from "~/components/ui/button";
 import Form from "next/form";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { MdOutlineSearch } from "react-icons/md";
 import { Search } from "lucide-react";
 import { SearchTable } from "~/components/organisms/search-table";
 import { api } from "~/trpc/server";
@@ -44,7 +45,10 @@ export default async function SearchPatient({
             />
             <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 select-none opacity-50" />
           </div>
-          <Button type="submit">Pesquisar</Button>
+          <Button type="submit">
+            <MdOutlineSearch size={18} />
+            Pesquisar
+          </Button>
         </div>
       </Form>
       {queryString && patients.length > 0 && (

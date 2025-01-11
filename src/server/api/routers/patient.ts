@@ -55,6 +55,7 @@ export const patientRouter = createTRPCRouter({
         });
 
         return {
+          id: newPatient.id,
           refId: newPatient.refId,
           name: newPatient.name,
           birthDate: newPatient.birthDate.toISOString(),

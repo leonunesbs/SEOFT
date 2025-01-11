@@ -9,6 +9,7 @@ import {
   MdOutlineAssistant,
   MdOutlineAttribution,
   MdOutlineHome,
+  MdOutlineList,
   MdOutlineLockPerson,
   MdOutlinePersonAdd,
   MdOutlineSearch,
@@ -53,6 +54,7 @@ export function AppSidebar({
         title: string;
         url: string;
         icon?: React.ReactNode;
+        external?: boolean;
       }[];
     }[];
   } = {
@@ -127,17 +129,19 @@ export function AppSidebar({
       {
         title: "Outros",
         url: "#",
-        icon: <MdOutlineArchive size={18} />,
+        icon: <MdOutlineList size={18} />,
         items: [
           {
             title: "AntiVEGF",
             url: "https://antivegf.seoft.com.br",
             icon: <MdLink size={18} />,
+            external: true,
           },
           {
             title: "Justificativas",
             url: "https://just.seoft.com.br",
             icon: <MdLink size={18} />,
+            external: true,
           },
         ],
       },
@@ -166,7 +170,10 @@ export function AppSidebar({
                     {item.items.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton asChild href={subItem.url}>
-                          <Link href={subItem.url}>
+                          <Link
+                            href={subItem.url}
+                            target={subItem.external ? "_blank" : undefined}
+                          >
                             {subItem.icon} {subItem.title}
                           </Link>
                         </SidebarMenuSubButton>
