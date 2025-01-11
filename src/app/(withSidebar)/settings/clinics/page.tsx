@@ -28,7 +28,7 @@ export default async function ClinicsPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between">
-        <PageHeading>Clínicas</PageHeading>
+        <PageHeading>Ambulatórios</PageHeading>
         <Link href="/settings/clinics/add" passHref>
           <Button>
             <MdAddCircleOutline size={18} />
