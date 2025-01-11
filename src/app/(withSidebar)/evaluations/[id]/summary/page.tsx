@@ -1,3 +1,4 @@
+import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Table,
@@ -8,12 +9,14 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { isValidURL, translateType } from "~/lib/utils";
-import { notFound, redirect } from "next/navigation";
 
+import Link from "next/link";
+import { MdOutlineHistory } from "react-icons/md";
 import { AccessFileButton } from "~/components/atoms/access-file-button";
 import { CopyPromptButton } from "~/components/atoms/copy-prompt-button";
 import { PageHeading } from "~/components/atoms/page-heading";
 import { ReopenEvaluationButton } from "~/components/atoms/reopen-evaluation-button";
+import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { db } from "~/server/db";
 
@@ -334,6 +337,15 @@ export default async function EvaluationSummaryPage({
       <div className="flex items-center justify-between">
         <PageHeading>Resumo da Avaliação</PageHeading>
         <div className="flex gap-2">
+          <Link href={`/patients/${patient.id}/history`} passHref>
+            <Button
+              variant="outline"
+              aria-label={`Histórico de ${patient.name}`}
+            >
+              <MdOutlineHistory size={18} />
+              Histórico
+            </Button>
+          </Link>
           {/* Botão para reabrir a avaliação */}
           <ReopenEvaluationButton evaluation={evaluation} />
           {/* Botão para copiar o prompt */}

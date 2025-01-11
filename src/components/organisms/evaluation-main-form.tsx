@@ -1,6 +1,12 @@
 "use client";
 
 import {
+  MdDeleteOutline,
+  MdOutlineCheck,
+  MdOutlineFileCopy,
+  MdSwitchLeft,
+} from "react-icons/md";
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -15,24 +21,18 @@ import {
   FormMessage,
 } from "../ui/form";
 import {
-  MdDeleteOutline,
-  MdOutlineCheck,
-  MdOutlineFileCopy,
-  MdSwitchLeft,
-} from "react-icons/md";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
 
+import { Prisma } from "@prisma/client";
+import { UseFormReturn } from "react-hook-form";
 import { AccessFileButton } from "../atoms/access-file-button";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Prisma } from "@prisma/client";
 import { Textarea } from "../ui/textarea";
-import { UseFormReturn } from "react-hook-form";
 
 type EvaluationFormValues = {
   biomicroscopyOD?: string;
@@ -234,7 +234,7 @@ export function EvaluationMainForm({
                 <Textarea
                   {...field}
                   placeholder="Descreva informações clínicas relevantes"
-                  className="min-h-40"
+                  className="min-h-40 resize-y"
                 />
               </FormControl>
               <FormMessage />
@@ -291,7 +291,7 @@ export function EvaluationMainForm({
               <FormControl>
                 <Textarea
                   {...field}
-                  placeholder="Descreva o tratamento sugerido"
+                  placeholder="Descreva o tratamento e/ou conduta sugerida"
                   className="resize-none"
                 />
               </FormControl>
@@ -335,7 +335,7 @@ export function EvaluationMainForm({
         />
 
         {/* ANOTAÇÕES */}
-        <FormField
+        {/* <FormField
           control={form.control}
           name="notes"
           render={({ field }) => (
@@ -351,7 +351,7 @@ export function EvaluationMainForm({
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <Accordion type="single" collapsible>
           {/* BIOMICROSCOPIA */}
           <AccordionItem value="biomicroscopy">
@@ -477,245 +477,6 @@ export function EvaluationMainForm({
               </div>
             </AccordionContent>
           </AccordionItem>
-
-          {/* TONOMETRIA */}
-          <AccordionItem value="tonometry">
-            <AccordionTrigger>
-              <h3 className="flex items-center gap-2">
-                Tonometria
-                {isTonometryFilled && (
-                  <MdOutlineCheck className="text-green-500" />
-                )}
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          handleCopyLastData(["tonometryOD", "tonometryOS"])
-                        }
-                      >
-                        <MdOutlineFileCopy size={18} />
-                        Importar última
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Importar última</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          handleCopyODToOE("tonometryOD", "tonometryOS")
-                        }
-                      >
-                        <MdSwitchLeft size={18} />
-                        OE semelhante
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>OE semelhante</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          handleClearFields(["tonometryOD", "tonometryOS"])
-                        }
-                      >
-                        <MdDeleteOutline size={18} />
-                        Limpar
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Limpar</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="tonometryOD"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OD</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Informe o resultado"
-                            value={field.value ?? ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="tonometryOS"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OE</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Informe o resultado"
-                            value={field.value ?? ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          {/* PAQUIMETRIA */}
-          <AccordionItem value="pachymetry">
-            <AccordionTrigger>
-              <h3 className="flex items-center gap-2">
-                Paquimetria
-                {isPachymetryFilled && (
-                  <MdOutlineCheck className="text-green-500" />
-                )}
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4 bg-card-foreground p-2">
-              <div className="flex gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          handleCopyLastData(["pachymetryOD", "pachymetryOS"])
-                        }
-                      >
-                        <MdOutlineFileCopy size={18} />
-                        Importar última
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Importar última</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          handleCopyODToOE("pachymetryOD", "pachymetryOS")
-                        }
-                      >
-                        <MdSwitchLeft size={18} />
-                        OE semelhante
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>OE semelhante</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          handleClearFields(["pachymetryOD", "pachymetryOS"])
-                        }
-                      >
-                        <MdDeleteOutline size={18} />
-                        Limpar
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Limpar</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="pachymetryOD"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OD</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Informe o resultado"
-                            value={field.value ?? ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="pachymetryOS"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OE</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Informe o resultado"
-                            value={field.value ?? ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
           {/* FUNDOSCOPIA */}
           <AccordionItem value="fundoscopy">
             <AccordionTrigger>
@@ -834,7 +595,6 @@ export function EvaluationMainForm({
               </div>
             </AccordionContent>
           </AccordionItem>
-
           {/* GONIOSCOPIA */}
           <AccordionItem value="gonioscopy">
             <AccordionTrigger>
@@ -953,66 +713,95 @@ export function EvaluationMainForm({
               </div>
             </AccordionContent>
           </AccordionItem>
-
-          {/* OCT */}
-          <AccordionItem value="oct">
+          {/* PAQUIMETRIA */}
+          <AccordionItem value="pachymetry">
             <AccordionTrigger>
               <h3 className="flex items-center gap-2">
-                OCT
-                {isOctFilled && <MdOutlineCheck className="text-green-500" />}
+                Paquimetria
+                {isPachymetryFilled && (
+                  <MdOutlineCheck className="text-green-500" />
+                )}
               </h3>
             </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex justify-between gap-1">
-                <h4>OCT</h4>
-                <div className="flex gap-2">
-                  {form.getValues("octOD") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton fileName={`octOD-${rightEyeId}`}>
-                            OD
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OD</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  {form.getValues("octOS") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton fileName={`octOS-${leftEyeId}`}>
-                            OE
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OE</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
+            <AccordionContent className="flex flex-col gap-4 p-2">
+              <div className="flex gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          handleCopyLastData(["pachymetryOD", "pachymetryOS"])
+                        }
+                      >
+                        <MdOutlineFileCopy size={18} />
+                        Importar última
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Importar última</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          handleCopyODToOE("pachymetryOD", "pachymetryOS")
+                        }
+                      >
+                        <MdSwitchLeft size={18} />
+                        OE semelhante
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>OE semelhante</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          handleClearFields(["pachymetryOD", "pachymetryOS"])
+                        }
+                      >
+                        <MdDeleteOutline size={18} />
+                        Limpar
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Limpar</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
 
               <div className="flex flex-col gap-4 sm:flex-row">
-                {/* OD */}
                 <div className="w-full">
                   <FormField
                     control={form.control}
-                    name="octOD"
+                    name="pachymetryOD"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>OD</FormLabel>
                         <FormControl>
                           <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
+                            {...field}
+                            placeholder="Informe o resultado"
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1020,21 +809,18 @@ export function EvaluationMainForm({
                     )}
                   />
                 </div>
-                {/* OS */}
                 <div className="w-full">
                   <FormField
                     control={form.control}
-                    name="octOS"
+                    name="pachymetryOS"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>OE</FormLabel>
                         <FormControl>
                           <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
+                            {...field}
+                            placeholder="Informe o resultado"
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1045,72 +831,95 @@ export function EvaluationMainForm({
               </div>
             </AccordionContent>
           </AccordionItem>
-
-          {/* RETINOGRAFIA */}
-          <AccordionItem value="retinography">
+          {/* TONOMETRIA */}
+          <AccordionItem value="tonometry">
             <AccordionTrigger>
               <h3 className="flex items-center gap-2">
-                Retinografia
-                {isRetinographyFilled && (
+                Tonometria
+                {isTonometryFilled && (
                   <MdOutlineCheck className="text-green-500" />
                 )}
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex justify-between gap-1">
-                <h4>Retinografia</h4>
-                <div className="flex gap-2">
-                  {form.getValues("retinographyOD") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`retinographyOD-${rightEyeId}`}
-                          >
-                            OD
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OD</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  {form.getValues("retinographyOS") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`retinographyOS-${leftEyeId}`}
-                          >
-                            OE
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OE</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
+              <div className="flex gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          handleCopyLastData(["tonometryOD", "tonometryOS"])
+                        }
+                      >
+                        <MdOutlineFileCopy size={18} />
+                        Importar última
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Importar última</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          handleCopyODToOE("tonometryOD", "tonometryOS")
+                        }
+                      >
+                        <MdSwitchLeft size={18} />
+                        OE semelhante
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>OE semelhante</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          handleClearFields(["tonometryOD", "tonometryOS"])
+                        }
+                      >
+                        <MdDeleteOutline size={18} />
+                        Limpar
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Limpar</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
 
               <div className="flex flex-col gap-4 sm:flex-row">
-                {/* OD */}
                 <div className="w-full">
                   <FormField
                     control={form.control}
-                    name="retinographyOD"
+                    name="tonometryOD"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>OD</FormLabel>
                         <FormControl>
                           <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
+                            {...field}
+                            placeholder="Informe o resultado"
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1118,21 +927,18 @@ export function EvaluationMainForm({
                     )}
                   />
                 </div>
-                {/* OS */}
                 <div className="w-full">
                   <FormField
                     control={form.control}
-                    name="retinographyOS"
+                    name="tonometryOS"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>OE</FormLabel>
                         <FormControl>
                           <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
+                            {...field}
+                            placeholder="Informe o resultado"
+                            value={field.value ?? ""}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1143,105 +949,9 @@ export function EvaluationMainForm({
               </div>
             </AccordionContent>
           </AccordionItem>
-
-          {/* CAMPO VISUAL */}
-          <AccordionItem value="visualField">
-            <AccordionTrigger>
-              <h3 className="flex items-center gap-2">
-                Campo Visual
-                {isVisualFieldFilled && (
-                  <MdOutlineCheck className="text-green-500" />
-                )}
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex justify-between gap-1">
-                <h4>Campo Visual</h4>
-                <div className="flex gap-2">
-                  {form.getValues("visualFieldOD") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`visualFieldOD-${rightEyeId}`}
-                          >
-                            OD
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OD</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  {form.getValues("visualFieldOS") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`visualFieldOS-${leftEyeId}`}
-                          >
-                            OE
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OE</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                {/* OD */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="visualFieldOD"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OD</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {/* OS */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="visualFieldOS"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OE</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
+        </Accordion>
+        <Accordion type="single" collapsible>
+          {" "}
           {/* ANGIOGRAFIA */}
           <AccordionItem value="angiography">
             <AccordionTrigger>
@@ -1339,7 +1049,291 @@ export function EvaluationMainForm({
               </div>
             </AccordionContent>
           </AccordionItem>
+          {/* CAMPO VISUAL */}
+          <AccordionItem value="visualField">
+            <AccordionTrigger>
+              <h3 className="flex items-center gap-2">
+                Campo Visual
+                {isVisualFieldFilled && (
+                  <MdOutlineCheck className="text-green-500" />
+                )}
+              </h3>
+            </AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-4 px-2">
+              <div className="flex justify-between gap-1">
+                <h4>Campo Visual</h4>
+                <div className="flex gap-2">
+                  {form.getValues("visualFieldOD") && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AccessFileButton
+                            fileName={`visualFieldOD-${rightEyeId}`}
+                          >
+                            OD
+                          </AccessFileButton>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Acessar arquivo OD</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                  {form.getValues("visualFieldOS") && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AccessFileButton
+                            fileName={`visualFieldOS-${leftEyeId}`}
+                          >
+                            OE
+                          </AccessFileButton>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Acessar arquivo OE</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+              </div>
 
+              <div className="flex flex-col gap-4 sm:flex-row">
+                {/* OD */}
+                <div className="w-full">
+                  <FormField
+                    control={form.control}
+                    name="visualFieldOD"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>OD</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) void handleFileUpload(file, field.name);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                {/* OS */}
+                <div className="w-full">
+                  <FormField
+                    control={form.control}
+                    name="visualFieldOS"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>OE</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) void handleFileUpload(file, field.name);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+          {/* OCT */}
+          <AccordionItem value="oct">
+            <AccordionTrigger>
+              <h3 className="flex items-center gap-2">
+                OCT
+                {isOctFilled && <MdOutlineCheck className="text-green-500" />}
+              </h3>
+            </AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-4 px-2">
+              <div className="flex justify-between gap-1">
+                <h4>OCT</h4>
+                <div className="flex gap-2">
+                  {form.getValues("octOD") && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AccessFileButton fileName={`octOD-${rightEyeId}`}>
+                            OD
+                          </AccessFileButton>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Acessar arquivo OD</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                  {form.getValues("octOS") && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AccessFileButton fileName={`octOS-${leftEyeId}`}>
+                            OE
+                          </AccessFileButton>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Acessar arquivo OE</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 sm:flex-row">
+                {/* OD */}
+                <div className="w-full">
+                  <FormField
+                    control={form.control}
+                    name="octOD"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>OD</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) void handleFileUpload(file, field.name);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                {/* OS */}
+                <div className="w-full">
+                  <FormField
+                    control={form.control}
+                    name="octOS"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>OE</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) void handleFileUpload(file, field.name);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+          {/* RETINOGRAFIA */}
+          <AccordionItem value="retinography">
+            <AccordionTrigger>
+              <h3 className="flex items-center gap-2">
+                Retinografia
+                {isRetinographyFilled && (
+                  <MdOutlineCheck className="text-green-500" />
+                )}
+              </h3>
+            </AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-4 px-2">
+              <div className="flex justify-between gap-1">
+                <h4>Retinografia</h4>
+                <div className="flex gap-2">
+                  {form.getValues("retinographyOD") && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AccessFileButton
+                            fileName={`retinographyOD-${rightEyeId}`}
+                          >
+                            OD
+                          </AccessFileButton>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Acessar arquivo OD</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                  {form.getValues("retinographyOS") && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AccessFileButton
+                            fileName={`retinographyOS-${leftEyeId}`}
+                          >
+                            OE
+                          </AccessFileButton>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Acessar arquivo OE</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 sm:flex-row">
+                {/* OD */}
+                <div className="w-full">
+                  <FormField
+                    control={form.control}
+                    name="retinographyOD"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>OD</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) void handleFileUpload(file, field.name);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                {/* OS */}
+                <div className="w-full">
+                  <FormField
+                    control={form.control}
+                    name="retinographyOS"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>OE</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) void handleFileUpload(file, field.name);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
           {/* TC DE CÓRNEA */}
           <AccordionItem value="ctCornea">
             <AccordionTrigger>

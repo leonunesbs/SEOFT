@@ -210,6 +210,8 @@ export const patientRouter = createTRPCRouter({
             where: { done: true },
             orderBy: { createdAt: "desc" },
             include: {
+              clinic: true,
+              collaborator: true,
               eyes: {
                 include: {
                   leftEye: {

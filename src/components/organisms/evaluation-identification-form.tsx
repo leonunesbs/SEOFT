@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "../ui/select";
 
+import Link from "next/link";
 import { type UseFormReturn } from "react-hook-form";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
@@ -59,7 +60,13 @@ export function EvaluationIdentificationForm({
           <CardHeader>
             <div className="flex items-center gap-1">
               <Badge variant="outline">{patient.refId}</Badge>
-              <CardTitle>{patient.name}</CardTitle>
+              <Link
+                href={`/patients/${patient.id}`}
+                passHref
+                className="hover:underline"
+              >
+                <CardTitle>{patient.name}</CardTitle>
+              </Link>
             </div>
             <CardDescription className="flex gap-2">
               <span>

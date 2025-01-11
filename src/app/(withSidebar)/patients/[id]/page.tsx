@@ -1,14 +1,23 @@
 import { MdOutlineHistory, MdOutlineUploadFile } from "react-icons/md";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 
-import { AddEvaluationButton } from "~/components/atoms/add-evaluation-button";
-import { Button } from "~/components/ui/button";
-import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { AddEvaluationButton } from "~/components/atoms/add-evaluation-button";
 import { PageHeading } from "~/components/atoms/page-heading";
 import { PatientForm } from "~/components/organisms/patient-form";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { db } from "~/server/db";
-import { notFound } from "next/navigation";
 
 type Params = Promise<{ id: string }>;
 export default async function Patient({ params }: { params: Params }) {
@@ -22,6 +31,8 @@ export default async function Patient({ params }: { params: Params }) {
           collaborator: { select: { name: true } },
           clinic: { select: { name: true } },
         },
+        orderBy: { createdAt: "desc" },
+        take: 6,
       },
     },
   });
@@ -70,42 +81,57 @@ export default async function Patient({ params }: { params: Params }) {
         }}
       />
       <Separator className="my-4" />
-      <div>
-        <h2 className="text-xl font-bold">Evaluation History</h2>
-        <ul>
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">Útimas Avaliações</h2>
+
+        {/* Grid responsivo para acomodar os cards */}
+        <div className="grid grid-cols-1 gap-4">
           {patient.evaluations.map((evaluation) => (
-            <li key={evaluation.id} className="my-2 border p-4">
-              <p>
-                <strong>Collaborator:</strong>{" "}
-                {evaluation.collaborator?.name || "Unknown"}
-              </p>
-              <p>
-                <strong>Clinic:</strong> {evaluation.clinic?.name || "Unknown"}
-              </p>
-              <p>
-                <strong>Diagnosis:</strong> {evaluation.diagnosis || "N/A"}
-              </p>
-              <p>
-                <strong>Treatment:</strong> {evaluation.treatment || "N/A"}
-              </p>
-              <p>
-                <strong>Follow Up:</strong> {evaluation.followUp || "N/A"}
-              </p>
-              <p>
-                <strong>Next Appointment:</strong>{" "}
-                {evaluation.nextAppointment || "N/A"}
-              </p>
-              <p>
-                <strong>Date:</strong>{" "}
-                {new Date(evaluation.createdAt).toLocaleString()}
-              </p>
-              <p>
-                <strong>Status:</strong>{" "}
-                {evaluation.done ? "Completed" : "Pending"}
-              </p>
-            </li>
+            <Card key={evaluation.id} className="shadow-sm">
+              <CardHeader>
+                <CardTitle>
+                  {evaluation.clinic?.name || "Não adicionado"}
+                </CardTitle>
+                <CardDescription>
+                  {evaluation.collaborator?.name || "Não adicionado"}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-2">
+                <p>
+                  <strong>Data:</strong>{" "}
+                  {new Date(evaluation.createdAt).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Diagnóstico:</strong> {evaluation.diagnosis || "N/A"}
+                </p>
+                <p>
+                  <strong>Tratamento:</strong> {evaluation.treatment || "N/A"}
+                </p>
+                <p>
+                  <strong>Acompanhamento:</strong>{" "}
+                  {evaluation.followUp || "N/A"}
+                </p>
+                <p>
+                  <strong>Próxima consulta:</strong>{" "}
+                  {evaluation.nextAppointment || "N/A"}
+                </p>
+              </CardContent>
+
+              <CardFooter className="flex items-center justify-between">
+                {/* Exemplo de uso de Badge para o status */}
+                <Badge variant={evaluation.done ? "default" : "secondary"}>
+                  {evaluation.done ? "Finalizado" : "Pendente"}
+                </Badge>
+                <Link href={`/evaluations/${evaluation.id}`} passHref>
+                  <Button variant="outline" size="sm">
+                    Ver Detalhes
+                  </Button>
+                </Link>
+              </CardFooter>
+            </Card>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );
