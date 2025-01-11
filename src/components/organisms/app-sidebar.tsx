@@ -3,10 +3,12 @@ import Link from "next/link";
 import * as React from "react";
 import {
   MdGroup,
+  MdLink,
   MdOutlineArchive,
   MdOutlineAssignmentInd,
   MdOutlineAssistant,
   MdOutlineAttribution,
+  MdOutlineHome,
   MdOutlineLockPerson,
   MdOutlinePersonAdd,
   MdOutlineSearch,
@@ -55,6 +57,12 @@ export function AppSidebar({
     }[];
   } = {
     navMain: [
+      {
+        title: "Incío",
+        url: "/",
+        icon: <MdOutlineHome size={18} />,
+        items: [],
+      },
       {
         title: "Avaliações",
         url: "#",
@@ -113,6 +121,23 @@ export function AppSidebar({
             title: "Ambulatórios",
             url: "/settings/clinics",
             icon: <MdOutlineAttribution size={18} />,
+          },
+        ],
+      },
+      {
+        title: "Outros",
+        url: "#",
+        icon: <MdOutlineArchive size={18} />,
+        items: [
+          {
+            title: "AntiVEGF",
+            url: "https://antivegf.seoft.com.br",
+            icon: <MdLink size={18} />,
+          },
+          {
+            title: "Justificativas",
+            url: "https://just.seoft.com.br",
+            icon: <MdLink size={18} />,
           },
         ],
       },
