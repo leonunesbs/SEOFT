@@ -48,7 +48,7 @@ export default async function Patient({ params }: { params: Params }) {
           <Button asChild variant={"outline"}>
             <Link href={`/patients/${patient.id}/history`}>
               <MdOutlineHistory />
-              Histórico
+              <span className="hidden sm:inline">Histórico</span>
             </Link>
           </Button>
 
@@ -59,7 +59,7 @@ export default async function Patient({ params }: { params: Params }) {
             customChildren={
               <>
                 <MdOutlineUploadFile />
-                Nova Avaliação
+                <span className="hidden sm:inline">Nova Avaliação</span>
               </>
             }
             customLoading={

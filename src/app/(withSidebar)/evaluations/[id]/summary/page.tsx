@@ -343,7 +343,7 @@ export default async function EvaluationSummaryPage({
               aria-label={`Histórico de ${patient.name}`}
             >
               <MdOutlineHistory size={18} />
-              Histórico
+              <span className="hidden sm:inline">Histórico</span>
             </Button>
           </Link>
           {/* Botão para reabrir a avaliação */}
