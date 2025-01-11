@@ -37,7 +37,7 @@ export default async function PatientHistoryPage({
   const lastEvaluationClinic = patient.evaluations[0]?.clinic?.name || "N/A";
 
   return (
-    <div className="space-y-4 pl-2">
+    <div className="space-y-4">
       <PageHeading>Histórico do Paciente</PageHeading>
       {/* Header */}
 
