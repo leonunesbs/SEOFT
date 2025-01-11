@@ -51,7 +51,7 @@ export function ResidentsTable({ data }: ResidentsTableProps) {
             <TableHead>Nome</TableHead>
             <TableHead>CRM</TableHead>
             <TableHead>Nível</TableHead>
-            <TableHead>Clínicas</TableHead>
+            <TableHead>Ambulatórios</TableHead>
             <TableHead className="whitespace-nowrap">Ações</TableHead>
           </TableRow>
         </TableHeader>

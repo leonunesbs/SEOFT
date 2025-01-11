@@ -53,7 +53,7 @@ export function StaffsTable({ data }: StaffsTableProps) {
             <TableHead>Nome</TableHead>
             <TableHead>CRM</TableHead>
             <TableHead>Cargo</TableHead>
-            <TableHead>Clínicas</TableHead>
+            <TableHead>Ambulatórios</TableHead>
             <TableHead className="whitespace-nowrap">Ações</TableHead>
           </TableRow>
         </TableHeader>

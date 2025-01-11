@@ -1,6 +1,5 @@
 "use client";
 
-import { MdDelete, MdSave } from "react-icons/md";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import { MdDelete, MdSave } from "react-icons/md";
 import {
   Select,
   SelectContent,
@@ -29,15 +29,15 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { MultiSelect } from "~/components/ui/multi-select";
-import { useToast } from "~/hooks/use-toast";
 import { api } from "~/trpc/react";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useToast } from "~/hooks/use-toast";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const roles = [
   "I1",
@@ -240,7 +240,7 @@ export function StaffForm({ initialData, allClinics }: StaffFormProps) {
             name="clinics"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Clínicas</FormLabel>
+                <FormLabel>Ambulatórios</FormLabel>
                 <FormControl>
                   <MultiSelect
                     options={allClinics.map((clinic) => ({

@@ -48,7 +48,7 @@ export default async function Dashboard() {
           <Card>
             <CardHeader>
               <CardTitle>
-                <h2 className="font-medium">Clínicas</h2>
+                <h2 className="font-medium">Ambulatórios</h2>
               </CardTitle>
             </CardHeader>
             <CardContent>

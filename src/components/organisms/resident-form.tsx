@@ -220,7 +220,7 @@ export function ResidentForm({ initialData, allClinics }: ResidentFormProps) {
             name="clinics"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Clínicas</FormLabel>
+                <FormLabel>Ambulatórios</FormLabel>
                 <FormControl>
                   <MultiSelect
                     options={allClinics.map((clinic) => ({
