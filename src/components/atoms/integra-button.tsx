@@ -9,7 +9,7 @@ interface IntegraButtonProps extends ButtonProps {
 
 export function IntegraButton({ ...props }: IntegraButtonProps) {
   return (
-    <Link href={"/integra"} className="link" passHref {...props.linkProps}>
+    <Link href={"/integra"} target="_blank" passHref {...props.linkProps}>
       <Button {...props}>
         <MdLink size={18} />
         <span className="hidden sm:inline">Acessar</span> Integra
