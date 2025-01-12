@@ -5,19 +5,19 @@ import {
 } from "~/components/ui/sidebar";
 import { auth, signOut } from "~/server/auth";
 
+import Form from "next/form";
+import { cookies } from "next/headers";
+import Image from "next/image";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { MdLogout } from "react-icons/md";
+import { IntegraButton } from "~/components/atoms/integra-button";
+import { ThemeToggle } from "~/components/atoms/theme-toggle";
+import { CustomBreadcrumbs } from "~/components/molecules/custom-breadcrumbs";
 import { AppSidebar } from "~/components/organisms/app-sidebar";
 import { Button } from "~/components/ui/button";
-import { CustomBreadcrumbs } from "~/components/molecules/custom-breadcrumbs";
-import Form from "next/form";
-import { HydrateClient } from "~/trpc/server";
-import Image from "next/image";
-import { IntegraButton } from "~/components/atoms/integra-button";
-import Link from "next/link";
-import { MdLogout } from "react-icons/md";
-import { ThemeToggle } from "~/components/atoms/theme-toggle";
-import { cookies } from "next/headers";
 import { db } from "~/server/db";
-import { redirect } from "next/navigation";
+import { HydrateClient } from "~/trpc/server";
 
 export default async function Layout({
   children,
@@ -52,7 +52,7 @@ export default async function Layout({
         currentCollaboratorId={collaboratorId ?? undefined}
       />
       <SidebarInset>
-        <header className="sticky top-0 z-50 flex h-16 max-h-16 grow items-center justify-between gap-2 border-b bg-background px-4 sm:px-6 md:px-8">
+        <header className="sticky top-0 z-50 flex h-16 max-h-16 grow items-center justify-between gap-2 border-b bg-background px-2 sm:px-4 md:px-8">
           <div className="flex items-center">
             <SidebarTrigger className="-ml-1 mr-1" />
             <Link
