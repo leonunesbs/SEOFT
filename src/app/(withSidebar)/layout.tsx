@@ -83,7 +83,8 @@ export default async function Layout({
               }}
             >
               <Button variant={"outline"} type="submit">
-                <MdLogout size={18} /> Sair
+                <MdLogout size={18} />
+                <span className="hidden sm:inline">Sair</span>
               </Button>
             </Form>
           </div>
