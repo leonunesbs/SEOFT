@@ -1,5 +1,6 @@
 "use client";
 
+import { MdDelete, MdSave } from "react-icons/md";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +20,6 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { MdDelete, MdSave } from "react-icons/md";
 import {
   Select,
   SelectContent,
@@ -28,25 +28,25 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { MultiSelect } from "~/components/ui/multi-select";
-import { api } from "~/trpc/react";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { useToast } from "~/hooks/use-toast";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { api } from "~/trpc/react";
 
 const formSchema = z.object({
   id: z.string().optional(),
   name: z
     .string()
-    .min(1, { message: "O nome do colaborador é obrigatório." })
+    .min(1, { message: "O nome do médico é obrigatório." })
     .toUpperCase(),
   crm: z
     .string()
-    .min(1, { message: "O CRM do colaborador é obrigatório." })
+    .min(1, { message: "O CRM do médico é obrigatório." })
     .regex(/^\d+$/, { message: "O CRM deve conter apenas números." }),
   role: z.enum(["R1", "R2", "R3", "F1", "F2", "F3"], {
     required_error: "Selecione o nível de residência.",

@@ -231,7 +231,7 @@ export default async function EvaluationSummaryPage({
     output += `- Data: ${
       evaluation.createdAt ? formatDate(evaluation.createdAt) : "N/A"
     }\n`;
-    output += `- Colaborador: ${collaborator.name || "N/A"}\n`;
+    output += `- Médico: ${collaborator.name || "N/A"}\n`;
     output += `- Ambulatório: ${clinic?.name || "N/A"}\n`;
     output += `- Dados Clínicos: ${evaluation.clinicalData?.trim() || "N/A"}\n`;
     output += `- Diagnóstico: ${evaluation.diagnosis || "N/A"}\n`;
@@ -386,7 +386,7 @@ export default async function EvaluationSummaryPage({
             {evaluation.createdAt ? formatDate(evaluation.createdAt) : "N/A"}
           </p>
           <p>
-            <strong>Colaborador:</strong> {collaborator.name || "N/A"}
+            <strong>Médico:</strong> {collaborator.name || "N/A"}
           </p>
           <p>
             <strong>Ambulatório:</strong> {clinic?.name || "N/A"}{" "}

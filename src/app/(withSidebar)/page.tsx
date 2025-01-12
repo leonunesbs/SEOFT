@@ -10,9 +10,9 @@ import {
   TableRow,
 } from "~/components/ui/table";
 
-import { HydrateClient } from "~/trpc/server";
 import Link from "next/link";
 import { db } from "~/server/db";
+import { HydrateClient } from "~/trpc/server";
 
 export default async function Dashboard() {
   const patientsCount = await db.patient.count();
@@ -58,7 +58,7 @@ export default async function Dashboard() {
           <Card>
             <CardHeader>
               <CardTitle>
-                <h2 className="font-medium">Colaboradores</h2>
+                <h2 className="font-medium">Médicos</h2>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -87,7 +87,7 @@ export default async function Dashboard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Paciente</TableHead>
-                  <TableHead>Colaborador</TableHead>
+                  <TableHead>Médico</TableHead>
                   <TableHead>Ambulatório</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Status</TableHead>

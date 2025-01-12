@@ -1,8 +1,8 @@
-import { Button } from "~/components/ui/button";
-import { ClinicsTable } from "~/components/organisms/clinics-table";
 import Link from "next/link";
 import { MdAddCircleOutline } from "react-icons/md";
 import { PageHeading } from "~/components/atoms/page-heading";
+import { ClinicsTable } from "~/components/organisms/clinics-table";
+import { Button } from "~/components/ui/button";
 import { db } from "~/server/db";
 
 export default async function ClinicsPage() {
@@ -46,7 +46,7 @@ export default async function ClinicsPage() {
                 ? collaborators
                     .map((colAssoc) => colAssoc.collaborator.name)
                     .join(", ")
-                : "Nenhum colaborador",
+                : "Nenhum médico",
           }))}
         />
       </div>

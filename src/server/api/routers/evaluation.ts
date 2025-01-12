@@ -8,7 +8,7 @@ const evaluationSchema = z.object({
   id: z.string().optional(),
   patientId: z.string({ message: "O ID do paciente deve ser um CUID válido." }),
   collaboratorId: z.string({
-    message: "O ID do colaborador deve ser um CUID válido.",
+    message: "O ID do médico deve ser um CUID válido.",
   }),
   clinicId: z
     .string({ message: "O ID do ambulatório deve ser um UUID válido." })

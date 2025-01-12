@@ -36,7 +36,7 @@ export function StaffsTable({ data }: StaffsTableProps) {
   if (data.length === 0) {
     return (
       <p className="text-center text-sm text-gray-500">
-        Nenhum colaborador encontrado.
+        Nenhum médico encontrado.
       </p>
     );
   }
@@ -45,7 +45,7 @@ export function StaffsTable({ data }: StaffsTableProps) {
     <div className="overflow-x-auto rounded border">
       <Table className="w-full">
         <TableCaption>
-          Lista de colaboradores cadastrados no sistema e seus ambulatórios
+          Lista de médicos cadastrados no sistema e seus ambulatórios
           associadas.
         </TableCaption>
         <TableHeader>

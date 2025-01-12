@@ -136,7 +136,7 @@ export function UserForm({ initialData }: UserFormProps) {
             name="isStaff"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Colaborador</FormLabel>
+                <FormLabel>Médico</FormLabel>
                 <div className="flex items-center gap-2">
                   <FormControl>
                     <Switch

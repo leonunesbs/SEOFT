@@ -1,5 +1,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import {
   Table,
   TableBody,
   TableCaption,
@@ -8,16 +14,10 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
 
-import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { MdEdit } from "react-icons/md";
+import { Button } from "~/components/ui/button";
 
 type User = {
   id: string;
@@ -45,7 +45,7 @@ export function UsersTable({ data }: { data: User[] }) {
             <TableHead></TableHead>
             <TableHead>Nome</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead className="whitespace-nowrap">Colaborador</TableHead>
+            <TableHead className="whitespace-nowrap">Médico</TableHead>
             <TableHead className="whitespace-nowrap">Ações</TableHead>
           </TableRow>
         </TableHeader>

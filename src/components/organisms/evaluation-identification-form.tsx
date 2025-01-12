@@ -89,7 +89,7 @@ export function EvaluationIdentificationForm({
                 name="collaborator"
                 render={({ field }) => (
                   <FormItem className="w-full sm:w-3/5">
-                    <FormLabel>Colaborador</FormLabel>
+                    <FormLabel>Médico</FormLabel>
                     <FormControl>
                       <Input
                         {...field}

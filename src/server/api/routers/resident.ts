@@ -6,11 +6,11 @@ const residentSchema = z.object({
   id: z.string().optional(),
   name: z
     .string()
-    .min(1, { message: "O nome do colaborador é obrigatório." })
+    .min(1, { message: "O nome do médico é obrigatório." })
     .toUpperCase(),
   crm: z
     .string()
-    .min(1, { message: "O CRM do colaborador é obrigatório." })
+    .min(1, { message: "O CRM do médico é obrigatório." })
     .regex(/^\d+$/, { message: "O CRM deve conter apenas números." }),
   role: z.enum(
     ["I1", "I2", "I3", "I4", "R1", "R2", "R3", "F1", "F2", "F3", "STAFF"],

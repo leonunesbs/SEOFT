@@ -188,7 +188,7 @@ export function ClinicForm({ initialData, allCollaborators }: ClinicFormProps) {
             name="collaborators"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Colaboradores</FormLabel>
+                <FormLabel>Médicos</FormLabel>
                 <FormControl>
                   <MultiSelect
                     options={allCollaborators.map((collaborator) => ({
@@ -205,7 +205,7 @@ export function ClinicForm({ initialData, allCollaborators }: ClinicFormProps) {
                   />
                 </FormControl>
                 <FormDescription>
-                  Selecione os colaboradores associados à clínica.
+                  Selecione os médicos associados ao ambulatório.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

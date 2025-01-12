@@ -83,10 +83,10 @@ export default async function PatientHistoryPage({
             <Card key={evaluation.id} className="shadow-sm">
               <CardHeader>
                 <CardTitle>
-                  {evaluation.clinic?.name || "Não adicionado"}
+                  {evaluation.clinic?.name || "Clínica não adicionada"}
                 </CardTitle>
                 <CardDescription>
-                  {evaluation.collaborator?.name || "Não adicionado"}
+                  {evaluation.collaborator?.name || "Médico não selecionado"}
                 </CardDescription>
               </CardHeader>
 

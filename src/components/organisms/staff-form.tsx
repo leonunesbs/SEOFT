@@ -1,5 +1,6 @@
 "use client";
 
+import { MdDelete, MdSave } from "react-icons/md";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,7 +21,6 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { MdDelete, MdSave } from "react-icons/md";
 import {
   Select,
   SelectContent,
@@ -29,15 +29,15 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { MultiSelect } from "~/components/ui/multi-select";
-import { api } from "~/trpc/react";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { useToast } from "~/hooks/use-toast";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { api } from "~/trpc/react";
 
 const roles = [
   "I1",
@@ -100,7 +100,7 @@ export function StaffForm({ initialData, allClinics }: StaffFormProps) {
   const createStaff = api.staff.create.useMutation({
     onError: (error) => {
       toast({
-        title: "Erro ao criar colaborador",
+        title: "Erro ao criar médico",
         description: error.message || "Algo deu errado.",
         variant: "destructive",
         duration: 4000,
@@ -120,7 +120,7 @@ export function StaffForm({ initialData, allClinics }: StaffFormProps) {
   const updateStaff = api.staff.update.useMutation({
     onError: (error) => {
       toast({
-        title: "Erro ao atualizar colaborador",
+        title: "Erro ao atualizar médico",
         description: error.message || "Algo deu errado.",
         variant: "destructive",
         duration: 4000,
@@ -139,7 +139,7 @@ export function StaffForm({ initialData, allClinics }: StaffFormProps) {
   const deleteStaff = api.staff.delete.useMutation({
     onError: (error) => {
       toast({
-        title: "Erro ao excluir colaborador",
+        title: "Erro ao excluir médico",
         description: error.message || "Algo deu errado.",
         variant: "destructive",
         duration: 4000,
@@ -199,7 +199,7 @@ export function StaffForm({ initialData, allClinics }: StaffFormProps) {
               <FormItem>
                 <FormLabel>CRM</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Digite o CRM do colaborador" />
+                  <Input {...field} placeholder="Digite o CRM do médico" />
                 </FormControl>
                 <FormDescription>
                   Informe apenas números. Exemplo: 123456.
@@ -229,7 +229,7 @@ export function StaffForm({ initialData, allClinics }: StaffFormProps) {
                   </Select>
                 </FormControl>
                 <FormDescription>
-                  Selecione o cargo ou função atual do colaborador.
+                  Selecione o cargo ou função atual do médico.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -255,7 +255,7 @@ export function StaffForm({ initialData, allClinics }: StaffFormProps) {
                   />
                 </FormControl>
                 <FormDescription>
-                  Selecione os ambulatórios em que o colaborador atua.
+                  Selecione os ambulatórios em que o médico atua.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -280,7 +280,7 @@ export function StaffForm({ initialData, allClinics }: StaffFormProps) {
                   <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
                   <AlertDialogDescription>
                     Esta ação não pode ser desfeita. Isso excluirá
-                    permanentemente este colaborador.
+                    permanentemente este médico.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

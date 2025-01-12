@@ -33,7 +33,7 @@ export function CollaboratorSwitcher({
   >();
   const [loading, setLoading] = React.useState(true);
 
-  // Ordenar e agrupar colaboradores por Role
+  // Ordenar e agrupar médicos por Role
   const groupedCollaborators = React.useMemo(() => {
     const roleOrder = ["R1", "R2", "R3", "F1", "F2", "F3", "STAFF"] as Role[];
 
@@ -53,7 +53,7 @@ export function CollaboratorSwitcher({
 
   const handleSelect = React.useCallback(
     async (collaborator: Collaborator) => {
-      if (collaborator.id === selectedCollaborator) return; // Impede clique no colaborador já selecionado
+      if (collaborator.id === selectedCollaborator) return; // Impede clique no médico já selecionado
 
       setLoading(true);
       await fetch("/api/v1/collaborator-switcher", {

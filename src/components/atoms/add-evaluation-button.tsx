@@ -59,8 +59,7 @@ export function AddEvaluationButton({
     if (isCollaboratorLoading) {
       toast({
         title: "Carregando",
-        description:
-          "Aguarde enquanto carregamos as informações do colaborador.",
+        description: "Aguarde enquanto carregamos as informações do médico.",
         variant: "default",
         duration: 3000,
       });
@@ -72,7 +71,7 @@ export function AddEvaluationButton({
         title: "Erro!",
         description:
           collaboratorError?.message ??
-          "Colaborador não encontrado. Verifique o menu lateral ou atualize a página.",
+          "Médico não encontrado. Verifique o menu lateral ou atualize a página.",
         variant: "destructive",
         duration: 3000,
       });

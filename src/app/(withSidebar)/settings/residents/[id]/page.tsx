@@ -36,7 +36,7 @@ export default async function StaffPage({ params }: { params: Params }) {
   if (!resident) {
     return (
       <p className="text-center text-sm text-gray-500">
-        Colaborador não encontrado.
+        Médico não encontrado.
       </p>
     );
   }
