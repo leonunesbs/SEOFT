@@ -3,10 +3,10 @@
 import { Button, ButtonProps } from "../ui/button";
 
 import { Loader2 } from "lucide-react";
-import { MdOutlineUploadFile } from "react-icons/md";
-import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
+import { MdOutlineUploadFile } from "react-icons/md";
 import { useToast } from "~/hooks/use-toast";
+import { api } from "~/trpc/react";
 
 interface AddEvaluationButtonProps extends ButtonProps {
   patientId: string;
@@ -72,7 +72,7 @@ export function AddEvaluationButton({
         title: "Erro!",
         description:
           collaboratorError?.message ??
-          "Colaborador não encontrado. Verifique o menu lateral.",
+          "Colaborador não encontrado. Verifique o menu lateral ou atualize a página.",
         variant: "destructive",
         duration: 3000,
       });
