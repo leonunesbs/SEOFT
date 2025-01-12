@@ -39,8 +39,8 @@ export default async function Patient({ params }: { params: Params }) {
 
   if (!patient) return notFound();
   return (
-    <div className="pl-2">
-      <div className="mb-4 flex items-center justify-between">
+    <div>
+      <div className="mb-4 flex justify-between">
         <PageHeading>Detalhes do Paciente</PageHeading>
         <div className="flex gap-2">
           {/* Botão para reabrir a avaliação */}
