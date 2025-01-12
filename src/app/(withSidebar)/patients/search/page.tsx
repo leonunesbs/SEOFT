@@ -1,13 +1,14 @@
-import { Button } from "~/components/ui/button";
+import { Search } from "lucide-react";
 import Form from "next/form";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { MdOutlineSearch } from "react-icons/md";
+import { z } from "zod";
+import { SearchTable } from "~/components/organisms/search-table";
+import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { MdOutlineSearch } from "react-icons/md";
-import { Search } from "lucide-react";
-import { SearchTable } from "~/components/organisms/search-table";
 import { api } from "~/trpc/server";
-import { redirect } from "next/navigation";
-import { z } from "zod";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 const searchSchema = z.object({
@@ -63,7 +64,11 @@ export default async function SearchPatient({
       )}
       {queryString && patients.length === 0 && (
         <p className="text-center text-sm text-gray-500">
-          Nenhum paciente encontrado.
+          Nenhum paciente encontrado.{" "}
+          <Link href="/patients/add" className="text-primary">
+            Adicionar paciente
+          </Link>
+          .
         </p>
       )}
     </div>

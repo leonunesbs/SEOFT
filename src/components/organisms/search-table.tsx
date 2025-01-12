@@ -30,7 +30,11 @@ export function SearchTable({ data }: { data: Patient[] }) {
   if (data.length === 0) {
     return (
       <p className="text-center text-sm text-gray-500">
-        Nenhum paciente encontrado.
+        Nenhum paciente encontrado.{" "}
+        <Link href="/patients/add" className="text-primary">
+          Adicionar paciente
+        </Link>
+        .
       </p>
     );
   }
