@@ -17,7 +17,9 @@ export function IntegraButton({ ...props }: IntegraButtonProps) {
     >
       <Button {...props}>
         <MdLink size={18} />
-        <span className="hidden sm:inline">Acessar Integra</span>
+        <div className="flex gap-1">
+          <span className="hidden sm:inline">Acessar</span>Integra
+        </div>
       </Button>
     </Link>
   );
