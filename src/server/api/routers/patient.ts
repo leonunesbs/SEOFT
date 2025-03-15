@@ -83,10 +83,7 @@ export const patientRouter = createTRPCRouter({
         });
 
         if (!patient) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Paciente não encontrado.",
-          });
+          return null;
         }
 
         return {

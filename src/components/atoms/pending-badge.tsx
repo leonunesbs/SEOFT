@@ -1,13 +1,13 @@
 "use client";
 
+import { Badge } from "../ui/badge";
 import { Loader2 } from "lucide-react";
 import { api } from "~/trpc/react";
-import { Badge } from "../ui/badge";
 
 export function PendingBadge({ collaboratorId }: { collaboratorId: string }) {
   const { data: pendingEvaluations, isLoading } =
     api.evaluation.pendingEvaluations.useQuery(collaboratorId, {
-      refetchInterval: 10000, // Refresh every 10 seconds
+      refetchInterval: 60000, // Refresh every 60 seconds
       refetchOnMount: true,
       refetchOnReconnect: true,
       refetchOnWindowFocus: true,

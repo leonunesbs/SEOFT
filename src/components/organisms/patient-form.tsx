@@ -20,13 +20,15 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { MdDelete, MdSave } from "react-icons/md";
+import { MdDelete, MdEdit, MdSave } from "react-icons/md";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Loader2 } from "lucide-react";
 import { api } from "~/trpc/react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useToast } from "~/hooks/use-toast";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -83,13 +85,32 @@ type PatientFormProps = {
     name: string;
     birthDate: string; // ISO string
   };
+  patient?: {
+    id: string;
+    refId: string;
+    name: string;
+    birthDate: string; // ISO string
+  };
+  redirect?: boolean;
 };
 
-export function PatientForm({ initialData }: PatientFormProps) {
+export function PatientForm({
+  initialData,
+  redirect = true,
+}: PatientFormProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const [patient, setPatient] = useState<
+    | {
+        id: string;
+        refId: string;
+        name: string;
+        birthDate: string;
+      }
+    | undefined
+  >(undefined);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const formHandler = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData
       ? {
@@ -120,8 +141,8 @@ export function PatientForm({ initialData }: PatientFormProps) {
         variant: "default",
         duration: 2000,
       });
-      form.reset();
-      router.push(`/patients/${patient.id}`);
+      formHandler.reset();
+      if (redirect) router.push(`/patients/${patient.id}`);
     },
   });
   const updatePatient = api.patient.update.useMutation({
@@ -140,7 +161,7 @@ export function PatientForm({ initialData }: PatientFormProps) {
         variant: "default",
         duration: 2000,
       });
-      router.push(`/patients/search?q=${data.refId}`);
+      if (redirect) router.push(`/patients/search?q=${data.refId}`);
     },
   });
   const deletePatient = api.patient.delete.useMutation({
@@ -151,8 +172,8 @@ export function PatientForm({ initialData }: PatientFormProps) {
         variant: "default",
         duration: 2000,
       });
-      form.reset();
-      router.push("/patients/search");
+      formHandler.reset();
+      if (redirect) router.push("/patients/search");
     },
     onError(error) {
       toast({
@@ -163,10 +184,12 @@ export function PatientForm({ initialData }: PatientFormProps) {
       });
     },
   });
-  // const refetchPatient = api.patient.get.useQuery(
-  //   { refId: form.getValues("refId") },
-  //   { enabled: false },
-  // );
+  const refetchPatient = api.patient.get.useQuery(
+    { refId: formHandler.watch("refId") },
+    {
+      enabled: false,
+    },
+  );
 
   const isLoading =
     createPatient.isPending ||
@@ -194,16 +217,38 @@ export function PatientForm({ initialData }: PatientFormProps) {
     await deletePatient.mutateAsync(initialData.id);
   }
 
+  const handleRefIdBlur = async () => {
+    if (!formHandler.getValues("refId")) return;
+    await refetchPatient
+      .refetch()
+      .then(({ data }) => {
+        if (data) {
+          formHandler.setValue("name", data.name);
+          formHandler.setValue("birthDate", formatToDDMMYYYY(data.birthDate));
+          setPatient({
+            refId: data.refId,
+            id: data.refId,
+            name: data.name,
+            birthDate: data.birthDate,
+          });
+        }
+      })
+      .catch(() => {
+        formHandler.setValue("name", formHandler.getValues("name"));
+        formHandler.setValue("birthDate", formHandler.getValues("birthDate"));
+      });
+  };
+
   return (
-    <Form {...form}>
+    <Form {...formHandler}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={formHandler.handleSubmit(onSubmit)}
         className="flex flex-col gap-4"
         aria-label="Formulário de Edição de Paciente"
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
-            control={form.control}
+            control={formHandler.control}
             name="refId"
             render={({ field, fieldState }) => (
               <FormItem>
@@ -211,25 +256,37 @@ export function PatientForm({ initialData }: PatientFormProps) {
                   Nº do prontuário
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    id="refId"
-                    placeholder="Digite o número do prontuário"
-                    {...field}
-                    disabled={!!initialData}
-                    aria-disabled={!!initialData}
-                    aria-invalid={fieldState.invalid}
-                    aria-describedby="refId-error"
-                  />
+                  <div className="relative flex w-full items-center">
+                    <Input
+                      id="refId"
+                      placeholder="Digite o número do prontuário"
+                      {...field}
+                      disabled={!!initialData || !!patient}
+                      aria-disabled={!!initialData}
+                      aria-invalid={fieldState.invalid}
+                      aria-describedby="refId-error"
+                      onBlur={handleRefIdBlur}
+                    />
+                    {refetchPatient.isFetching && (
+                      <Loader2
+                        size={20}
+                        className="absolute top-[50%] animate-spin"
+                      />
+                    )}
+                  </div>
                 </FormControl>
-                <FormDescription id="refId-description">
-                  Insira o número do prontuário do paciente.
-                </FormDescription>
+                {!initialData && (
+                  <FormDescription id="refId-description">
+                    Insira o número do prontuário do paciente.
+                  </FormDescription>
+                )}
                 <FormMessage id="refId-error" />
               </FormItem>
             )}
           />
+
           <FormField
-            control={form.control}
+            control={formHandler.control}
             name="name"
             render={({ field, fieldState }) => (
               <FormItem>
@@ -241,17 +298,20 @@ export function PatientForm({ initialData }: PatientFormProps) {
                     {...field}
                     aria-invalid={fieldState.invalid}
                     aria-describedby="name-error"
+                    disabled={!!patient}
                   />
                 </FormControl>
-                <FormDescription id="name-description">
-                  Exemplo: João da Silva.
-                </FormDescription>
+                {!initialData && (
+                  <FormDescription id="name-description">
+                    Exemplo: João da Silva.
+                  </FormDescription>
+                )}
                 <FormMessage id="name-error" />
               </FormItem>
             )}
           />
           <FormField
-            control={form.control}
+            control={formHandler.control}
             name="birthDate"
             render={({ field, fieldState }) => (
               <FormItem>
@@ -267,11 +327,14 @@ export function PatientForm({ initialData }: PatientFormProps) {
                     }}
                     aria-invalid={fieldState.invalid}
                     aria-describedby="birthDate-error"
+                    disabled={!!patient}
                   />
                 </FormControl>
-                <FormDescription id="birthDate-description">
-                  Insira a data no formato DD/MM/YYYY. Digite apenas números.
-                </FormDescription>
+                {!initialData && (
+                  <FormDescription id="birthDate-description">
+                    Insira a data no formato DD/MM/YYYY. Digite apenas números.
+                  </FormDescription>
+                )}
                 <FormMessage id="birthDate-error" />
               </FormItem>
             )}
@@ -308,7 +371,19 @@ export function PatientForm({ initialData }: PatientFormProps) {
               </AlertDialogContent>
             </AlertDialog>
           )}
-          <Button type="submit" disabled={isLoading}>
+          {!initialData && (
+            <Button
+              type="button"
+              variant={"outline"}
+              onClick={() => {
+                setPatient(undefined);
+              }}
+            >
+              <MdEdit size={20} />
+              Editar
+            </Button>
+          )}
+          <Button type="submit" disabled={isLoading || !!patient}>
             <MdSave size={20} />
             {isLoading ? "Salvando..." : "Salvar"}
           </Button>

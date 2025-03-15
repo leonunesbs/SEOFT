@@ -2,6 +2,7 @@ import { type Collaborator } from "@prisma/client";
 import Link from "next/link";
 import * as React from "react";
 import {
+  MdBlurOn,
   MdGroup,
   MdLink,
   MdOutlineArchive,
@@ -60,7 +61,7 @@ export function AppSidebar({
   } = {
     navMain: [
       {
-        title: "Incío",
+        title: "Início",
         url: "/",
         icon: <MdOutlineHome size={18} />,
         items: [],
@@ -94,6 +95,18 @@ export function AppSidebar({
           {
             title: "Adicionar",
             url: "/patients/add",
+            icon: <MdOutlinePersonAdd size={18} />,
+          },
+        ],
+      },
+      {
+        title: "Procedimentos",
+        url: "#",
+        icon: <MdBlurOn size={18} />,
+        items: [
+          {
+            title: "Adicionar",
+            url: "/procedures/add",
             icon: <MdOutlinePersonAdd size={18} />,
           },
         ],
