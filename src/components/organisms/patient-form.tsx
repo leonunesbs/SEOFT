@@ -1,5 +1,6 @@
 "use client";
 
+import { MdDelete, MdEdit, MdSave } from "react-icons/md";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,18 +21,16 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { MdDelete, MdEdit, MdSave } from "react-icons/md";
 
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Loader2 } from "lucide-react";
-import { api } from "~/trpc/react";
-import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useToast } from "~/hooks/use-toast";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { useToast } from "~/hooks/use-toast";
+import { api } from "~/trpc/react";
 
 function applyDateMask(event: React.ChangeEvent<HTMLInputElement>) {
   const input = event.target;
@@ -267,12 +266,6 @@ export function PatientForm({
                       aria-describedby="refId-error"
                       onBlur={handleRefIdBlur}
                     />
-                    {refetchPatient.isFetching && (
-                      <Loader2
-                        size={20}
-                        className="absolute top-[50%] animate-spin"
-                      />
-                    )}
                   </div>
                 </FormControl>
                 {!initialData && (
