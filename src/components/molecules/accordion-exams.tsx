@@ -90,6 +90,8 @@ function ActionButtons({
           visualField: "VISUAL_FIELD",
           angiography: "ANGIOGRAPHY",
           ctCornea: "CT_CORNEA",
+          opticalBiometry: "OPTICAL_BIOMETRY",
+          specularMicroscopy: "SPECULAR_MICROSCOPY",
           // Add other mappings as needed
         };
 
@@ -241,6 +243,15 @@ export function AccordionExams({
   const angiographyOD = form.watch("angiographyOD");
   const angiographyOS = form.watch("angiographyOS");
   const isAngiographyFilled = !!angiographyOD || !!angiographyOS;
+
+  const opticalBiometryOD = form.watch("opticalBiometryOD");
+  const opticalBiometryOS = form.watch("opticalBiometryOS");
+  const isOpticalBiometryFilled = !!opticalBiometryOD || !!opticalBiometryOS;
+
+  const specularMicroscopyOD = form.watch("specularMicroscopyOD");
+  const specularMicroscopyOS = form.watch("specularMicroscopyOS");
+  const isSpecularMicroscopyFilled =
+    !!specularMicroscopyOD || !!specularMicroscopyOS;
 
   const ctCorneaOD = form.watch("ctCorneaOD");
   const ctCorneaOS = form.watch("ctCorneaOS");
@@ -540,6 +551,120 @@ export function AccordionExams({
                 )}
               />
             </div>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+      {/* BIOMETRIA */}
+      <AccordionItem value="opticalBiometry">
+        <AccordionTrigger>
+          <h3 className="flex items-center gap-2">
+            Biometria óptica
+            {isOpticalBiometryFilled && (
+              <MdOutlineCheck className="text-green-500" />
+            )}
+          </h3>
+        </AccordionTrigger>
+        <AccordionContent className="flex flex-col gap-4 px-2">
+          <ActionButtons
+            fields={["opticalBiometryOD", "opticalBiometryOS"]}
+            form={form}
+            lastEvaluationData={lastEvaluationData}
+          />
+
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="w-full">
+              <FormField
+                control={form.control}
+                name="opticalBiometryOD"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>OD</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Informe o resultado"
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="w-full">
+              <FormField
+                control={form.control}
+                name="opticalBiometryOS"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>OE</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Informe o resultado"
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+      {/* MICROSCOPIA ESPECULAR */}
+      <AccordionItem value="specularMicroscopy" className="mb-4">
+        <AccordionTrigger>
+          <h3 className="flex items-center gap-2">
+            Miscrocopia especular
+            {isSpecularMicroscopyFilled && (
+              <MdOutlineCheck className="text-green-500" />
+            )}
+          </h3>
+        </AccordionTrigger>
+        <AccordionContent className="flex flex-col gap-4 px-2">
+          <ActionButtons
+            fields={["specularMicroscopyOD", "specularMicroscopyOS"]}
+            form={form}
+            lastEvaluationData={lastEvaluationData}
+          />
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="specularMicroscopyOD"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>OD</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Informe o resultado"
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="specularMicroscopyOS"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>OE</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Informe o resultado"
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </AccordionContent>
       </AccordionItem>

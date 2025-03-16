@@ -26,6 +26,10 @@ export type EvaluationMainFormValues = {
   tonometryOS?: string;
   pachymetryOD?: string;
   pachymetryOS?: string;
+  opticalBiometryOD?: string;
+  opticalBiometryOS?: string;
+  specularMicroscopyOD?: string;
+  specularMicroscopyOS?: string;
   octOD?: FileList | null;
   octOS?: FileList | null;
   visualFieldOD?: FileList | null;

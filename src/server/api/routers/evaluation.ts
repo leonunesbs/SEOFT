@@ -26,6 +26,10 @@ const evaluationSchema = z.object({
   retinographyOS: z.string().optional(),
   tcCorneaOD: z.string().optional(),
   tcCorneaOS: z.string().optional(),
+  opticalBiometryOD: z.string().optional(),
+  opticalBiometryOS: z.string().optional(),
+  specularMicroscopyOD: z.string().optional(),
+  specularMicroscopyOS: z.string().optional(),
   octOD: z.string().optional(),
   octOS: z.string().optional(),
   angiographyOD: z.string().optional(),
@@ -115,6 +119,8 @@ export const evaluationRouter = createTRPCRouter({
         { type: "ANGIOGRAPHY", details: input.angiographyOS },
         { type: "VISUAL_FIELD", details: input.visualFieldOS },
         { type: "PACHYMETRY", details: input.pachymetryOS },
+        { type: "OPTICAL_BIOMETRY", details: input.opticalBiometryOS },
+        { type: "SPECULAR_MICROSCOPY", details: input.specularMicroscopyOS },
       ]);
 
       // Logs para o olho direito
@@ -129,6 +135,8 @@ export const evaluationRouter = createTRPCRouter({
         { type: "ANGIOGRAPHY", details: input.angiographyOD },
         { type: "VISUAL_FIELD", details: input.visualFieldOD },
         { type: "PACHYMETRY", details: input.pachymetryOD },
+        { type: "OPTICAL_BIOMETRY", details: input.opticalBiometryOD },
+        { type: "SPECULAR_MICROSCOPY", details: input.specularMicroscopyOD },
       ]);
       return await ctx.db.evaluation.update({
         where: { id: input.id },

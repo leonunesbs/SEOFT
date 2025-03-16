@@ -173,7 +173,9 @@ export default async function EvaluationSummaryPage({
   // Função para formatar data
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return "";
-    return new Date(date).toLocaleDateString("pt-BR");
+    return new Date(date).toLocaleDateString("pt-BR", {
+      timeZone: "UTC",
+    });
   };
 
   // Logs dos olhos
@@ -209,7 +211,9 @@ export default async function EvaluationSummaryPage({
     // Função para formatar data
     const formatDate = (date: Date | string | null | undefined) => {
       if (!date) return "";
-      return new Date(date).toLocaleDateString("pt-BR");
+      return new Date(date).toLocaleDateString("pt-BR", {
+        timeZone: "UTC",
+      });
     };
 
     // Seção 1: Informações do Paciente

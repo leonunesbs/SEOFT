@@ -43,6 +43,10 @@ const mainFormSchema = z.object({
   ctCorneaOS: z.any().optional(),
   angiographyOD: z.any().optional(),
   angiographyOS: z.any().optional(),
+  opticalBiometryOD: z.string().optional(),
+  opticalBiometryOS: z.string().optional(),
+  specularMicroscopyOD: z.string().optional(),
+  specularMicroscopyOS: z.string().optional(),
   visualFieldOD: z.any().optional(),
   visualFieldOS: z.any().optional(),
   retinographyOD: z.any().optional(),
@@ -177,11 +181,22 @@ export function EvaluationForm({
       pachymetryOS:
         evaluation.eyes?.leftEye?.logs.find((log) => log.type === "PACHYMETRY")
           ?.details ?? "",
-      clinicalData: evaluation.clinicalData ?? "",
-      diagnosis: evaluation.diagnosis ?? "",
-      treatment: evaluation.treatment ?? "",
-      followUp: evaluation.followUp ?? "",
-      nextAppointment: evaluation.nextAppointment ?? "",
+      opticalBiometryOD:
+        evaluation.eyes?.rightEye?.logs.find(
+          (log) => log.type === "OPTICAL_BIOMETRY",
+        )?.details ?? "",
+      opticalBiometryOS:
+        evaluation.eyes?.leftEye?.logs.find(
+          (log) => log.type === "OPTICAL_BIOMETRY",
+        )?.details ?? "",
+      specularMicroscopyOD:
+        evaluation.eyes?.rightEye?.logs.find(
+          (log) => log.type === "SPECULAR_MICROSCOPY",
+        )?.details ?? "",
+      specularMicroscopyOS:
+        evaluation.eyes?.leftEye?.logs.find(
+          (log) => log.type === "SPECULAR_MICROSCOPY",
+        )?.details ?? "",
       octOD: evaluation.eyes?.rightEye?.logs.find((log) => log.type === "OCT")
         ?.details,
       octOS: evaluation.eyes?.leftEye?.logs.find((log) => log.type === "OCT")
@@ -210,6 +225,11 @@ export function EvaluationForm({
       retinographyOS: evaluation.eyes?.leftEye?.logs.find(
         (log) => log.type === "RETINOGRAPHY",
       )?.details,
+      clinicalData: evaluation.clinicalData ?? "",
+      diagnosis: evaluation.diagnosis ?? "",
+      treatment: evaluation.treatment ?? "",
+      followUp: evaluation.followUp ?? "",
+      nextAppointment: evaluation.nextAppointment ?? "",
     },
   });
 
@@ -274,6 +294,8 @@ export function EvaluationForm({
       rightEyeId: evaluation.eyes?.rightEyeId,
       leftEyeId: evaluation.eyes?.leftEyeId,
     };
+
+    console.log(payload);
 
     updateEvaluation.mutate(payload);
   };
