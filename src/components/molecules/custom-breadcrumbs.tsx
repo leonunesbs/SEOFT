@@ -70,18 +70,6 @@ const routeConfig: RouteConfig[] = [
     ],
   },
   {
-    path: "/procedures",
-    label: () => "Procedimentos",
-    redirectUrl: "#",
-    children: [
-      {
-        path: "/procedures/add",
-        label: () => "Adicionar",
-        redirectUrl: "/procedures/add",
-      },
-    ],
-  },
-  {
     path: "/settings",
     label: () => "Ajustes",
     redirectUrl: "#",

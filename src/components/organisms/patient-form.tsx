@@ -1,6 +1,5 @@
 "use client";
 
-import { MdDelete, MdEdit, MdSave } from "react-icons/md";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,16 +20,16 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import { MdDelete, MdSave } from "react-icons/md";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { useToast } from "~/hooks/use-toast";
 import { api } from "~/trpc/react";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useToast } from "~/hooks/use-toast";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 function applyDateMask(event: React.ChangeEvent<HTMLInputElement>) {
   const input = event.target;
@@ -99,15 +98,6 @@ export function PatientForm({
 }: PatientFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [patient, setPatient] = useState<
-    | {
-        id: string;
-        refId: string;
-        name: string;
-        birthDate: string;
-      }
-    | undefined
-  >(undefined);
 
   const formHandler = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -183,12 +173,6 @@ export function PatientForm({
       });
     },
   });
-  const refetchPatient = api.patient.get.useQuery(
-    { refId: formHandler.watch("refId") },
-    {
-      enabled: false,
-    },
-  );
 
   const isLoading =
     createPatient.isPending ||
@@ -216,28 +200,6 @@ export function PatientForm({
     await deletePatient.mutateAsync(initialData.id);
   }
 
-  const handleRefIdBlur = async () => {
-    if (!formHandler.getValues("refId")) return;
-    await refetchPatient
-      .refetch()
-      .then(({ data }) => {
-        if (data) {
-          formHandler.setValue("name", data.name);
-          formHandler.setValue("birthDate", formatToDDMMYYYY(data.birthDate));
-          setPatient({
-            refId: data.refId,
-            id: data.refId,
-            name: data.name,
-            birthDate: data.birthDate,
-          });
-        }
-      })
-      .catch(() => {
-        formHandler.setValue("name", formHandler.getValues("name"));
-        formHandler.setValue("birthDate", formHandler.getValues("birthDate"));
-      });
-  };
-
   return (
     <Form {...formHandler}>
       <form
@@ -260,11 +222,10 @@ export function PatientForm({
                       id="refId"
                       placeholder="Digite o número do prontuário"
                       {...field}
-                      disabled={!!initialData || !!patient}
+                      disabled={!!initialData}
                       aria-disabled={!!initialData}
                       aria-invalid={fieldState.invalid}
                       aria-describedby="refId-error"
-                      onBlur={handleRefIdBlur}
                     />
                   </div>
                 </FormControl>
@@ -291,7 +252,6 @@ export function PatientForm({
                     {...field}
                     aria-invalid={fieldState.invalid}
                     aria-describedby="name-error"
-                    disabled={!!patient}
                   />
                 </FormControl>
                 {!initialData && (
@@ -320,7 +280,6 @@ export function PatientForm({
                     }}
                     aria-invalid={fieldState.invalid}
                     aria-describedby="birthDate-error"
-                    disabled={!!patient}
                   />
                 </FormControl>
                 {!initialData && (
@@ -364,19 +323,7 @@ export function PatientForm({
               </AlertDialogContent>
             </AlertDialog>
           )}
-          {!initialData && (
-            <Button
-              type="button"
-              variant={"outline"}
-              onClick={() => {
-                setPatient(undefined);
-              }}
-            >
-              <MdEdit size={20} />
-              Editar
-            </Button>
-          )}
-          <Button type="submit" disabled={isLoading || !!patient}>
+          <Button type="submit" disabled={isLoading}>
             <MdSave size={20} />
             {isLoading ? "Salvando..." : "Salvar"}
           </Button>

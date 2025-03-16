@@ -121,8 +121,6 @@ export function EvaluationIdentificationForm({
                           {clinics.map((clinic) => (
                             <SelectItem key={clinic.id} value={clinic.id}>
                               {clinic.name}
-                              {clinic.collaborators.length > 0 &&
-                                ` (${clinic.collaborators.map((collab) => collab.collaborator.name).join(", ")})`}
                             </SelectItem>
                           ))}
                         </SelectContent>

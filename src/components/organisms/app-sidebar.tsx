@@ -2,7 +2,6 @@ import { type Collaborator } from "@prisma/client";
 import Link from "next/link";
 import * as React from "react";
 import {
-  MdBlurOn,
   MdGroup,
   MdLink,
   MdOutlineArchive,
@@ -99,19 +98,6 @@ export function AppSidebar({
           },
         ],
       },
-      {
-        title: "Procedimentos",
-        url: "#",
-        icon: <MdBlurOn size={18} />,
-        items: [
-          {
-            title: "Adicionar",
-            url: "/procedures/add",
-            icon: <MdOutlinePersonAdd size={18} />,
-          },
-        ],
-      },
-
       {
         title: "Ajustes",
         url: "#",

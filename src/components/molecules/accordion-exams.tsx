@@ -210,9 +210,9 @@ export function AccordionExams({
     }
   };
 
-  const biomicrsocopyOD = form.watch("biomicroscopyOD");
-  const biomicrsocopyOS = form.watch("biomicroscopyOS");
-  const isBiomicroscopyFilled = !!biomicrsocopyOD || !!biomicrsocopyOS;
+  const biomicroscopyOD = form.watch("biomicroscopyOD");
+  const biomicroscopyOS = form.watch("biomicroscopyOS");
+  const isBiomicroscopyFilled = !!biomicroscopyOD || !!biomicroscopyOS;
 
   const tonometryOD = form.watch("tonometryOD");
   const tonometryOS = form.watch("tonometryOS");

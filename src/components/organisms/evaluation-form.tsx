@@ -249,12 +249,19 @@ export function EvaluationForm({
 
   const handleSubmitMainForm = (data: MainFormValues, done = false) => {
     if (identificationForm.getValues("clinic") === "") {
+      identificationForm.setFocus("clinic");
+      identificationForm.setError("clinic", {
+        type: "required",
+        message: "Selecione um ambulatório.",
+      });
       toast({
         title: "Erro!",
         description: "Selecione um ambulatório.",
         variant: "destructive",
       });
       return;
+    } else {
+      identificationForm.clearErrors("clinic");
     }
 
     const payload = {
