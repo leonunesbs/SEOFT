@@ -1,3 +1,4 @@
+import { UseFormReturn, useForm } from "react-hook-form";
 import {
   MdDeleteOutline,
   MdOutlineCheck,
@@ -26,12 +27,12 @@ import {
 } from "../ui/tooltip";
 
 import { Prisma } from "@prisma/client";
-import { UseFormReturn } from "react-hook-form";
 import { AccessFileButton } from "../atoms/access-file-button";
 import { EvaluationMainFormValues } from "../organisms/evaluation-main-form";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { OpticalBiometryFormFields } from "./opticalBiometry-form-fields";
 
 function ActionButtons({
   fields,
@@ -186,6 +187,42 @@ export function AccordionExams({
     };
   }>;
 }) {
+  const opticalBiometryForm = useForm<{
+    OD: {
+      AL?: string;
+      K1?: string;
+      K1_axis?: string;
+      K2?: string;
+      K2_axis?: string;
+      DeltaK?: string;
+      DeltaK_axis?: string;
+      ACD?: string;
+      LT?: string;
+      WTW?: string;
+    };
+    OS: {
+      AL?: string;
+      K1?: string;
+      K1_axis?: string;
+      K2?: string;
+      K2_axis?: string;
+      DeltaK?: string;
+      DeltaK_axis?: string;
+      ACD?: string;
+      LT?: string;
+      WTW?: string;
+    };
+  }>({
+    defaultValues: {
+      OD: form.getValues("opticalBiometryOD")
+        ? JSON.parse(form.getValues("opticalBiometryOD") as string)
+        : undefined,
+      OS: form.getValues("opticalBiometryOS")
+        ? JSON.parse(form.getValues("opticalBiometryOS") as string)
+        : undefined,
+    },
+  });
+
   const handleFileUpload = async (
     file: File,
     fieldName: keyof EvaluationMainFormValues,
@@ -261,12 +298,19 @@ export function AccordionExams({
   const retinographyOD = form.watch("retinographyOD");
   const retinographyOS = form.watch("retinographyOS");
   const isRetinographyFilled = !!retinographyOD || !!retinographyOS;
+
   return (
     <Tabs defaultValue="propaedeutics" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="propaedeutics">Propedêutica</TabsTrigger>
-        <TabsTrigger value="images">Imagens</TabsTrigger>
-        <TabsTrigger value="optics">Óptica</TabsTrigger>
+        <TabsTrigger id="propaedeutics" value="propaedeutics">
+          Propedêutica
+        </TabsTrigger>
+        <TabsTrigger id="images" value="images">
+          Imagens
+        </TabsTrigger>
+        <TabsTrigger id="optics" value="optics">
+          Óptica
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="propaedeutics">
@@ -570,9 +614,9 @@ export function AccordionExams({
       <TabsContent value="optics">
         <Accordion type="single" collapsible>
           {/* BIOMETRIA */}
-          <AccordionItem value="opticalBiometry">
+          <AccordionItem value="optical-biometry">
             <AccordionTrigger>
-              <h3 className="flex items-center gap-2">
+              <h3 className="flex items-center gap-4">
                 Biometria óptica
                 {isOpticalBiometryFilled && (
                   <MdOutlineCheck className="text-green-500" />
@@ -580,49 +624,33 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <ActionButtons
-                fields={["opticalBiometryOD", "opticalBiometryOS"]}
-                form={form}
-                lastEvaluationData={lastEvaluationData}
-              />
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="opticalBiometryOD"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OD</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Informe o resultado"
-                            value={field.value ?? ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-2">
+                  <h4 className="font-bold">OD</h4>
+                  <input
+                    type="hidden"
+                    {...form.register("opticalBiometryOD", {
+                      value: JSON.stringify(opticalBiometryForm.watch("OD")),
+                    })}
+                  />
+                  <OpticalBiometryFormFields
+                    form={opticalBiometryForm}
+                    mainForm={form}
+                    eye={"OD"}
                   />
                 </div>
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="opticalBiometryOS"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OE</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Informe o resultado"
-                            value={field.value ?? ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                <div className="grid grid-cols-1 gap-4">
+                  <h4 className="font-bold">OE</h4>
+                  <input
+                    type="hidden"
+                    {...form.register("opticalBiometryOS", {
+                      value: JSON.stringify(opticalBiometryForm.watch("OS")),
+                    })}
+                  />
+                  <OpticalBiometryFormFields
+                    mainForm={form}
+                    form={opticalBiometryForm}
+                    eye={"OS"}
                   />
                 </div>
               </div>
