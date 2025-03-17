@@ -51,12 +51,14 @@ export function OpticalBiometryFormFields({
               onChange: () => {
                 mainForm.setValue(
                   `opticalBiometry${eye}`,
-                  JSON.stringify({
-                    ...JSON.parse(
-                      mainForm.getValues(`opticalBiometry${eye}`) as string,
-                    ),
-                    AL: getValues(`${eye}.AL`),
-                  }),
+                  mainForm.getValues(`opticalBiometry${eye}`)
+                    ? JSON.stringify({
+                        ...JSON.parse(
+                          mainForm.getValues(`opticalBiometry${eye}`) as string,
+                        ),
+                        AL: getValues(`${eye}.AL`),
+                      })
+                    : "",
                 );
               },
             })}
@@ -74,12 +76,16 @@ export function OpticalBiometryFormFields({
                 onChange: () => {
                   mainForm.setValue(
                     `opticalBiometry${eye}`,
-                    JSON.stringify({
-                      ...JSON.parse(
-                        mainForm.getValues(`opticalBiometry${eye}`) as string,
-                      ),
-                      K1: getValues(`${eye}.K1`),
-                    }),
+                    mainForm.getValues(`opticalBiometry${eye}`)
+                      ? JSON.stringify({
+                          ...JSON.parse(
+                            mainForm.getValues(
+                              `opticalBiometry${eye}`,
+                            ) as string,
+                          ),
+                          K1: getValues(`${eye}.K1`),
+                        })
+                      : "",
                   );
                 },
               })}
@@ -96,12 +102,16 @@ export function OpticalBiometryFormFields({
                 onChange: () => {
                   mainForm.setValue(
                     `opticalBiometry${eye}`,
-                    JSON.stringify({
-                      ...JSON.parse(
-                        mainForm.getValues(`opticalBiometry${eye}`) as string,
-                      ),
-                      K1_axis: getValues(`${eye}.K1_axis`),
-                    }),
+                    mainForm.getValues(`opticalBiometry${eye}`)
+                      ? JSON.stringify({
+                          ...JSON.parse(
+                            mainForm.getValues(
+                              `opticalBiometry${eye}`,
+                            ) as string,
+                          ),
+                          K1_axis: getValues(`${eye}.K1_axis`),
+                        })
+                      : "",
                   );
                 },
               })}
@@ -120,12 +130,16 @@ export function OpticalBiometryFormFields({
                 onChange: () => {
                   mainForm.setValue(
                     `opticalBiometry${eye}`,
-                    JSON.stringify({
-                      ...JSON.parse(
-                        mainForm.getValues(`opticalBiometry${eye}`) as string,
-                      ),
-                      K2: getValues(`${eye}.K2`),
-                    }),
+                    mainForm.getValues(`opticalBiometry${eye}`)
+                      ? JSON.stringify({
+                          ...JSON.parse(
+                            mainForm.getValues(
+                              `opticalBiometry${eye}`,
+                            ) as string,
+                          ),
+                          K2: getValues(`${eye}.K2`),
+                        })
+                      : "",
                   );
                 },
               })}
@@ -142,12 +156,16 @@ export function OpticalBiometryFormFields({
                 onChange: () => {
                   mainForm.setValue(
                     `opticalBiometry${eye}`,
-                    JSON.stringify({
-                      ...JSON.parse(
-                        mainForm.getValues(`opticalBiometry${eye}`) as string,
-                      ),
-                      K2_axis: getValues(`${eye}.K2_axis`),
-                    }),
+                    mainForm.getValues(`opticalBiometry${eye}`)
+                      ? JSON.stringify({
+                          ...JSON.parse(
+                            mainForm.getValues(
+                              `opticalBiometry${eye}`,
+                            ) as string,
+                          ),
+                          K2_axis: getValues(`${eye}.K2_axis`),
+                        })
+                      : "",
                   );
                 },
               })}
@@ -166,12 +184,16 @@ export function OpticalBiometryFormFields({
                 onChange: () => {
                   mainForm.setValue(
                     `opticalBiometry${eye}`,
-                    JSON.stringify({
-                      ...JSON.parse(
-                        mainForm.getValues(`opticalBiometry${eye}`) as string,
-                      ),
-                      DeltaK: getValues(`${eye}.DeltaK`),
-                    }),
+                    mainForm.getValues(`opticalBiometry${eye}`)
+                      ? JSON.stringify({
+                          ...JSON.parse(
+                            mainForm.getValues(
+                              `opticalBiometry${eye}`,
+                            ) as string,
+                          ),
+                          DeltaK: getValues(`${eye}.DeltaK`),
+                        })
+                      : "",
                   );
                 },
               })}
@@ -188,12 +210,16 @@ export function OpticalBiometryFormFields({
                 onChange: () => {
                   mainForm.setValue(
                     `opticalBiometry${eye}`,
-                    JSON.stringify({
-                      ...JSON.parse(
-                        mainForm.getValues(`opticalBiometry${eye}`) as string,
-                      ),
-                      DeltaK_axis: getValues(`${eye}.DeltaK_axis`),
-                    }),
+                    mainForm.getValues(`opticalBiometry${eye}`)
+                      ? JSON.stringify({
+                          ...JSON.parse(
+                            mainForm.getValues(
+                              `opticalBiometry${eye}`,
+                            ) as string,
+                          ),
+                          DeltaK_axis: getValues(`${eye}.DeltaK_axis`),
+                        })
+                      : "",
                   );
                 },
               })}
@@ -211,12 +237,14 @@ export function OpticalBiometryFormFields({
               onChange: () => {
                 mainForm.setValue(
                   `opticalBiometry${eye}`,
-                  JSON.stringify({
-                    ...JSON.parse(
-                      mainForm.getValues(`opticalBiometry${eye}`) as string,
-                    ),
-                    ACD: getValues(`${eye}.ACD`),
-                  }),
+                  mainForm.getValues(`opticalBiometry${eye}`)
+                    ? JSON.stringify({
+                        ...JSON.parse(
+                          mainForm.getValues(`opticalBiometry${eye}`) as string,
+                        ),
+                        ACD: getValues(`${eye}.ACD`),
+                      })
+                    : "",
                 );
               },
             })}
@@ -233,12 +261,14 @@ export function OpticalBiometryFormFields({
               onChange: () => {
                 mainForm.setValue(
                   `opticalBiometry${eye}`,
-                  JSON.stringify({
-                    ...JSON.parse(
-                      mainForm.getValues(`opticalBiometry${eye}`) as string,
-                    ),
-                    LT: getValues(`${eye}.LT`),
-                  }),
+                  mainForm.getValues(`opticalBiometry${eye}`)
+                    ? JSON.stringify({
+                        ...JSON.parse(
+                          mainForm.getValues(`opticalBiometry${eye}`) as string,
+                        ),
+                        LT: getValues(`${eye}.LT`),
+                      })
+                    : "",
                 );
               },
             })}
@@ -255,12 +285,14 @@ export function OpticalBiometryFormFields({
               onChange: () => {
                 mainForm.setValue(
                   `opticalBiometry${eye}`,
-                  JSON.stringify({
-                    ...JSON.parse(
-                      mainForm.getValues(`opticalBiometry${eye}`) as string,
-                    ),
-                    WTW: getValues(`${eye}.WTW`),
-                  }),
+                  mainForm.getValues(`opticalBiometry${eye}`)
+                    ? JSON.stringify({
+                        ...JSON.parse(
+                          mainForm.getValues(`opticalBiometry${eye}`) as string,
+                        ),
+                        WTW: getValues(`${eye}.WTW`),
+                      })
+                    : "",
                 );
               },
             })}
