@@ -223,6 +223,8 @@ export function AccordionExams({
     },
   });
 
+  console.log(form.getValues("opticalBiometryOD"));
+
   const handleFileUpload = async (
     file: File,
     fieldName: keyof EvaluationMainFormValues,
@@ -299,6 +301,9 @@ export function AccordionExams({
   const retinographyOS = form.watch("retinographyOS");
   const isRetinographyFilled = !!retinographyOD || !!retinographyOS;
 
+  const handleOpticalBiometryChange = (value: string, eye: "OD" | "OS") => {
+    form.setValue(`opticalBiometry${eye}`, value);
+  };
   return (
     <Tabs defaultValue="propaedeutics" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
@@ -634,9 +639,13 @@ export function AccordionExams({
                     })}
                   />
                   <OpticalBiometryFormFields
-                    form={opticalBiometryForm}
-                    mainForm={form}
-                    eye={"OD"}
+                    eye="OD"
+                    opticalBiometryValue={
+                      form.getValues("opticalBiometryOD") as string
+                    }
+                    onChange={(value) =>
+                      handleOpticalBiometryChange(value, "OD")
+                    }
                   />
                 </div>
                 <div className="grid grid-cols-1 gap-4">
@@ -648,9 +657,13 @@ export function AccordionExams({
                     })}
                   />
                   <OpticalBiometryFormFields
-                    mainForm={form}
-                    form={opticalBiometryForm}
-                    eye={"OS"}
+                    eye="OS"
+                    opticalBiometryValue={
+                      form.getValues("opticalBiometryOS") as string
+                    }
+                    onChange={(value) =>
+                      handleOpticalBiometryChange(value, "OS")
+                    }
                   />
                 </div>
               </div>
