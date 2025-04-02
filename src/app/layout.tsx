@@ -10,14 +10,15 @@ import { TRPCReactProvider } from "~/trpc/react";
 const openSans = Open_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SEOFT - Plataforma Exclusiva do Setor de Oftalmologia do HGF",
+  title: "iSEOFT - Plataforma Exclusiva do Setor de Oftalmologia do HGF",
   description:
-    "Descubra a SEOFT, a plataforma auxiliar do Setor de Oftalmologia do HGF. Otimize sua rotina com ferramentas exclusivas para residentes e colaboradores do hospital. Acesse informações e recursos indispensáveis para o seu dia a dia.",
-  applicationName: "SEOFT - Setor de Oftalmologia HGF",
+    "Descubra o iSEOFT, a plataforma auxiliar do Setor de Oftalmologia do HGF. Otimize sua rotina com ferramentas exclusivas para residentes e colaboradores do hospital. Acesse informações e recursos indispensáveis para o seu dia a dia.",
+  applicationName: "iSEOFT - Setor de Oftalmologia HGF",
   generator: "Next.js",
   keywords: [
     "oftalmologia",
     "HGF",
+    "iSEOFT",
     "SEOFT",
     "Setor de Oftalmologia",
     "residentes",
@@ -35,9 +36,9 @@ export const metadata: Metadata = {
     languages: { "pt-BR": "https://seoft.com.br" },
   },
   openGraph: {
-    title: "SEOFT - Plataforma Auxiliar do Setor de Oftalmologia do HGF",
+    title: "iSEOFT - Plataforma Auxiliar do Setor de Oftalmologia do HGF",
     description:
-      "Bem-vindo à SEOFT, uma plataforma desenvolvida exclusivamente para o Setor de Oftalmologia do HGF. Ferramentas otimizadas para residentes, integração eficiente e recursos exclusivos para colaboradores. Descubra mais!",
+      "Bem-vindo à iSEOFT, uma plataforma desenvolvida exclusivamente para o Setor de Oftalmologia do HGF. Ferramentas otimizadas para residentes, integração eficiente e recursos exclusivos para colaboradores. Descubra mais!",
     url: "https://seoft.com.br",
     siteName: "SEOFT",
     locale: "pt_BR",
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
         url: "https://seoft.com.br/iSEOFT-logo.png",
         width: 512,
         height: 512,
-        alt: "Logo da SEOFT - Setor de Oftalmologia do HGF",
+        alt: "Logo do SEOFT - Setor de Oftalmologia do HGF",
       },
     ],
   },
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
     site: "@leonunesbs",
     title: "SEOFT - Ferramentas Exclusivas para Oftalmologia no HGF",
     description:
-      "A SEOFT é a solução definitiva para residentes e colaboradores do Setor de Oftalmologia do HGF. Recursos personalizados e integração para otimizar sua rotina. Acesse já!",
+      "O iSEOFT é a solução definitiva para residentes e colaboradores do Setor de Oftalmologia do HGF. Recursos personalizados e integração para otimizar sua rotina. Acesse já!",
     images: ["https://seoft.com.br/iSEOFT-logo.png"],
   },
   manifest: "/favicon/site.webmanifest",
