@@ -44,14 +44,6 @@ export default async function Patient({ params }: { params: Params }) {
         <PageHeading>Detalhes do Paciente</PageHeading>
         <div className="flex gap-2">
           {/* Botão para reabrir a avaliação */}
-
-          <Button asChild variant={"outline"}>
-            <Link href={`/patients/${patient.id}/history`}>
-              <MdOutlineHistory />
-              <span className="hidden sm:inline">Histórico</span>
-            </Link>
-          </Button>
-
           <AddEvaluationButton
             patientId={patient.id}
             patientName={patient.name}
@@ -69,6 +61,12 @@ export default async function Patient({ params }: { params: Params }) {
               </>
             }
           />
+          <Button asChild variant={"outline"}>
+            <Link href={`/patients/${patient.id}/history`}>
+              <MdOutlineHistory />
+              <span className="hidden sm:inline">Histórico</span>
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -100,7 +98,9 @@ export default async function Patient({ params }: { params: Params }) {
               <CardContent className="space-y-2">
                 <p>
                   <strong>Data:</strong>{" "}
-                  {new Date(evaluation.createdAt).toLocaleString()}
+                  {new Date(evaluation.createdAt).toLocaleString("pt-BR", {
+                    timeZone: "America/Sao_Paulo",
+                  })}
                 </p>
                 <p>
                   <strong>Diagnóstico:</strong> {evaluation.diagnosis || "N/A"}
@@ -131,6 +131,28 @@ export default async function Patient({ params }: { params: Params }) {
               </CardFooter>
             </Card>
           ))}
+          {/* Placeholder para o caso de não haver avaliações */}
+          {patient.evaluations.length === 0 && (
+            <div className="flex items-center justify-center p-4 text-gray-500">
+              <AddEvaluationButton
+                patientId={patient.id}
+                patientName={patient.name}
+                variant={"default"}
+                customChildren={
+                  <>
+                    <MdOutlineUploadFile />
+                    <span className="hidden sm:inline">Nova Avaliação</span>
+                  </>
+                }
+                customLoading={
+                  <>
+                    <Loader2 className="animate-spin" />
+                    Carregando...
+                  </>
+                }
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

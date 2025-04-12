@@ -1,5 +1,26 @@
 "use client";
 
+import { Prisma, Refraction } from "@prisma/client";
+import {
+  MdArrowDownward,
+  MdArrowUpward,
+  MdCancel,
+  MdOutlineFileCopy,
+  MdRemove,
+} from "react-icons/md";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import {
   Card,
   CardContent,
@@ -15,40 +36,20 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import {
-  MdArrowDownward,
-  MdArrowUpward,
-  MdCancel,
-  MdOutlineFileCopy,
-  MdRemove,
-} from "react-icons/md";
-import { Prisma, Refraction } from "@prisma/client";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
 
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
-import { Input } from "~/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { Separator } from "../ui/separator";
-import { api } from "~/trpc/react";
-import { toast } from "~/hooks/use-toast";
-import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "~/components/ui/input";
+import { toast } from "~/hooks/use-toast";
+import { api } from "~/trpc/react";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
+import { Separator } from "../ui/separator";
 
 const visualAcuityOptions = [
   ">20/20",
@@ -101,6 +102,8 @@ const visualAcuityValues: { [key: string]: number } = {
 const refractionSchema = z.object({
   leftEyeId: z.string().optional(),
   rightEyeId: z.string().optional(),
+  scOD: z.boolean().optional(), // Se o paciente não tem refração
+  scOS: z.boolean().optional(), // Se o paciente não tem refração
   sphericalOD: z.union([z.string(), z.number()]).optional(),
   cylinderOD: z.union([z.string(), z.number()]).optional(),
   axisOD: z.union([z.string(), z.number()]).optional(),
@@ -272,6 +275,8 @@ export function EvaluationRefractionForm({
     defaultValues: {
       leftEyeId: leftEye?.id ?? "",
       rightEyeId: rightEye?.id ?? "",
+      scOD: false,
+      scOS: false,
       sphericalOD: 0,
       sphericalOS: 0,
       cylinderOD: 0,
@@ -282,6 +287,9 @@ export function EvaluationRefractionForm({
       visualAcuityOS: "",
     },
   });
+
+  const scOD = form.watch("scOD");
+  const scOS = form.watch("scOS");
 
   const router = useRouter();
   const [deletingIds, setDeletingIds] = useState<string[]>([]); // Estado para rastrear IDs que estão sendo deletados
@@ -471,6 +479,34 @@ export function EvaluationRefractionForm({
                   <div className="text-sm font-semibold">Olho Direito</div>
                 </div>
                 <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="scOD"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked);
+                              if (checked) {
+                                form.setValue("sphericalOD", "");
+                                form.setValue("cylinderOD", "");
+                                form.setValue("axisOD", "");
+                              } else {
+                                form.setValue("sphericalOD", "0");
+                                form.setValue("cylinderOD", "0");
+                                form.setValue("axisOD", "0");
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Sem correção
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
                   {/* Esférico OD */}
                   <FormField
                     control={form.control}
@@ -483,9 +519,11 @@ export function EvaluationRefractionForm({
                         <FormItem>
                           <FormLabel>
                             Esférico:{" "}
-                            {numericValue > 0
-                              ? `+${numericValue.toFixed(2)}`
-                              : numericValue.toFixed(2)}
+                            {scOD
+                              ? "S/C"
+                              : numericValue > 0
+                                ? `+${numericValue.toFixed(2)}`
+                                : numericValue.toFixed(2)}
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -495,6 +533,7 @@ export function EvaluationRefractionForm({
                               onChange={(e) => {
                                 field.onChange(e.target.value);
                               }}
+                              disabled={scOD}
                             />
                           </FormControl>
                           <FormMessage />
@@ -514,9 +553,11 @@ export function EvaluationRefractionForm({
                         <FormItem>
                           <FormLabel>
                             Cilíndrico:{" "}
-                            {numericValue > 0
-                              ? `+${numericValue.toFixed(2)}`
-                              : numericValue.toFixed(2)}
+                            {scOD
+                              ? "S/C"
+                              : numericValue > 0
+                                ? `+${numericValue.toFixed(2)}`
+                                : numericValue.toFixed(2)}
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -536,6 +577,7 @@ export function EvaluationRefractionForm({
                                   (-Math.abs(rawValue)).toString(),
                                 );
                               }}
+                              disabled={scOD}
                             />
                           </FormControl>
                           <FormMessage />
@@ -553,7 +595,9 @@ export function EvaluationRefractionForm({
                       );
                       return (
                         <FormItem>
-                          <FormLabel>Eixo: {numericValue}º</FormLabel>
+                          <FormLabel>
+                            Eixo: {scOD ? "S/C" : `${numericValue}º`}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -562,6 +606,7 @@ export function EvaluationRefractionForm({
                               onChange={(e) => {
                                 field.onChange(e.target.value);
                               }}
+                              disabled={scOD}
                             />
                           </FormControl>
                           <FormMessage />
@@ -605,6 +650,34 @@ export function EvaluationRefractionForm({
                   <div className="text-sm font-semibold">Olho Esquerdo</div>
                 </div>
                 <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="scOS"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={(checked) => {
+                              field.onChange(checked);
+                              if (checked) {
+                                form.setValue("sphericalOS", "");
+                                form.setValue("cylinderOS", "");
+                                form.setValue("axisOS", "");
+                              } else {
+                                form.setValue("sphericalOS", "0");
+                                form.setValue("cylinderOS", "0");
+                                form.setValue("axisOS", "0");
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Sem correção
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
                   {/* Esférico OS */}
                   <FormField
                     control={form.control}
@@ -629,6 +702,7 @@ export function EvaluationRefractionForm({
                               onChange={(e) => {
                                 field.onChange(e.target.value);
                               }}
+                              disabled={scOS}
                             />
                           </FormControl>
                           <FormMessage />
@@ -668,6 +742,7 @@ export function EvaluationRefractionForm({
                                   (-Math.abs(rawValue)).toString(),
                                 );
                               }}
+                              disabled={scOS}
                             />
                           </FormControl>
                           <FormMessage />
@@ -694,6 +769,7 @@ export function EvaluationRefractionForm({
                               onChange={(e) => {
                                 field.onChange(e.target.value);
                               }}
+                              disabled={scOS}
                             />
                           </FormControl>
                           <FormMessage />

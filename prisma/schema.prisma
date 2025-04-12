@@ -68,6 +68,7 @@ model Evaluation {
     done            Boolean @default(false)
     clinicId        String?
     clinicalData    String?
+    continuousData  String?
     diagnosis       String?
     treatment       String?
     followUp        String?

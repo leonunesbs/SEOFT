@@ -446,7 +446,7 @@ export default async function EvaluationSummaryPage({
             )}
 
             <Separator />
-            <h3 className="font-semibold">Logs do Olho Direito</h3>
+            <h3 className="font-semibold">Olho Direito</h3>
             {rightEyeLogs.length > 0 ? (
               <Table>
                 <TableHeader>
@@ -533,7 +533,7 @@ export default async function EvaluationSummaryPage({
             )}
 
             <Separator />
-            <h3 className="font-semibold">Logs do Olho Esquerdo</h3>
+            <h3 className="font-semibold">Olho Esquerdo</h3>
             {leftEyeLogs.length > 0 ? (
               <Table>
                 <TableHeader>

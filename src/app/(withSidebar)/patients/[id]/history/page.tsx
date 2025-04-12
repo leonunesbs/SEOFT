@@ -55,7 +55,9 @@ export default async function PatientHistoryPage({
           </h2>
           <p className="text-right text-sm">{lastEvaluationClinic}</p>
           <p className="text-right text-sm">
-            {new Date(lastEvaluationDate).toLocaleString()}
+            {new Date(lastEvaluationDate).toLocaleString("pt-BR", {
+              timeZone: "UTC",
+            })}
           </p>
         </Card>
         <Card className="flex flex-col justify-between p-4">
@@ -93,7 +95,9 @@ export default async function PatientHistoryPage({
               <CardContent className="space-y-2">
                 <p>
                   <strong>Data:</strong>{" "}
-                  {new Date(evaluation.createdAt).toLocaleString()}
+                  {new Date(evaluation.createdAt).toLocaleString("pt-BR", {
+                    timeZone: "America/Sao_Paulo",
+                  })}
                 </p>
                 <p>
                   <strong>Diagnóstico:</strong> {evaluation.diagnosis || "N/A"}
