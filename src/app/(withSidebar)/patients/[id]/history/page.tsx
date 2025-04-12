@@ -42,7 +42,7 @@ export default async function PatientHistoryPage({
       {/* Header */}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="flex flex-col justify-between p-4">
           <h2 className="font-semibold text-muted-foreground">
             Total de Avaliações
@@ -56,7 +56,7 @@ export default async function PatientHistoryPage({
           <p className="text-right text-sm">{lastEvaluationClinic}</p>
           <p className="text-right text-sm">
             {new Date(lastEvaluationDate).toLocaleString("pt-BR", {
-              timeZone: "UTC",
+              timeZone: "America/Sao_Paulo",
             })}
           </p>
         </Card>

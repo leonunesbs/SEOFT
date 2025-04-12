@@ -3,6 +3,7 @@
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -41,6 +42,7 @@ export type EvaluationMainFormValues = {
   retinographyOD?: FileList | null;
   retinographyOS?: FileList | null;
   clinicalData: string;
+  continuousData?: string;
   diagnosis: string;
   treatment?: string;
   followUp?: string;
@@ -54,6 +56,7 @@ type EvaluationMainFormProps = {
   form: UseFormReturn<EvaluationMainFormValues>;
   lastEvaluationData?: Prisma.EvaluationGetPayload<{
     select: {
+      continuousData: true;
       eyes: {
         include: {
           leftEye: {
@@ -91,13 +94,35 @@ export function EvaluationMainForm({
             <FormItem>
               <FormLabel>Dados Clínicos</FormLabel>
               <FormControl>
-                <Textarea
-                  {...field}
-                  placeholder="Descreva informações clínicas relevantes"
-                  className="min-h-40 resize-y"
-                />
+                <Textarea {...field} className="min-h-40 resize-y" />
               </FormControl>
               <FormMessage />
+              <FormDescription>
+                <span className="text-xs text-muted-foreground">
+                  Descreva informações clínicas relevantes do quadro atual (Ex:
+                  queixa, história da doença, sinais e sintomas)
+                </span>
+              </FormDescription>
+            </FormItem>
+          )}
+        />
+        {/* Dados contínuos */}
+        <FormField
+          control={form.control}
+          name="continuousData"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dados Persistentes</FormLabel>
+              <FormControl>
+                <Textarea {...field} className="min-h-40 resize-y" />
+              </FormControl>
+              <FormMessage />
+              <FormDescription>
+                <span className="text-xs text-muted-foreground">
+                  Descreva informações clínicas persistentes (Ex: medicações,
+                  doenças sistêmicas, colírios, cirurgias etc.)
+                </span>
+              </FormDescription>
             </FormItem>
           )}
         />
@@ -119,13 +144,14 @@ export function EvaluationMainForm({
                 Diagnóstico
               </FormLabel>
               <FormControl>
-                <Textarea
-                  {...field}
-                  placeholder="Informe o diagnóstico do paciente"
-                  className="resize-none"
-                />
+                <Textarea {...field} className="resize-none" />
               </FormControl>
               <FormMessage />
+              <FormDescription>
+                <span className="text-xs text-muted-foreground">
+                  Descreva o diagnóstico do paciente
+                </span>
+              </FormDescription>
             </FormItem>
           )}
         />
@@ -138,13 +164,14 @@ export function EvaluationMainForm({
             <FormItem>
               <FormLabel>Tratamento</FormLabel>
               <FormControl>
-                <Textarea
-                  {...field}
-                  placeholder="Descreva o tratamento e/ou conduta sugerida"
-                  className="resize-none"
-                />
+                <Textarea {...field} className="resize-none" />
               </FormControl>
               <FormMessage />
+              <FormDescription>
+                <span className="text-xs text-muted-foreground">
+                  Descreva o tratamento e/ou conduta sugerida
+                </span>
+              </FormDescription>
             </FormItem>
           )}
         />
@@ -157,13 +184,14 @@ export function EvaluationMainForm({
             <FormItem>
               <FormLabel>Acompanhamento</FormLabel>
               <FormControl>
-                <Textarea
-                  {...field}
-                  placeholder="Plano de acompanhamento"
-                  className="resize-none"
-                />
+                <Textarea {...field} className="resize-none" />
               </FormControl>
               <FormMessage />
+              <FormDescription>
+                <span className="text-xs text-muted-foreground">
+                  Descreva o plano de acompanhamento do paciente
+                </span>
+              </FormDescription>
             </FormItem>
           )}
         />
@@ -176,9 +204,14 @@ export function EvaluationMainForm({
             <FormItem>
               <FormLabel>Próxima Consulta</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Programação" />
+                <Input {...field} />
               </FormControl>
               <FormMessage />
+              <FormDescription>
+                <span className="text-xs text-muted-foreground">
+                  Descreva a programação da próxima consulta
+                </span>
+              </FormDescription>
             </FormItem>
           )}
         />

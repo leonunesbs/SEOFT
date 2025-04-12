@@ -197,12 +197,9 @@ export default async function EvaluationSummaryPage({
   );
 
   // Histórico de avaliações do paciente
-  const patientEvaluations = patient.evaluations
-    .filter((ev) => ev.done && ev.id !== evaluation.id)
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
+  const patientEvaluations = patient.evaluations.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
   // Função para gerar o conteúdo para o botão de copiar
   const generateOutput = () => {
@@ -607,13 +604,24 @@ export default async function EvaluationSummaryPage({
                 <TableRow>
                   <TableHead>Data</TableHead>
                   <TableHead>Diagnóstico</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {patientEvaluations.map((ev, index) => (
-                  <TableRow key={index}>
+                  <TableRow
+                    key={index}
+                    className={ev.id === evaluation.id ? "bg-muted" : undefined}
+                  >
                     <TableCell>{formatDate(ev.createdAt)}</TableCell>
                     <TableCell>{ev.diagnosis || "N/A"}</TableCell>
+                    <TableCell>
+                      <Link href={`/evaluations/${ev.id}`} passHref>
+                        <Button variant="outline" size="sm">
+                          Ver Detalhes
+                        </Button>
+                      </Link>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

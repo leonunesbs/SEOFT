@@ -52,6 +52,7 @@ const mainFormSchema = z.object({
   retinographyOD: z.any().optional(),
   retinographyOS: z.any().optional(),
   clinicalData: z.string().min(1, "Dados clínicos são obrigatórios."),
+  continuousData: z.string().optional(),
   diagnosis: z.string().min(1, "Diagnóstico é obrigatório."),
   treatment: z.string().optional(),
   followUp: z.string().optional(),
@@ -106,6 +107,7 @@ type EvaluationFormProps = {
   }>[];
   lastEvaluationData?: Prisma.EvaluationGetPayload<{
     select: {
+      continuousData: true;
       eyes: {
         include: {
           leftEye: {
@@ -226,6 +228,8 @@ export function EvaluationForm({
         (log) => log.type === "RETINOGRAPHY",
       )?.details,
       clinicalData: evaluation.clinicalData ?? "",
+      continuousData:
+        (evaluation.continuousData || lastEvaluationData?.continuousData) ?? "",
       diagnosis: evaluation.diagnosis ?? "",
       treatment: evaluation.treatment ?? "",
       followUp: evaluation.followUp ?? "",
