@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "../ui/form";
 
-import { Prisma } from "prisma/client";
+import { Prisma } from "@prisma/client";
 import { UseFormReturn } from "react-hook-form";
 import { AccordionExams } from "../molecules/accordion-exams";
 import { Input } from "../ui/input";
@@ -209,7 +209,7 @@ export function EvaluationMainForm({
               <FormMessage />
               <FormDescription>
                 <span className="text-xs text-muted-foreground">
-                  Descreva a programação da próxima consulta
+                  Prazo para da próxima consulta
                 </span>
               </FormDescription>
             </FormItem>
