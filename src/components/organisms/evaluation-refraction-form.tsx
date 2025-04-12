@@ -1,6 +1,6 @@
 "use client";
 
-import { Prisma, Refraction } from "@prisma/client";
+import { Prisma, Refraction } from "prisma/client";
 import {
   MdArrowDownward,
   MdArrowUpward,

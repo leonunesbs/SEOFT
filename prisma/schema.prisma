@@ -3,6 +3,7 @@
 
 generator client {
     provider = "prisma-client-js"
+    output   = "./client"
 }
 
 datasource db {
@@ -43,6 +44,9 @@ model Collaborator {
     role        Role
     clinics     ClinicCollaborator[]
     evaluations Evaluation[]
+
+    // integraUsername String?
+    // integraPassword String?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

@@ -26,7 +26,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 
-import { Prisma } from "@prisma/client";
+import { Prisma } from "prisma/client";
 import { AccessFileButton } from "../atoms/access-file-button";
 import { EvaluationMainFormValues } from "../organisms/evaluation-main-form";
 import { Button } from "../ui/button";

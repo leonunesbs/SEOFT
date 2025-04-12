@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from "../ui/form";
 
-import { Prisma } from "@prisma/client";
+import { Prisma } from "prisma/client";
 import { UseFormReturn } from "react-hook-form";
 import { AccordionExams } from "../molecules/accordion-exams";
 import { Input } from "../ui/input";
