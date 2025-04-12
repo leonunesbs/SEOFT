@@ -2,6 +2,7 @@
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
+// eslint-disable-next-line import/extensions
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
@@ -22,6 +23,9 @@ const config = {
         pathname: "/a/**",
       },
     ],
+  },
+  experimental: {
+    viewTransition: true,
   },
 };
 
