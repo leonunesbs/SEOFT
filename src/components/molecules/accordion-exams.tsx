@@ -310,10 +310,10 @@ export function AccordionExams({
         <TabsTrigger id="propaedeutics" value="propaedeutics">
           Propedêutica
         </TabsTrigger>
-        <TabsTrigger id="images" value="images">
+        <TabsTrigger id="images" value="images" disabled>
           Imagens
         </TabsTrigger>
-        <TabsTrigger id="optics" value="optics">
+        <TabsTrigger id="optics" value="optics" disabled>
           Óptica
         </TabsTrigger>
       </TabsList>
