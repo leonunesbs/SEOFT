@@ -101,7 +101,7 @@ export function AppSidebar({
       },
       {
         title: "Medicamentos",
-        url: "#",
+        url: "/medications",
         icon: <MdOutlineLocalPharmacy size={18} />,
         items: [],
       },

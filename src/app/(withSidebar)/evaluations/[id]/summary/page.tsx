@@ -235,6 +235,7 @@ export default async function EvaluationSummaryPage({
     output += `- Médico: ${collaborator.name || "N/A"}\n`;
     output += `- Ambulatório: ${clinic?.name || "N/A"}\n`;
     output += `- Dados Clínicos: ${evaluation.clinicalData?.trim() || "N/A"}\n`;
+    output += `- Dados Persistentes: ${evaluation.continuousData?.trim() || "N/A"}\n`;
     output += `- Diagnóstico: ${evaluation.diagnosis || "N/A"}\n`;
     output += `- Tratamento: ${evaluation.treatment || "N/A"}\n`;
     output += `- Acompanhamento: ${evaluation.followUp || "N/A"}\n`;
@@ -400,6 +401,10 @@ export default async function EvaluationSummaryPage({
           <p>
             <strong>Dados Clínicos:</strong>{" "}
             {evaluation.clinicalData?.trim() || "N/A"}
+          </p>
+          <p>
+            <strong>Dados Persistentes:</strong>{" "}
+            {evaluation.continuousData?.trim() || "N/A"}
           </p>
           <p>
             <strong>Diagnóstico:</strong> {evaluation.diagnosis || "N/A"}
