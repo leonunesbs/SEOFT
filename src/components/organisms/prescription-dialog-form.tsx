@@ -258,7 +258,7 @@ export function PrescriptionFormDialog({
                                     {items.map((med) => (
                                       <CommandItem
                                         key={med.id}
-                                        value={med.name} // alterado de med.id para med.name para filtrar pelo nome
+                                        value={`${med.name} ${med.category}`} // inclui a categoria para filtrar também
                                         onSelect={() => {
                                           field.onChange(med.id); // armazena o id da medicação no formulário
                                           setOpen(false);
