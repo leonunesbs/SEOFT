@@ -2,7 +2,16 @@
 
 import * as React from "react";
 
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "~/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +21,11 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import {
   Form,
   FormControl,
   FormField,
@@ -20,20 +34,12 @@ import {
   FormMessage,
 } from "../ui/form";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "~/hooks/use-toast";
+import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
@@ -106,6 +112,7 @@ export function PrescriptionFormDialog({
   const { id } = useParams();
   const evaluationId = id as string;
   const router = useRouter();
+  const [open, setOpen] = React.useState(false);
 
   const form = useForm<PrescriptionFormValues>({
     resolver: zodResolver(prescriptionSchema),
@@ -119,7 +126,7 @@ export function PrescriptionFormDialog({
     },
   });
 
-  // Para sincronizar campos de instrução: se "custom" é preenchida, zera a "padrão" e vice-versa
+  // Sincroniza campos de instrução: se "custom" for preenchida, zera a "padrão" e vice-versa
   const customInstruction = form.watch("customInstruction");
   const selectedMedicationInstruction = form.watch(
     "selectedMedicationInstruction",
@@ -158,15 +165,10 @@ export function PrescriptionFormDialog({
     },
   });
 
-  // Identifica a medicação selecionada
-  const selectedMedication = medications
-    ? (medications as unknown as MedicationItem[]).find(
-        (med) => med.id === form.watch("medicationId"),
-      )
-    : null;
-
-  // Monta o preview
-  const { continuousUse } = form.watch();
+  // Para exibir a medicação selecionada no combobox
+  const selectedMedication = medications.find(
+    (med) => med.id === form.watch("medicationId"),
+  );
 
   // Exemplo: se for uso contínuo, força a quantidade = "0" na hora de salvar
   const onSubmit = (data: PrescriptionFormValues) => {
@@ -206,43 +208,88 @@ export function PrescriptionFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Seleção da Medicação */}
+            {/* Combobox para Seleção da Medicação */}
             <FormField
               control={form.control}
               name="medicationId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Medicação</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma medicação" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(
-                          groupByCategory(
-                            medications as unknown as MedicationItem[],
-                          ),
-                        ).map(([category, items]) => (
-                          <SelectGroup key={category}>
-                            <SelectLabel>{category}</SelectLabel>
-                            {items.map((med) => (
-                              <SelectItem key={med.id} value={med.id}>
-                                {med.name}
-                                {med.unit && ` (${med.unit})`}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // Estado para controlar o Popover
+                const currentMedication = medications.find(
+                  (med) => med.id === field.value,
+                );
+                return (
+                  <FormItem>
+                    <FormLabel>Medicação</FormLabel>
+                    <FormControl>
+                      <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={open}
+                            className="w-full justify-between"
+                          >
+                            {currentMedication ? (
+                              <>{currentMedication.name}</>
+                            ) : (
+                              "Selecione uma medicação"
+                            )}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput
+                              placeholder="Buscar medicação..."
+                              className="h-9"
+                            />
+                            <CommandList>
+                              <CommandEmpty>
+                                <span className="px-2">
+                                  Nenhuma medicação encontrada.
+                                </span>
+                              </CommandEmpty>
+                              {Object.entries(groupByCategory(medications)).map(
+                                ([category, items]) => (
+                                  <CommandGroup
+                                    key={category}
+                                    heading={category}
+                                  >
+                                    {items.map((med) => (
+                                      <CommandItem
+                                        key={med.id}
+                                        value={med.name} // alterado de med.id para med.name para filtrar pelo nome
+                                        onSelect={() => {
+                                          field.onChange(med.id); // armazena o id da medicação no formulário
+                                          setOpen(false);
+                                        }}
+                                      >
+                                        {med.name}
+                                        <Check
+                                          className={cn(
+                                            "ml-auto",
+                                            field.value === med.id
+                                              ? "opacity-100"
+                                              : "opacity-0",
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                ),
+                              )}
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
-            {/* Instruções Padrão e Customizadas */}
+            {/* Instruções Padrão e Personalizadas */}
             {selectedMedication && (
               <>
                 <FormField
@@ -318,7 +365,7 @@ export function PrescriptionFormDialog({
               />
 
               {/* Se não for uso contínuo, exibe o input para Quantidade */}
-              {!continuousUse && (
+              {!form.watch("continuousUse") && (
                 <FormField
                   control={form.control}
                   name="quantity"
