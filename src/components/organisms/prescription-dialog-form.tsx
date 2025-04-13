@@ -2,6 +2,7 @@
 
 import * as React from "react";
 
+import { useParams, useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,6 @@ import {
 } from "../ui/select";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "~/hooks/use-toast";
@@ -101,6 +101,7 @@ function groupByCategory(
 export function PrescriptionFormDialog() {
   const { id } = useParams();
   const evaluationId = id as string;
+  const router = useRouter();
 
   const form = useForm<PrescriptionFormValues>({
     resolver: zodResolver(prescriptionSchema),
@@ -146,6 +147,7 @@ export function PrescriptionFormDialog() {
         description: "A prescrição foi salva com sucesso.",
       });
       form.reset();
+      router.refresh();
     },
     onError: (error) => {
       toast({
