@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type EyeSurgery, type Prisma } from "@prisma/client";
+import { Medication, type EyeSurgery, type Prisma } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { MdCheck, MdSave } from "react-icons/md";
@@ -127,6 +127,16 @@ type EvaluationFormProps = {
       };
     };
   }>;
+  medications: Medication[];
+  firstPrescription?: Prisma.PrescriptionGetPayload<{
+    include: {
+      prescriptionItems: {
+        include: {
+          medication: true;
+        };
+      };
+    };
+  }>;
 };
 
 export function EvaluationForm({
@@ -134,6 +144,8 @@ export function EvaluationForm({
   clinics,
   lastEvaluationData,
   patientSurgeries,
+  medications,
+  firstPrescription,
 }: EvaluationFormProps) {
   const router = useRouter();
 
@@ -374,7 +386,10 @@ export function EvaluationForm({
             evaluation={evaluation}
             patientSurgeries={patientSurgeries}
           />
-          <PrescriptionCard />
+          <PrescriptionCard
+            medications={medications}
+            firstPrescription={firstPrescription}
+          />
         </div>
       </div>
       <FormActions />

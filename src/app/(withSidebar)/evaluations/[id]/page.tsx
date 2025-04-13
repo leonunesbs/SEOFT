@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
-import { EvaluationForm } from "~/components/organisms/evaluation-form";
 import { PageHeading } from "~/components/atoms/page-heading";
+import { EvaluationForm } from "~/components/organisms/evaluation-form";
 import { db } from "~/server/db";
 
 type Params = Promise<{ id: string }>;
@@ -120,6 +120,24 @@ export default async function EvaluationPage({ params }: { params: Params }) {
     },
   });
 
+  const medications = await db.medication.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  });
+
+  const firstPrescription = await db.prescription.findFirst({
+    where: {
+      evaluationId: id,
+    },
+    include: {
+      prescriptionItems: {
+        include: {
+          medication: true,
+        },
+      },
+    },
+  });
   if (evaluation.done) redirect(`/evaluations/${id}/summary`);
   return (
     <div>
@@ -130,6 +148,8 @@ export default async function EvaluationPage({ params }: { params: Params }) {
         evaluation={evaluation}
         lastEvaluationData={lastEvaluation}
         clinics={clinics}
+        medications={medications}
+        firstPrescription={firstPrescription ?? undefined}
         patientSurgeries={patientSurgeries.map((evaluation) => ({
           eyes: {
             leftEye: {

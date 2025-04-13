@@ -98,7 +98,11 @@ function groupByCategory(
   );
 }
 
-export function PrescriptionFormDialog() {
+export function PrescriptionFormDialog({
+  medications,
+}: {
+  medications: MedicationItem[];
+}) {
   const { id } = useParams();
   const evaluationId = id as string;
   const router = useRouter();
@@ -135,9 +139,6 @@ export function PrescriptionFormDialog() {
       form.setValue("customInstruction", "");
     }
   }, [selectedMedicationInstruction, form]);
-
-  // TRPC: obtem as medicações
-  const { data: medications, isLoading } = api.medication.getAll.useQuery();
 
   // TRPC: mutation para salvar ou atualizar
   const createOrUpdateMutation = api.prescription.createOrUpdate.useMutation({
@@ -213,35 +214,28 @@ export function PrescriptionFormDialog() {
                 <FormItem>
                   <FormLabel>Medicação</FormLabel>
                   <FormControl>
-                    {isLoading ? (
-                      <div>Carregando medicações...</div>
-                    ) : (
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma medicação" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(
-                            groupByCategory(
-                              medications as unknown as MedicationItem[],
-                            ),
-                          ).map(([category, items]) => (
-                            <SelectGroup key={category}>
-                              <SelectLabel>{category}</SelectLabel>
-                              {items.map((med) => (
-                                <SelectItem key={med.id} value={med.id}>
-                                  {med.name}
-                                  {med.unit && ` (${med.unit})`}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma medicação" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(
+                          groupByCategory(
+                            medications as unknown as MedicationItem[],
+                          ),
+                        ).map(([category, items]) => (
+                          <SelectGroup key={category}>
+                            <SelectLabel>{category}</SelectLabel>
+                            {items.map((med) => (
+                              <SelectItem key={med.id} value={med.id}>
+                                {med.name}
+                                {med.unit && ` (${med.unit})`}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

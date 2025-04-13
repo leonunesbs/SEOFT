@@ -104,4 +104,15 @@ export const prescriptionRouter = createTRPCRouter({
 
       return prescription;
     }),
+  deletePrescriptionItem: protectedProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input }) => {
+      const prescriptionItem = await ctx.db.prescriptionItem.delete({
+        where: {
+          id: input,
+        },
+      });
+
+      return prescriptionItem;
+    }),
 });
