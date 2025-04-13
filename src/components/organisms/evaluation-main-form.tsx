@@ -100,7 +100,7 @@ export function EvaluationMainForm({
               <FormDescription>
                 <span className="text-xs text-muted-foreground">
                   Descreva informações clínicas relevantes do quadro atual (Ex:
-                  queixa, história da doença, sinais e sintomas)
+                  queixa, história da doença, sinais e sintomas).
                 </span>
               </FormDescription>
             </FormItem>
@@ -119,8 +119,9 @@ export function EvaluationMainForm({
               <FormMessage />
               <FormDescription>
                 <span className="text-xs text-muted-foreground">
-                  Descreva informações clínicas persistentes (Ex: medicações,
-                  doenças sistêmicas, colírios, cirurgias etc.)
+                  Descreva informações clínicas persistentes em todas as
+                  avaliações (Ex: medicações de uso contínuo, doenças
+                  sistêmicas, colírios, cirurgias etc.).
                 </span>
               </FormDescription>
             </FormItem>
@@ -149,7 +150,7 @@ export function EvaluationMainForm({
               <FormMessage />
               <FormDescription>
                 <span className="text-xs text-muted-foreground">
-                  Descreva o diagnóstico do paciente
+                  Descreva o diagnóstico do paciente.
                 </span>
               </FormDescription>
             </FormItem>
@@ -169,7 +170,7 @@ export function EvaluationMainForm({
               <FormMessage />
               <FormDescription>
                 <span className="text-xs text-muted-foreground">
-                  Descreva o tratamento e/ou conduta sugerida
+                  Descreva o tratamento e/ou conduta sugerida.
                 </span>
               </FormDescription>
             </FormItem>
@@ -189,7 +190,7 @@ export function EvaluationMainForm({
               <FormMessage />
               <FormDescription>
                 <span className="text-xs text-muted-foreground">
-                  Descreva o plano de acompanhamento do paciente
+                  Descreva o plano de acompanhamento do paciente.
                 </span>
               </FormDescription>
             </FormItem>
@@ -209,7 +210,7 @@ export function EvaluationMainForm({
               <FormMessage />
               <FormDescription>
                 <span className="text-xs text-muted-foreground">
-                  Prazo para da próxima consulta
+                  Prazo para da próxima consulta ou alta.
                 </span>
               </FormDescription>
             </FormItem>

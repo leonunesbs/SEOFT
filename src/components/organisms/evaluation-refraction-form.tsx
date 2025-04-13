@@ -818,7 +818,7 @@ export function EvaluationRefractionForm({
               {createRefractionMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Salvar Refração"
+                "Adicionar Refração"
               )}
             </Button>
           </CardFooter>

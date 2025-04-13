@@ -11,11 +11,19 @@ import { toast } from "~/hooks/use-toast";
 import { api } from "~/trpc/react";
 import { ElapsedTime } from "../atoms/elapsed-time";
 import { RemoveEvaluationButton } from "../atoms/remove-evaluation-button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { Separator } from "../ui/separator";
 import { EvaluationIdentificationForm } from "./evaluation-identification-form";
 import { EvaluationMainForm } from "./evaluation-main-form";
 import { EvaluationRefractionForm } from "./evaluation-refraction-form";
 import { EvaluationSurgeryForm } from "./evaluation-surgery-form";
+import { PrescriptionFormDialog } from "./prescription-dialog-form";
 
 // Schemas de validação
 const identificationSchema = z.object({
@@ -299,8 +307,6 @@ export function EvaluationForm({
       leftEyeId: evaluation.eyes?.leftEyeId,
     };
 
-    console.log(payload);
-
     updateEvaluation.mutate(payload);
   };
 
@@ -375,7 +381,17 @@ export function EvaluationForm({
             evaluation={evaluation}
             patientSurgeries={patientSurgeries}
           />
-          <div>PrescriptionForm</div>
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Prescrição</CardTitle>
+              </CardHeader>
+              <CardContent></CardContent>
+              <CardFooter>
+                <PrescriptionFormDialog />
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </div>
       <FormActions />
