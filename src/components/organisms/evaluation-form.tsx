@@ -11,19 +11,12 @@ import { toast } from "~/hooks/use-toast";
 import { api } from "~/trpc/react";
 import { ElapsedTime } from "../atoms/elapsed-time";
 import { RemoveEvaluationButton } from "../atoms/remove-evaluation-button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
 import { Separator } from "../ui/separator";
 import { EvaluationIdentificationForm } from "./evaluation-identification-form";
 import { EvaluationMainForm } from "./evaluation-main-form";
 import { EvaluationRefractionForm } from "./evaluation-refraction-form";
 import { EvaluationSurgeryForm } from "./evaluation-surgery-form";
-import { PrescriptionFormDialog } from "./prescription-dialog-form";
+import { PrescriptionCard } from "./prescription-card";
 
 // Schemas de validação
 const identificationSchema = z.object({
@@ -381,17 +374,7 @@ export function EvaluationForm({
             evaluation={evaluation}
             patientSurgeries={patientSurgeries}
           />
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Prescrição</CardTitle>
-              </CardHeader>
-              <CardContent></CardContent>
-              <CardFooter>
-                <PrescriptionFormDialog />
-              </CardFooter>
-            </Card>
-          </div>
+          <PrescriptionCard />
         </div>
       </div>
       <FormActions />

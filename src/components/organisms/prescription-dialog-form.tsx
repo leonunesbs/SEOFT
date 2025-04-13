@@ -38,28 +38,26 @@ import { api } from "~/trpc/react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 
-// --- Schema de Validação --- //
-// Cada prescrição é de um único medicamento com os seguintes campos:
-// - "eye": seleção do olho individual para o item (OD, OE ou AO),
-// - "medicationId": identificador da medicação selecionada (via select com grupos),
-// - "standardInstruction": instrução padrão (via radio) – opcional,
-// - "customInstruction": instrução personalizada (via input) – opcional.
-// É obrigatório que pelo menos uma instrução seja informada.
-const prescriptionSchema = z
-  .object({
-    eye: z.enum(["OD", "OE", "AO"], {
-      errorMap: () => ({ message: "Selecione um olho" }),
-    }),
+// --- Schema Base com campos comuns --- //
+const baseSchema = z.object({
+  continuousUse: z.boolean().default(true),
+  quantity: z.string().optional(),
+  eye: z.enum(["OD", "OE", "AO"]), // Campo obrigatório para colírios
+});
+
+// Extensão para medicação, instruções, etc.
+const prescriptionSchema = baseSchema
+  .extend({
     medicationId: z.string().nonempty("Selecione uma medicação"),
-    standardInstruction: z.string().optional(),
+    selectedMedicationInstruction: z.string().optional(),
     customInstruction: z.string().optional(),
-    continuousUse: z.boolean().optional(),
-    durationDays: z.number().int().positive().optional(),
   })
   .refine(
     (data) => {
-      const standard = data.standardInstruction?.trim() || "";
+      // Exige que pelo menos uma instrução (padrão ou custom) seja preenchida
+      const standard = data.selectedMedicationInstruction?.trim() || "";
       const custom = data.customInstruction?.trim() || "";
       return standard !== "" || custom !== "";
     },
@@ -67,34 +65,26 @@ const prescriptionSchema = z
       message:
         "Selecione uma instrução padrão ou insira uma instrução personalizada",
     },
-  )
-  .superRefine((data, ctx) => {
-    if (
-      !data.continuousUse &&
-      (data.durationDays === undefined || data.durationDays <= 0)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Informe a quantidade de dias se não for uso contínuo",
-        path: ["durationDays"],
-      });
-    }
-  });
+  );
 
 export type PrescriptionFormValues = z.infer<typeof prescriptionSchema>;
 
-// --- Tipo para representar uma medicação da Pharmacy --- //
-export type PharmacyItem = {
+// Exemplo de tipo para Medication
+export type MedicationItem = {
   id: string;
-  name: string;
+  name: string; // Nome do medicamento
   category: string;
+  unit: string; // Ex: "mg", "ml" etc.
   instructions: string[];
+  createdAt: string;
+  updatedAt: string;
+  prescriptionItems?: any[];
 };
 
-// Função helper para agrupar os medicamentos por categoria
+// Helper para agrupar medicações por categoria
 function groupByCategory(
-  items: PharmacyItem[],
-): Record<string, PharmacyItem[]> {
+  items: MedicationItem[],
+): Record<string, MedicationItem[]> {
   return items.reduce(
     (groups, item) => {
       const { category } = item;
@@ -104,7 +94,7 @@ function groupByCategory(
       groups[category].push(item);
       return groups;
     },
-    {} as Record<string, PharmacyItem[]>,
+    {} as Record<string, MedicationItem[]>,
   );
 }
 
@@ -115,16 +105,40 @@ export function PrescriptionFormDialog() {
   const form = useForm<PrescriptionFormValues>({
     resolver: zodResolver(prescriptionSchema),
     defaultValues: {
-      eye: "AO",
       medicationId: "",
-      standardInstruction: "",
+      selectedMedicationInstruction: "",
       customInstruction: "",
       continuousUse: true,
-      durationDays: undefined,
+      quantity: "",
+      eye: "AO",
     },
   });
 
-  // Instancia a mutation do TRPC para criar ou atualizar a prescrição
+  // Para sincronizar campos de instrução: se "custom" é preenchida, zera a "padrão" e vice-versa
+  const customInstruction = form.watch("customInstruction");
+  const selectedMedicationInstruction = form.watch(
+    "selectedMedicationInstruction",
+  );
+
+  React.useEffect(() => {
+    if (customInstruction && customInstruction.trim() !== "") {
+      form.setValue("selectedMedicationInstruction", "");
+    }
+  }, [customInstruction, form]);
+
+  React.useEffect(() => {
+    if (
+      selectedMedicationInstruction &&
+      selectedMedicationInstruction.trim() !== ""
+    ) {
+      form.setValue("customInstruction", "");
+    }
+  }, [selectedMedicationInstruction, form]);
+
+  // TRPC: obtem as medicações
+  const { data: medications, isLoading } = api.medication.getAll.useQuery();
+
+  // TRPC: mutation para salvar ou atualizar
   const createOrUpdateMutation = api.prescription.createOrUpdate.useMutation({
     onSuccess: () => {
       toast({
@@ -141,39 +155,38 @@ export function PrescriptionFormDialog() {
     },
   });
 
-  // Query para obter os medicamentos (modelo Medication) via TRPC
-  const { data: medications, isLoading } = api.medication.getAll.useQuery();
+  // Identifica a medicação selecionada
+  const selectedMedication = medications
+    ? (medications as unknown as MedicationItem[]).find(
+        (med) => med.id === form.watch("medicationId"),
+      )
+    : null;
 
-  // Lógica para cancelar mutuamente os campos de instrução padrão e personalizada.
-  const customInstruction = form.watch("customInstruction");
-  const standardInstruction = form.watch("standardInstruction");
+  // Monta o preview
+  const { continuousUse } = form.watch();
 
-  React.useEffect(() => {
-    if (customInstruction && customInstruction.trim() !== "") {
-      form.setValue("standardInstruction", "");
-    }
-  }, [customInstruction, form]);
-
-  React.useEffect(() => {
-    if (standardInstruction && standardInstruction.trim() !== "") {
-      form.setValue("customInstruction", "");
-    }
-  }, [standardInstruction, form]);
-
+  // Exemplo: se for uso contínuo, força a quantidade = "0" na hora de salvar
   const onSubmit = (data: PrescriptionFormValues) => {
-    // Chama a mutation TRPC com os dados do formulário
-    createOrUpdateMutation.mutate({
+    console.log("Dados do formulário:", data);
+    const processedData = {
       ...data,
       evaluationId,
-      standardInstruction: data.standardInstruction?.trim(),
+      selectedMedicationInstruction: data.selectedMedicationInstruction?.trim(),
       customInstruction: data.customInstruction?.trim(),
+      quantity: data.continuousUse
+        ? 0
+        : data.quantity
+          ? Number(data.quantity)
+          : undefined,
+    };
+
+    createOrUpdateMutation.mutate({
+      ...processedData,
+      quantity: processedData.quantity
+        ? Number(processedData.quantity)
+        : undefined,
     });
   };
-
-  // Filtra a medicação selecionada para exibir suas instruções
-  const selectedMedication = (medications as PharmacyItem[] | undefined)?.find(
-    (med) => med.id === form.watch("medicationId"),
-  );
 
   return (
     <Dialog>
@@ -182,12 +195,14 @@ export function PrescriptionFormDialog() {
           Adicionar Prescrição
         </Button>
       </DialogTrigger>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nova Prescrição</DialogTitle>
         </DialogHeader>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Seleção da Medicação */}
             <FormField
               control={form.control}
@@ -208,13 +223,16 @@ export function PrescriptionFormDialog() {
                         </SelectTrigger>
                         <SelectContent>
                           {Object.entries(
-                            groupByCategory(medications as PharmacyItem[]),
+                            groupByCategory(
+                              medications as unknown as MedicationItem[],
+                            ),
                           ).map(([category, items]) => (
                             <SelectGroup key={category}>
                               <SelectLabel>{category}</SelectLabel>
                               {items.map((med) => (
                                 <SelectItem key={med.id} value={med.id}>
                                   {med.name}
+                                  {med.unit && ` (${med.unit})`}
                                 </SelectItem>
                               ))}
                             </SelectGroup>
@@ -228,20 +246,19 @@ export function PrescriptionFormDialog() {
               )}
             />
 
-            {/* Se uma medicação for selecionada, exibe as instruções */}
+            {/* Instruções Padrão e Customizadas */}
             {selectedMedication && (
               <>
-                {/* Instrução Padrão: RadioGroup */}
                 <FormField
                   control={form.control}
-                  name="standardInstruction"
+                  name="selectedMedicationInstruction"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Instrução Padrão</FormLabel>
                       <FormControl>
                         <RadioGroup
                           value={field.value}
-                          onValueChange={(val) => field.onChange(val)}
+                          onValueChange={field.onChange}
                           className="flex flex-col space-y-2"
                         >
                           {selectedMedication.instructions.map((instr) => (
@@ -267,7 +284,6 @@ export function PrescriptionFormDialog() {
                   )}
                 />
 
-                {/* Instrução Personalizada */}
                 <FormField
                   control={form.control}
                   name="customInstruction"
@@ -275,7 +291,7 @@ export function PrescriptionFormDialog() {
                     <FormItem>
                       <FormLabel>Instrução Personalizada</FormLabel>
                       <FormControl>
-                        <Input
+                        <Textarea
                           placeholder="Digite a instrução personalizada"
                           {...field}
                         />
@@ -287,7 +303,47 @@ export function PrescriptionFormDialog() {
               </>
             )}
 
-            {/* Seleção do Olho via RadioGroup */}
+            <div className="grid grid-cols-2">
+              {/* Uso Contínuo */}
+              <FormField
+                control={form.control}
+                name="continuousUse"
+                render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={(checked) => field.onChange(checked)}
+                      />
+                    </FormControl>
+                    <FormLabel>Uso Contínuo</FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              {/* Se não for uso contínuo, exibe o input para Quantidade */}
+              {!continuousUse && (
+                <FormField
+                  control={form.control}
+                  name="quantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quantidade</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Informe a quantidade"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+
+            {/* Seleção do Olho (obrigatória para colírios) */}
             <FormField
               control={form.control}
               name="eye"
@@ -319,54 +375,13 @@ export function PrescriptionFormDialog() {
               )}
             />
 
-            {/* Checkbox para Uso Contínuo */}
-            <FormField
-              control={form.control}
-              name="continuousUse"
-              render={({ field }) => (
-                <FormItem className="flex items-center space-x-2">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={(checked) => field.onChange(checked)}
-                      disabled
-                    />
-                  </FormControl>
-                  <FormLabel>Uso Contínuo</FormLabel>
-                </FormItem>
-              )}
-            />
-
-            {/* Se não for uso contínuo, exibe campo para quantidade de dias */}
-            {!form.watch("continuousUse") && (
-              <FormField
-                control={form.control}
-                name="durationDays"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quantidade de Dias</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Informe os dias"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
             <div className="flex justify-end">
-              <Button type="submit" disabled>
-                Salvar Prescrição
-              </Button>
+              <Button type="submit">Salvar Prescrição</Button>
             </div>
           </form>
         </Form>
       </DialogContent>
-      <DialogFooter>{/* Opcional: botão de cancelamento */}</DialogFooter>
+      <DialogFooter>{/* Botão de cancelamento opcional */}</DialogFooter>
     </Dialog>
   );
 }

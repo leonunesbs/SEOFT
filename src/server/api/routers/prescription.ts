@@ -2,9 +2,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 import { z } from "zod";
 
-// Schema de input para PrescriptionItem.
-// O campo "eye" é obrigatório aqui, pois ele é parte do item, e
-// pelo menos uma instrução (padrão ou personalizada) deve ser fornecida.
+// Schema de input para PrescriptionItem, incluindo o campo "quantity"
 const prescriptionInputSchema = z
   .object({
     evaluationId: z.string().nonempty("ID da avaliação é obrigatório"),
@@ -12,13 +10,15 @@ const prescriptionInputSchema = z
       errorMap: () => ({ message: "Selecione um olho para o item" }),
     }),
     medicationId: z.string().nonempty("Selecione uma medicação"),
-    standardInstruction: z.string().optional(),
+    selectedMedicationInstruction: z.string().optional(),
     customInstruction: z.string().optional(),
+    quantity: z.number().optional(),
   })
   .refine(
     (data) => {
-      const standard = data.standardInstruction?.trim() || "";
+      const standard = data.selectedMedicationInstruction?.trim() || "";
       const custom = data.customInstruction?.trim() || "";
+      console.log(standard);
       return standard !== "" || custom !== "";
     },
     {
@@ -28,19 +28,16 @@ const prescriptionInputSchema = z
   );
 
 export const prescriptionRouter = createTRPCRouter({
-  // Procedure getOrCreate: se já existir uma prescrição ativa para o usuário,
-  // adiciona um novo PrescriptionItem com os dados enviados (incluindo "eye"). Caso contrário, cria uma nova prescrição.
   createOrUpdate: protectedProcedure
     .input(prescriptionInputSchema)
     .mutation(async ({ ctx, input }) => {
       const evaluationId = input.evaluationId;
 
-      // Buscamos uma prescrição ativa do usuário.
-      // Ajuste esse critério conforme a sua lógica de negócio (por exemplo, status = 'open').
+      // Busca uma prescrição ativa com base no evaluationId
       const existingPrescription = await ctx.db.prescription.findFirst({
         where: {
           evaluationId,
-          // Exemplo: status: "open"
+          // Adicione qualquer outro critério necessário (por exemplo, status: 'open')
         },
       });
 
@@ -54,8 +51,9 @@ export const prescriptionRouter = createTRPCRouter({
                 medicationId: input.medicationId,
                 eye: input.eye,
                 selectedMedicationInstruction:
-                  input.standardInstruction || null,
+                  input.selectedMedicationInstruction || null,
                 customInstruction: input.customInstruction || null,
+                quantity: input.quantity,
               },
             },
           },
@@ -71,14 +69,15 @@ export const prescriptionRouter = createTRPCRouter({
                 id: evaluationId,
               },
             },
-            // Outros campos da prescrição, se houver (por exemplo, data, status, etc.)
+            // Outros campos da prescrição, se houver
             prescriptionItems: {
               create: {
                 medicationId: input.medicationId,
                 eye: input.eye,
                 selectedMedicationInstruction:
-                  input.standardInstruction || null,
+                  input.selectedMedicationInstruction || null,
                 customInstruction: input.customInstruction || null,
+                quantity: input.quantity,
               },
             },
           },
@@ -86,5 +85,23 @@ export const prescriptionRouter = createTRPCRouter({
         });
         return newPrescription;
       }
+    }),
+  getFirstPrescription: protectedProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }) => {
+      const prescription = await ctx.db.prescription.findFirst({
+        where: {
+          evaluationId: input,
+        },
+        include: {
+          prescriptionItems: {
+            include: {
+              medication: true,
+            },
+          },
+        },
+      });
+
+      return prescription;
     }),
 });

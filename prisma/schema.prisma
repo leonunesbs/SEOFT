@@ -158,18 +158,22 @@ enum PrescriptionEye {
 }
 
 model Medication {
-  id           String   @id @default(uuid())
-  name         String
-  category     String
-  instructions String[] // Array de instruções padrão
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  category       String
+  unit           String
+  instructions   String[] // Array de instruções padrão
+  specialControl Boolean  @default(false) // Indica se o medicamento tem controle especial
+  eyedrop        Boolean  @default(false) // Indica se é um colírio
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   prescriptionItems PrescriptionItem[]
 }
 
 model Prescription {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -179,7 +183,7 @@ model Prescription {
 }
 
 model PrescriptionItem {
-  id                            String  @id @default(uuid())
+  id                            String  @id @default(cuid())
   prescriptionId                String
   medicationId                  String? // Caso seja medicação padrão, referência à Medication
   // Para medicações padrão:
@@ -187,12 +191,9 @@ model PrescriptionItem {
   // Possível override: instrução personalizada adicional (opcional)
   customInstruction             String?
 
-  // Campos para medicações customizadas:
-  customTitle        String? // Título do medicamento customizado
-  customCategory     String? // Categoria customizada
-  customInstructions Json? // Array de instruções customizadas (armazenado em JSON)
+  quantity Int? // Quantidade total de unidades
 
-  eye PrescriptionEye
+  eye PrescriptionEye?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

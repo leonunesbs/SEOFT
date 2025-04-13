@@ -10,6 +10,7 @@ import {
   MdOutlineAttribution,
   MdOutlineHome,
   MdOutlineList,
+  MdOutlineLocalPharmacy,
   MdOutlineLockPerson,
   MdOutlinePersonAdd,
   MdOutlineSearch,
@@ -97,6 +98,12 @@ export function AppSidebar({
             icon: <MdOutlinePersonAdd size={18} />,
           },
         ],
+      },
+      {
+        title: "Medicamentos",
+        url: "#",
+        icon: <MdOutlineLocalPharmacy size={18} />,
+        items: [],
       },
       {
         title: "Ajustes",
