@@ -48,7 +48,7 @@ const medicationSchema = z.object({
     .array(z.object({ value: z.string().min(1, "Instrução obrigatória") }))
     .min(1, "Informe pelo menos uma instrução"),
   specialControl: z.boolean(),
-  eyedrop: z.boolean(),
+  external: z.boolean(),
 });
 
 type MedicationForm = z.infer<typeof medicationSchema>;
@@ -62,7 +62,7 @@ export default function Page() {
       unit: "",
       instructions: [{ value: "" }],
       specialControl: false,
-      eyedrop: false,
+      external: false,
     },
   });
 
@@ -127,7 +127,7 @@ export default function Page() {
     form.setValue("category", med?.category ?? "");
     form.setValue("unit", med?.unit ?? "");
     form.setValue("specialControl", med?.specialControl ?? false);
-    form.setValue("eyedrop", med?.eyedrop ?? false);
+    form.setValue("external", med?.external ?? false);
     replace((med?.instructions ?? []).map((i) => ({ value: i.value })));
     setSelectedIndex(index);
   };
@@ -162,7 +162,7 @@ export default function Page() {
               <TableHead>Unidade</TableHead>
               <TableHead>Instruções</TableHead>
               <TableHead>Controle Especial</TableHead>
-              <TableHead>É colírio?</TableHead>
+              <TableHead>Uso externo?</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -182,7 +182,7 @@ export default function Page() {
                   </ul>
                 </TableCell>
                 <TableCell>{med.specialControl ? "Sim" : "Não"}</TableCell>
-                <TableCell>{med.eyedrop ? "Sim" : "Não"}</TableCell>
+                <TableCell>{med.external ? "Sim" : "Não"}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button
@@ -324,7 +324,7 @@ export default function Page() {
             />
             <FormField
               control={form.control}
-              name="eyedrop"
+              name="external"
               render={({ field }) => (
                 <FormItem className="flex items-center gap-2 space-y-0">
                   <FormControl>
@@ -333,7 +333,7 @@ export default function Page() {
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <FormLabel>É colírio?</FormLabel>
+                  <FormLabel>Uso externo?</FormLabel>
                 </FormItem>
               )}
             />

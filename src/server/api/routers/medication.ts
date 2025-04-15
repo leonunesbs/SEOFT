@@ -8,7 +8,7 @@ const medicationInput = z.object({
   unit: z.string().min(1),
   instructions: z.array(z.string().min(1)),
   specialControl: z.boolean(),
-  eyedrop: z.boolean(),
+  external: z.boolean(),
 });
 
 export const medicationRouter = createTRPCRouter({
