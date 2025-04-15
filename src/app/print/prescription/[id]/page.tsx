@@ -209,7 +209,7 @@ export default async function Page({ params }: { params: Params }) {
   // Geração de página para itens simples (caso existam)
   if (simpleItems.length > 0) {
     const responseSimples = await fetch(
-      "http://localhost:3000/assets/simples.pdf",
+      "https://seoft.com.br/assets/simples.pdf",
     );
     if (!responseSimples.ok) {
       return <p>Erro ao carregar o template do PDF simples.</p>;
@@ -229,7 +229,7 @@ export default async function Page({ params }: { params: Params }) {
   // Geração de página para itens especiais (caso existam)
   if (specialItems.length > 0) {
     const responseEspecial = await fetch(
-      "http://localhost:3000/assets/especial.pdf",
+      "https://seoft.com.br/assets/especial.pdf",
     );
     if (!responseEspecial.ok) {
       return <p>Erro ao carregar o template do PDF especial.</p>;
