@@ -1,5 +1,5 @@
 import { Medication, Prisma } from "@prisma/client";
-import { MdCancel, MdOutlineInfo } from "react-icons/md";
+import { MdCancel, MdOutlineInfo, MdOutlinePrint } from "react-icons/md";
 import {
   Card,
   CardContent,
@@ -114,7 +114,22 @@ export function PrescriptionCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Prescrição</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Prescrição</CardTitle>
+          <Button
+            variant={"outline"}
+            onClick={() => {
+              // abrir nova janela pequena e sem barra de de busca
+              window.open(
+                `/print/prescription/${firstPrescription?.id}`,
+                "_blank",
+                "width=800,height=600,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes",
+              );
+            }}
+          >
+            <MdOutlinePrint size={18} />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         {firstPrescription?.prescriptionItems.map((item) => (
