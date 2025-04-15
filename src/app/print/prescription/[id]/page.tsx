@@ -1,9 +1,9 @@
-import { PDFDocument, StandardFonts } from "pdf-lib";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { PDFDocument, StandardFonts } from "pdf-lib";
 
+import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { MdOutlinePrint } from "react-icons/md";
-import { Button } from "~/components/ui/button";
 import { db } from "~/server/db";
 
 type Params = Promise<{ id: string }>;
@@ -463,7 +463,7 @@ export default async function Page({ params }: { params: Params }) {
           <iframe
             src={mergedPdfDataUrl}
             title="PDF Preview"
-            className="h-[600px] w-full rounded-md border"
+            className="min-h-[600px] w-full rounded-md border"
           />
         </CardContent>
       </Card>
