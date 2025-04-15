@@ -90,7 +90,7 @@ export default async function Dashboard() {
                   <TableHead>Médico</TableHead>
                   <TableHead>Ambulatório</TableHead>
                   <TableHead>Data</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Avaliação</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
