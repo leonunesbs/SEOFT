@@ -3,7 +3,6 @@
 import * as React from "react";
 
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
 import {
   Command,
   CommandEmpty,
@@ -21,11 +20,6 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import {
   Form,
   FormControl,
   FormField,
@@ -33,18 +27,24 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { useParams, useRouter } from "next/navigation";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { toast } from "~/hooks/use-toast";
-import { cn } from "~/lib/utils";
-import { api } from "~/trpc/react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { api } from "~/trpc/react";
+import { cn } from "~/lib/utils";
+import { toast } from "~/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 // --- Schema Base com campos comuns --- //
 const baseSchema = z.object({
@@ -121,7 +121,7 @@ export function PrescriptionFormDialog({
       selectedMedicationInstruction: "",
       customInstruction: "",
       continuousUse: true,
-      quantity: "",
+      quantity: "0",
       eye: "AO",
     },
   });
@@ -187,9 +187,6 @@ export function PrescriptionFormDialog({
 
     createOrUpdateMutation.mutate({
       ...processedData,
-      quantity: processedData.quantity
-        ? Number(processedData.quantity)
-        : undefined,
     });
   };
 
@@ -376,6 +373,7 @@ export function PrescriptionFormDialog({
                         <Input
                           type="number"
                           placeholder="Informe a quantidade"
+                          required
                           {...field}
                         />
                       </FormControl>

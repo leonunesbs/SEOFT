@@ -8,122 +8,151 @@ import { db } from "~/server/db";
 
 type Params = Promise<{ id: string }>;
 
-// Função auxiliar para dividir um texto em linhas de acordo com a largura máxima
-function splitTextIntoLines(
-  text: string,
-  font: any,
-  fontSize: number,
-  maxWidth: number,
-): string[] {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let currentLine = "";
-  words.forEach((word) => {
-    const lineWithWord = currentLine ? `${currentLine} ${word}` : word;
-    const lineWidth = font.widthOfTextAtSize(lineWithWord, fontSize);
-    if (lineWidth < maxWidth) {
-      currentLine = lineWithWord;
-    } else {
-      lines.push(currentLine);
-      currentLine = word;
-    }
-  });
-  if (currentLine) {
-    lines.push(currentLine);
+/**
+ * Função auxiliar que divide um array em grupos de tamanho máximo "size"
+ */
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
   }
-  return lines;
+  return result;
 }
 
-// Função para preencher o template PDF com os dados da receita e um conjunto de itens opcional
+/**
+ * Preenche um template PDF (modelo) com os dados da receita.
+ * Espera que os prescription items a serem impressos estejam em itemsOverride.
+ * Essa função usa o template fornecido (ex: /assets/simples.pdf ou /assets/especial.pdf)
+ * e retorna o PDF preenchido (geralmente com 1 página).
+ */
 async function fillPdfTemplateWithPrescription(
   prescription: any,
   modelPDFBytes: ArrayBuffer,
   doctorInfo?: { doctorName?: string; crm?: string },
-  itemsOverride?: any[], // Se fornecido, usará este array em vez de prescription.prescriptionItems
+  itemsOverride?: any[],
 ): Promise<Uint8Array> {
+  // Carrega o template PDF
   const pdfDoc = await PDFDocument.load(modelPDFBytes);
-  const page = pdfDoc.getPage(0);
   const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
   const fontSize = 12;
+  // Usaremos somente a primeira página do template para desenhar as informações
+  const page = pdfDoc.getPage(0);
   page.setFont(timesRomanFont);
   page.setFontSize(fontSize);
 
-  // Define a área para escrita
-  const maxWidth = 500;
-  const textX = 50;
-  let textY = 700;
-
-  // Informações gerais da receita
-  const introText = `Receita ID: ${prescription.id}
-Criada em: ${new Date(prescription.createdAt).toLocaleString()}
-Atualizada em: ${new Date(prescription.updatedAt).toLocaleString()}`;
-
-  // Dados do paciente, se houver
-  let patientText = "";
-  if (prescription.evaluation && prescription.evaluation.patient) {
-    const patient = prescription.evaluation.patient;
-    patientText = `Paciente: ${patient.name || "N/A"}
-Prontuário: ${patient.medicalRecord || "N/A"}`;
-  }
-
-  // Seleciona os itens – se houver uma sobreposição, usa-a; caso contrário, todos os itens
-  const items = itemsOverride || prescription.prescriptionItems;
-
-  // Detalhes dos itens da receita
-  let itemsText = "Itens da Receita:\n";
-  if (items && items.length > 0) {
-    items.forEach((item: any) => {
-      let itemText = `\nItem ID: ${item.id}\n`;
-      if (item.medication) {
-        itemText += `Medicamento: ${item.medication.name}\nCategoria: ${item.medication.category}\nUnidade: ${item.medication.unit}\n`;
-        if (Array.isArray(item.medication.instructions)) {
-          itemText += `Instruções: ${item.medication.instructions.join(", ")}\n`;
-        }
-        itemText += `Controle Especial: ${item.medication.specialControl ? "Sim" : "Não"}\nÉ Colírio: ${item.medication.eyedrop ? "Sim" : "Não"}\n`;
-      } else {
-        itemText += "Informações da medicação indisponíveis.\n";
-      }
-      if (item.selectedMedicationInstruction) {
-        itemText += `Instrução Selecionada: ${item.selectedMedicationInstruction}\n`;
-      }
-      if (item.customInstruction) {
-        itemText += `Instrução Personalizada: ${item.customInstruction}\n`;
-      }
-      if (item.quantity !== undefined && item.quantity !== null) {
-        itemText += `Quantidade: ${item.quantity}\n`;
-      }
-      itemsText += itemText;
-    });
-  } else {
-    itemsText += "Nenhum item na receita.\n";
-  }
-
-  // Concatena os textos e remove as quebras de linha para compatibilidade de codificação
-  const fullText = introText + "\n\n" + patientText + "\n\n" + itemsText;
-  const sanitizedText = fullText.replace(/\n/g, " ");
-
-  // Quebra o texto em linhas para caber na área definida
-  const lines = splitTextIntoLines(
-    sanitizedText,
-    timesRomanFont,
-    fontSize,
-    maxWidth,
-  );
-  for (const line of lines) {
-    page.drawText(line, { x: textX, y: textY });
-    textY -= fontSize + 4;
-  }
-
-  // Espaço para assinatura e demais informações
-  textY -= 30;
+  // Define dimensões e margens (obtidas do template)
   const pageWidth = page.getWidth();
+  const pageHeight = page.getHeight();
+  const leftMargin = 50;
+  const rightMargin = 50;
+  const usableWidth = pageWidth - leftMargin - rightMargin;
+
+  // Posição vertical inicial (ajuste conforme o layout do template)
+  let textY = pageHeight - 120;
+
+  // Cabeçalho: Dados do paciente
+  const patientName = prescription.evaluation?.patient?.name || "N/A";
+  page.drawText(`Paciente: ${patientName}`, {
+    x: leftMargin,
+    y: textY,
+    size: fontSize,
+  });
+  textY -= fontSize + 15;
+
+  // Cabeçalho de uso:
+  // Aqui definimos se é "USO EXTERNO" ou "USO INTERNO" com base no primeiro item do grupo
+  let usageHeaderText = "USO EXTERNO"; // Valor padrão
+  if (
+    itemsOverride &&
+    itemsOverride.length > 0 &&
+    itemsOverride[0].medication
+  ) {
+    usageHeaderText = itemsOverride[0].medication.eyedrop
+      ? "USO EXTERNO"
+      : "USO INTERNO";
+  }
+  const usageHeaderWidth = timesRomanFont.widthOfTextAtSize(
+    usageHeaderText,
+    fontSize,
+  );
+  page.drawText(usageHeaderText, {
+    x: (pageWidth - usageHeaderWidth) / 2,
+    y: textY,
+    size: fontSize,
+  });
+  textY -= fontSize + 10;
+
+  // Lista de Items (cada item ocupa 2 linhas)
+  // Usa os items passados (itemsOverride) que já são o grupo para essa página
+  itemsOverride?.forEach((item: any, index: number) => {
+    // Linha 1: "X) NomeDoMedicamento [----] Quantidade"
+    const medicationName = item.medication?.name || "Medicamento não informado";
+    // Se a quantidade for 0, exibe "Uso contínuo"
+    const quantityVal = item.quantity ?? 1;
+    const quantityText =
+      quantityVal === 0
+        ? "Uso contínuo"
+        : `${quantityVal} ${item.medication?.unit}${quantityVal > 1 ? "s" : ""}`.toLocaleUpperCase();
+
+    // Usa o índice global (caso seja necessário; aqui a numeração é relativa à página)
+    const itemIndexAndName = `${index + 1}) ${medicationName}`;
+    page.drawText(itemIndexAndName, {
+      x: leftMargin,
+      y: textY,
+      size: fontSize,
+    });
+
+    const itemIndexAndNameWidth = timesRomanFont.widthOfTextAtSize(
+      itemIndexAndName,
+      fontSize,
+    );
+    const quantityTextWidth = timesRomanFont.widthOfTextAtSize(
+      quantityText,
+      fontSize,
+    );
+    const quantityX = leftMargin + usableWidth - quantityTextWidth;
+    const dashStartX = leftMargin + itemIndexAndNameWidth;
+    let dashSpaceWidth = quantityX - dashStartX;
+    if (dashSpaceWidth < 0) dashSpaceWidth = 0;
+    const dashOneWidth = timesRomanFont.widthOfTextAtSize("-", fontSize);
+    const dashCount = Math.floor(dashSpaceWidth / dashOneWidth);
+    const dashString = "-".repeat(dashCount);
+
+    // Desenha os traços e o quantityText
+    page.drawText(dashString, {
+      x: dashStartX,
+      y: textY,
+      size: fontSize,
+    });
+    page.drawText(quantityText, {
+      x: quantityX,
+      y: textY,
+      size: fontSize,
+    });
+    textY -= fontSize + 6;
+
+    // Linha 2: Instrução (com recuo)
+    const instructionText =
+      item.selectedMedicationInstruction ||
+      item.customInstruction ||
+      "Instrução não informada";
+    page.drawText(instructionText, {
+      x: leftMargin + 20,
+      y: textY,
+      size: fontSize,
+    });
+    textY -= fontSize + 10;
+  });
+
+  // Rodapé: Assinatura, dados do médico, CRM e data
+  textY -= 40;
   const signatureLine = "___________________________";
   const signatureLineWidth = timesRomanFont.widthOfTextAtSize(
     signatureLine,
     fontSize,
   );
   const signatureX = (pageWidth - signatureLineWidth) / 2;
-  page.drawText(signatureLine, { x: signatureX, y: textY });
+  page.drawText(signatureLine, { x: signatureX, y: textY, size: fontSize });
 
   if (doctorInfo?.doctorName) {
     textY -= 20;
@@ -133,7 +162,7 @@ Prontuário: ${patient.medicalRecord || "N/A"}`;
       fontSize,
     );
     const doctorX = (pageWidth - doctorTextWidth) / 2;
-    page.drawText(doctorText, { x: doctorX, y: textY });
+    page.drawText(doctorText, { x: doctorX, y: textY, size: fontSize });
   }
 
   if (doctorInfo?.crm) {
@@ -141,7 +170,7 @@ Prontuário: ${patient.medicalRecord || "N/A"}`;
     const crmText = `CRM-CE: ${doctorInfo.crm.toUpperCase()}`;
     const crmTextWidth = timesRomanFont.widthOfTextAtSize(crmText, fontSize);
     const crmX = (pageWidth - crmTextWidth) / 2;
-    page.drawText(crmText, { x: crmX, y: textY });
+    page.drawText(crmText, { x: crmX, y: textY, size: fontSize });
   }
 
   textY -= 20;
@@ -152,12 +181,14 @@ Prontuário: ${patient.medicalRecord || "N/A"}`;
   });
   const dateTextWidth = timesRomanFont.widthOfTextAtSize(dateText, fontSize);
   const dateX = (pageWidth - dateTextWidth) / 2;
-  page.drawText(dateText, { x: dateX, y: textY });
+  page.drawText(dateText, { x: dateX, y: textY, size: fontSize });
 
   return await pdfDoc.save();
 }
 
-// Função para criar uma data URL a partir dos bytes do PDF
+/**
+ * Cria uma data URL a partir dos bytes do PDF.
+ */
 function createPdfDataUrl(pdfBytes: Uint8Array): string {
   const base64String = Buffer.from(pdfBytes).toString("base64");
   return `data:application/pdf;base64,${base64String}`;
@@ -166,7 +197,7 @@ function createPdfDataUrl(pdfBytes: Uint8Array): string {
 export default async function Page({ params }: { params: Params }) {
   const { id } = await params;
 
-  // Busca a receita com avaliação e itens (incluindo os dados dos medicamentos)
+  // Busca a receita, incluindo a avaliação e os prescription items (com dados dos medicamentos)
   const prescription = await db.prescription.findUnique({
     where: { id },
     include: {
@@ -179,7 +210,7 @@ export default async function Page({ params }: { params: Params }) {
     return <p>Receita não encontrada.</p>;
   }
 
-  // Separa os itens especiais dos demais
+  // Separa os items especiais dos simples
   const specialItems = prescription.prescriptionItems.filter(
     (item: any) => item.medication && item.medication.specialControl,
   );
@@ -203,30 +234,35 @@ export default async function Page({ params }: { params: Params }) {
     crm: collaborator.crm,
   };
 
-  // Cria um novo documento PDF que reunirá as páginas
+  // Cria o documento PDF final que reunirá as páginas dos templates simples e especiais
   const mergedPdfDoc = await PDFDocument.create();
 
-  // Geração de página para itens simples (caso existam)
+  // --- Processa os simples ---
   if (simpleItems.length > 0) {
-    const responseSimples = await fetch(
-      "https://seoft.com.br/assets/simples.pdf",
-    );
-    if (!responseSimples.ok) {
-      return <p>Erro ao carregar o template do PDF simples.</p>;
+    // Divide os simpleItems em grupos de até 5
+    const simpleGroups = chunkArray(simpleItems, 5);
+    // Para cada grupo, faz uma request ao modelo e preenche os dados
+    for (const group of simpleGroups) {
+      const responseSimples = await fetch(
+        "https://seoft.com.br/assets/simples.pdf",
+      );
+      if (!responseSimples.ok) {
+        return <p>Erro ao carregar o template do PDF simples.</p>;
+      }
+      const simplesPDFBytes = await responseSimples.arrayBuffer();
+      const filledPdfBytes = await fillPdfTemplateWithPrescription(
+        prescription,
+        simplesPDFBytes,
+        doctorInfo,
+        group,
+      );
+      const pdfSimplesDoc = await PDFDocument.load(filledPdfBytes);
+      const [page] = await mergedPdfDoc.copyPages(pdfSimplesDoc, [0]);
+      mergedPdfDoc.addPage(page);
     }
-    const simplesPDFBytes = await responseSimples.arrayBuffer();
-    const pdfBytesSimples = await fillPdfTemplateWithPrescription(
-      prescription,
-      simplesPDFBytes,
-      doctorInfo,
-      simpleItems,
-    );
-    const pdfSimplesDoc = await PDFDocument.load(pdfBytesSimples);
-    const [simplesPage] = await mergedPdfDoc.copyPages(pdfSimplesDoc, [0]);
-    mergedPdfDoc.addPage(simplesPage);
   }
 
-  // Geração de página para itens especiais (caso existam)
+  // --- Processa os especiais (sem agrupamento) ---
   if (specialItems.length > 0) {
     const responseEspecial = await fetch(
       "https://seoft.com.br/assets/especial.pdf",
@@ -235,18 +271,18 @@ export default async function Page({ params }: { params: Params }) {
       return <p>Erro ao carregar o template do PDF especial.</p>;
     }
     const especialPDFBytes = await responseEspecial.arrayBuffer();
-    const pdfBytesEspecial = await fillPdfTemplateWithPrescription(
+    const filledPdfBytes = await fillPdfTemplateWithPrescription(
       prescription,
       especialPDFBytes,
       doctorInfo,
       specialItems,
     );
-    const pdfEspecialDoc = await PDFDocument.load(pdfBytesEspecial);
-    const [especialPage] = await mergedPdfDoc.copyPages(pdfEspecialDoc, [0]);
-    mergedPdfDoc.addPage(especialPage);
+    const pdfEspecialDoc = await PDFDocument.load(filledPdfBytes);
+    const [page] = await mergedPdfDoc.copyPages(pdfEspecialDoc, [0]);
+    mergedPdfDoc.addPage(page);
   }
 
-  // Gera a URL do PDF consolidado
+  // Gera a URL do PDF final consolidado
   const mergedPdfBytes = await mergedPdfDoc.save();
   const mergedPdfDataUrl = createPdfDataUrl(mergedPdfBytes);
 
@@ -275,7 +311,6 @@ export default async function Page({ params }: { params: Params }) {
           />
         </CardContent>
       </Card>
-
       <Card className="w-full">
         <CardHeader>
           <CardTitle>Informações Gerais da Receita</CardTitle>
