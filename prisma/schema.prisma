@@ -198,8 +198,8 @@ model PrescriptionItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  prescription Prescription @relation(fields: [prescriptionId], references: [id])
-  medication   Medication?  @relation(fields: [medicationId], references: [id])
+  prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  medication   Medication?  @relation(fields: [medicationId], references: [id], onDelete: SetNull)
 }
 
 enum Role {
