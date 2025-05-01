@@ -1,10 +1,3 @@
-import { UseFormReturn, useForm } from "react-hook-form";
-import {
-  MdDeleteOutline,
-  MdOutlineCheck,
-  MdOutlineFileCopy,
-  MdSwitchLeft,
-} from "react-icons/md";
 import {
   Accordion,
   AccordionContent,
@@ -18,6 +11,12 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
+import {
+  MdDeleteOutline,
+  MdOutlineCheck,
+  MdOutlineFileCopy,
+  MdSwitchLeft,
+} from "react-icons/md";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import {
   Tooltip,
@@ -25,137 +24,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import { UseFormReturn, useForm } from "react-hook-form";
+import { useCallback, useEffect } from "react";
 
-import { Prisma } from "@prisma/client";
 import { AccessFileButton } from "../atoms/access-file-button";
-import { EvaluationMainFormValues } from "../organisms/evaluation-main-form";
 import { Button } from "../ui/button";
+import { EvaluationMainFormValues } from "../organisms/evaluation-main-form";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
 import { OpticalBiometryFormFields } from "./opticalBiometry-form-fields";
-
-function ActionButtons({
-  fields,
-  lastEvaluationData,
-  form,
-}: {
-  fields: Array<keyof EvaluationMainFormValues>;
-  form: UseFormReturn<EvaluationMainFormValues>;
-  lastEvaluationData?: Prisma.EvaluationGetPayload<{
-    select: {
-      eyes: {
-        include: {
-          leftEye: {
-            include: {
-              logs: true;
-              refraction: true;
-            };
-          };
-          rightEye: {
-            include: {
-              logs: true;
-              refraction: true;
-            };
-          };
-        };
-      };
-    };
-  }>;
-}) {
-  const handleCopyLastData = (
-    fields: Array<keyof EvaluationMainFormValues>,
-  ) => {
-    if (!lastEvaluationData) return;
-
-    fields.forEach((field) => {
-      let value: unknown;
-
-      const fieldStr = field.toString();
-
-      // Check if the field is specific to an eye (ends with 'OD' or 'OS')
-      if (fieldStr.endsWith("OD") || fieldStr.endsWith("OS")) {
-        const eyeSide = fieldStr.endsWith("OD") ? "rightEye" : "leftEye";
-        const eyeLogs = lastEvaluationData.eyes?.[eyeSide]?.logs;
-
-        // Extract the log type from the field name
-        const logTypeRaw = fieldStr.substring(0, fieldStr.length - 2);
-
-        // Mapping of field names to log types
-        const fieldToLogTypeMap: Record<string, string> = {
-          tonometry: "TONOMETRY",
-          fundoscopy: "FUNDOSCOPY",
-          gonioscopy: "GONIOSCOPY",
-          biomicroscopy: "BIOMICROSCOPY",
-          pachymetry: "PACHYMETRY",
-          retinography: "RETINOGRAPHY",
-          oct: "OCT",
-          visualField: "VISUAL_FIELD",
-          angiography: "ANGIOGRAPHY",
-          ctCornea: "CT_CORNEA",
-          opticalBiometry: "OPTICAL_BIOMETRY",
-          specularMicroscopy: "SPECULAR_MICROSCOPY",
-          // Add other mappings as needed
-        };
-
-        const logType =
-          fieldToLogTypeMap[logTypeRaw.toLowerCase()] ??
-          logTypeRaw.toUpperCase();
-
-        const log = eyeLogs?.find((l) => l.type === logType);
-        value = log?.details ?? "";
-      } else {
-        // For fields not specific to an eye
-        value = (lastEvaluationData as any)[field] || "";
-      }
-
-      form.setValue(field, value as string | FileList | null | undefined);
-    });
-  };
-
-  const handleCopyODToOE = (
-    fieldOD: keyof EvaluationMainFormValues,
-    fieldOE: keyof EvaluationMainFormValues,
-  ) => {
-    const valueOD = form.getValues(fieldOD);
-    form.setValue(fieldOE, valueOD ?? "");
-  };
-  const handleClearFields = (fields: Array<keyof EvaluationMainFormValues>) => {
-    fields.forEach((field) => form.setValue(field, ""));
-  };
-  return (
-    <div className="flex gap-2">
-      <Button
-        size="sm"
-        type="button"
-        variant="outline"
-        onClick={() => handleCopyLastData(fields)}
-      >
-        <MdOutlineFileCopy size={18} />
-        Importar última
-      </Button>
-
-      <Button
-        size="sm"
-        type="button"
-        variant="outline"
-        onClick={() => handleCopyODToOE(fields[0]!, fields[1]!)}
-      >
-        <MdSwitchLeft size={18} />
-        OE semelhante
-      </Button>
-
-      <Button
-        size="sm"
-        type="button"
-        variant="outline"
-        onClick={() => handleClearFields(fields)}
-      >
-        <MdDeleteOutline size={18} />
-        Limpar
-      </Button>
-    </div>
-  );
-}
+import { Prisma } from "@prisma/client";
+import { Textarea } from "../ui/textarea";
 
 export function AccordionExams({
   form,
@@ -187,6 +65,89 @@ export function AccordionExams({
     };
   }>;
 }) {
+  const handleCopyLastData = useCallback(
+    (fields: Array<keyof EvaluationMainFormValues>) => {
+      if (!lastEvaluationData) return;
+
+      fields.forEach((field) => {
+        let value: unknown;
+
+        const fieldStr = field.toString();
+
+        // Check if the field is specific to an eye (ends with 'OD' or 'OS')
+        if (fieldStr.endsWith("OD") || fieldStr.endsWith("OS")) {
+          const eyeSide = fieldStr.endsWith("OD") ? "rightEye" : "leftEye";
+          const eyeLogs = lastEvaluationData.eyes?.[eyeSide]?.logs;
+
+          // Extract the log type from the field name
+          const logTypeRaw = fieldStr.substring(0, fieldStr.length - 2);
+
+          // Mapping of field names to log types
+          const fieldToLogTypeMap: Record<string, string> = {
+            tonometry: "TONOMETRY",
+            fundoscopy: "FUNDOSCOPY",
+            gonioscopy: "GONIOSCOPY",
+            biomicroscopy: "BIOMICROSCOPY",
+            pachymetry: "PACHYMETRY",
+            retinography: "RETINOGRAPHY",
+            oct: "OCT",
+            visualField: "VISUAL_FIELD",
+            angiography: "ANGIOGRAPHY",
+            ctCornea: "CT_CORNEA",
+            opticalBiometry: "OPTICAL_BIOMETRY",
+            specularMicroscopy: "SPECULAR_MICROSCOPY",
+          };
+
+          const logType =
+            fieldToLogTypeMap[logTypeRaw.toLowerCase()] ??
+            logTypeRaw.toUpperCase();
+
+          const log = eyeLogs?.find((l) => l.type === logType);
+          value = log?.details ?? "";
+        } else {
+          // For fields not specific to an eye
+          value = (lastEvaluationData as any)[field] || "";
+        }
+
+        form.setValue(field, value as string | FileList | null | undefined);
+      });
+    },
+    [lastEvaluationData, form],
+  );
+
+  useEffect(() => {
+    if (lastEvaluationData) {
+      const defaultFields = [
+        "gonioscopyOD",
+        "gonioscopyOS",
+        "pachymetryOD",
+        "pachymetryOS",
+      ] as Array<keyof EvaluationMainFormValues>;
+
+      // Check if any of the fields already have data
+      const hasExistingData = defaultFields.some((field) =>
+        form.getValues(field),
+      );
+
+      // Only import if there's no existing data
+      if (!hasExistingData) {
+        handleCopyLastData(defaultFields);
+      }
+    }
+  }, [lastEvaluationData, form, handleCopyLastData]);
+
+  const handleCopyODToOE = (
+    fieldOD: keyof EvaluationMainFormValues,
+    fieldOE: keyof EvaluationMainFormValues,
+  ) => {
+    const valueOD = form.getValues(fieldOD);
+    form.setValue(fieldOE, valueOD ?? "");
+  };
+
+  const handleClearFields = (fields: Array<keyof EvaluationMainFormValues>) => {
+    fields.forEach((field) => form.setValue(field, ""));
+  };
+
   const opticalBiometryForm = useForm<{
     OD: {
       AL?: string;
@@ -222,8 +183,6 @@ export function AccordionExams({
         : undefined,
     },
   });
-
-  console.log(form.getValues("opticalBiometryOD"));
 
   const handleFileUpload = async (
     file: File,
@@ -319,7 +278,39 @@ export function AccordionExams({
       </TabsList>
 
       <TabsContent value="propaedeutics">
-        <Accordion type="single" collapsible>
+        <div className="mb-4 flex justify-end">
+          <Button
+            size="sm"
+            type="button"
+            variant="outline"
+            onClick={() => {
+              const propaedeuticsFields = [
+                "biomicroscopyOD",
+                "biomicroscopyOS",
+                "fundoscopyOD",
+                "fundoscopyOS",
+                "gonioscopyOD",
+                "gonioscopyOS",
+                "pachymetryOD",
+                "pachymetryOS",
+                "tonometryOD",
+                "tonometryOS",
+              ];
+              handleCopyLastData(
+                propaedeuticsFields as unknown as Array<
+                  keyof EvaluationMainFormValues
+                >,
+              );
+            }}
+          >
+            <MdOutlineFileCopy size={18} className="mr-2" />
+            Importar propedêutica
+          </Button>
+        </div>
+        <Accordion
+          type="multiple"
+          defaultValue={["biomicroscopy", "fundoscopy", "tonometry"]}
+        >
           {/* BIOMICROSCOPIA */}
           <AccordionItem value="biomicroscopy">
             <AccordionTrigger>
@@ -331,11 +322,52 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <ActionButtons
-                fields={["biomicroscopyOD", "biomicroscopyOS"]}
-                form={form}
-                lastEvaluationData={lastEvaluationData}
-              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyLastData([
+                      "biomicroscopyOD",
+                      "biomicroscopyOS",
+                    ] as Array<keyof EvaluationMainFormValues>)
+                  }
+                >
+                  <MdOutlineFileCopy size={18} />
+                  Importar última
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyODToOE(
+                      "biomicroscopyOD" as keyof EvaluationMainFormValues,
+                      "biomicroscopyOS" as keyof EvaluationMainFormValues,
+                    )
+                  }
+                >
+                  <MdSwitchLeft size={18} />
+                  OE semelhante
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleClearFields([
+                      "biomicroscopyOD",
+                      "biomicroscopyOS",
+                    ] as Array<keyof EvaluationMainFormValues>)
+                  }
+                >
+                  <MdDeleteOutline size={18} />
+                  Limpar
+                </Button>
+              </div>
 
               <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="w-full">
@@ -390,11 +422,51 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <ActionButtons
-                fields={["fundoscopyOD", "fundoscopyOS"]}
-                form={form}
-                lastEvaluationData={lastEvaluationData}
-              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyLastData([
+                      "fundoscopyOD",
+                      "fundoscopyOS",
+                    ] as Array<keyof EvaluationMainFormValues>)
+                  }
+                >
+                  <MdOutlineFileCopy size={18} />
+                  Importar última
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyODToOE(
+                      "fundoscopyOD" as keyof EvaluationMainFormValues,
+                      "fundoscopyOS" as keyof EvaluationMainFormValues,
+                    )
+                  }
+                >
+                  <MdSwitchLeft size={18} />
+                  OE semelhante
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleClearFields(["fundoscopyOD", "fundoscopyOS"] as Array<
+                      keyof EvaluationMainFormValues
+                    >)
+                  }
+                >
+                  <MdDeleteOutline size={18} />
+                  Limpar
+                </Button>
+              </div>
 
               <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="w-full">
@@ -438,6 +510,104 @@ export function AccordionExams({
               </div>
             </AccordionContent>
           </AccordionItem>
+          {/* TONOMETRIA */}
+          <AccordionItem value="tonometry">
+            <AccordionTrigger>
+              <h3 className="flex items-center gap-2">
+                Tonometria
+                {isTonometryFilled && (
+                  <MdOutlineCheck className="text-green-500" />
+                )}
+              </h3>
+            </AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-4 px-2">
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyLastData(["tonometryOD", "tonometryOS"] as Array<
+                      keyof EvaluationMainFormValues
+                    >)
+                  }
+                >
+                  <MdOutlineFileCopy size={18} />
+                  Importar última
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyODToOE(
+                      "tonometryOD" as keyof EvaluationMainFormValues,
+                      "tonometryOS" as keyof EvaluationMainFormValues,
+                    )
+                  }
+                >
+                  <MdSwitchLeft size={18} />
+                  OE semelhante
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleClearFields(["tonometryOD", "tonometryOS"] as Array<
+                      keyof EvaluationMainFormValues
+                    >)
+                  }
+                >
+                  <MdDeleteOutline size={18} />
+                  Limpar
+                </Button>
+              </div>
+
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <div className="w-full">
+                  <FormField
+                    control={form.control}
+                    name="tonometryOD"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>OD</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Informe o resultado"
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="w-full">
+                  <FormField
+                    control={form.control}
+                    name="tonometryOS"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>OE</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Informe o resultado"
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
           {/* GONIOSCOPIA */}
           <AccordionItem value="gonioscopy">
             <AccordionTrigger>
@@ -449,11 +619,51 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <ActionButtons
-                fields={["gonioscopyOD", "gonioscopyOS"]}
-                form={form}
-                lastEvaluationData={lastEvaluationData}
-              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyLastData([
+                      "gonioscopyOD",
+                      "gonioscopyOS",
+                    ] as Array<keyof EvaluationMainFormValues>)
+                  }
+                >
+                  <MdOutlineFileCopy size={18} />
+                  Importar última
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyODToOE(
+                      "gonioscopyOD" as keyof EvaluationMainFormValues,
+                      "gonioscopyOS" as keyof EvaluationMainFormValues,
+                    )
+                  }
+                >
+                  <MdSwitchLeft size={18} />
+                  OE semelhante
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleClearFields(["gonioscopyOD", "gonioscopyOS"] as Array<
+                      keyof EvaluationMainFormValues
+                    >)
+                  }
+                >
+                  <MdDeleteOutline size={18} />
+                  Limpar
+                </Button>
+              </div>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="w-full">
                   <FormField
@@ -497,7 +707,7 @@ export function AccordionExams({
             </AccordionContent>
           </AccordionItem>
           {/* PAQUIMETRIA */}
-          <AccordionItem value="pachymetry">
+          <AccordionItem value="pachymetry" className="mb-4">
             <AccordionTrigger>
               <h3 className="flex items-center gap-2">
                 Paquimetria
@@ -507,11 +717,51 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 p-2">
-              <ActionButtons
-                fields={["pachymetryOD", "pachymetryOS"]}
-                form={form}
-                lastEvaluationData={lastEvaluationData}
-              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyLastData([
+                      "pachymetryOD",
+                      "pachymetryOS",
+                    ] as Array<keyof EvaluationMainFormValues>)
+                  }
+                >
+                  <MdOutlineFileCopy size={18} />
+                  Importar última
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyODToOE(
+                      "pachymetryOD" as keyof EvaluationMainFormValues,
+                      "pachymetryOS" as keyof EvaluationMainFormValues,
+                    )
+                  }
+                >
+                  <MdSwitchLeft size={18} />
+                  OE semelhante
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleClearFields(["pachymetryOD", "pachymetryOS"] as Array<
+                      keyof EvaluationMainFormValues
+                    >)
+                  }
+                >
+                  <MdDeleteOutline size={18} />
+                  Limpar
+                </Button>
+              </div>
 
               <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="w-full">
@@ -537,65 +787,6 @@ export function AccordionExams({
                   <FormField
                     control={form.control}
                     name="pachymetryOS"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OE</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Informe o resultado"
-                            value={field.value ?? ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          {/* TONOMETRIA */}
-          <AccordionItem value="tonometry" className="mb-4">
-            <AccordionTrigger>
-              <h3 className="flex items-center gap-2">
-                Tonometria
-                {isTonometryFilled && (
-                  <MdOutlineCheck className="text-green-500" />
-                )}
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4 px-2">
-              <ActionButtons
-                fields={["tonometryOD", "tonometryOS"]}
-                form={form}
-                lastEvaluationData={lastEvaluationData}
-              />
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="tonometryOD"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OD</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Informe o resultado"
-                            value={field.value ?? ""}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="tonometryOS"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>OE</FormLabel>
@@ -680,11 +871,52 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <ActionButtons
-                fields={["specularMicroscopyOD", "specularMicroscopyOS"]}
-                form={form}
-                lastEvaluationData={lastEvaluationData}
-              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyLastData([
+                      "specularMicroscopyOD",
+                      "specularMicroscopyOS",
+                    ] as Array<keyof EvaluationMainFormValues>)
+                  }
+                >
+                  <MdOutlineFileCopy size={18} />
+                  Importar última
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleCopyODToOE(
+                      "specularMicroscopyOD" as keyof EvaluationMainFormValues,
+                      "specularMicroscopyOS" as keyof EvaluationMainFormValues,
+                    )
+                  }
+                >
+                  <MdSwitchLeft size={18} />
+                  OE semelhante
+                </Button>
+
+                <Button
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    handleClearFields([
+                      "specularMicroscopyOD",
+                      "specularMicroscopyOS",
+                    ] as Array<keyof EvaluationMainFormValues>)
+                  }
+                >
+                  <MdDeleteOutline size={18} />
+                  Limpar
+                </Button>
+              </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
