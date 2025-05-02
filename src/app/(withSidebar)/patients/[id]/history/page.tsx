@@ -128,10 +128,16 @@ export default async function PatientHistoryPage({
                   const gonioscopies = patient.evaluations
                     .flatMap((ev) => [
                       ...(ev.eyes?.rightEye?.logs
-                        .filter((log) => log.type === "GONIOSCOPY")
+                        .filter(
+                          (log) =>
+                            log.type === "GONIOSCOPY" && log.details?.trim(),
+                        )
                         .map((log) => ({ ...log, eye: "OD" })) || []),
                       ...(ev.eyes?.leftEye?.logs
-                        .filter((log) => log.type === "GONIOSCOPY")
+                        .filter(
+                          (log) =>
+                            log.type === "GONIOSCOPY" && log.details?.trim(),
+                        )
                         .map((log) => ({ ...log, eye: "OS" })) || []),
                     ])
                     .sort(
@@ -140,20 +146,11 @@ export default async function PatientHistoryPage({
                         new Date(a.recordedAt).getTime(),
                     );
 
-                  const lastGonioscopyOD = gonioscopies.find(
-                    (log) => log.eye === "OD",
-                  );
-                  const lastGonioscopyOS = gonioscopies.find(
-                    (log) => log.eye === "OS",
-                  );
-
-                  if (!lastGonioscopyOD && !lastGonioscopyOS) {
-                    return (
-                      <div className="text-muted">
-                        Nenhuma gonioscopia registrada.
-                      </div>
-                    );
+                  if (gonioscopies.length === 0) {
+                    return null;
                   }
+
+                  const lastGonioscopy = gonioscopies[0]!;
 
                   return (
                     <Table>
@@ -165,32 +162,19 @@ export default async function PatientHistoryPage({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {lastGonioscopyOD && (
-                          <TableRow>
-                            <TableCell className="font-semibold">OD</TableCell>
-                            <TableCell>
-                              {new Date(
-                                lastGonioscopyOD.recordedAt,
-                              ).toLocaleDateString("pt-BR")}
-                            </TableCell>
-                            <TableCell className="whitespace-pre-wrap">
-                              {lastGonioscopyOD.details}
-                            </TableCell>
-                          </TableRow>
-                        )}
-                        {lastGonioscopyOS && (
-                          <TableRow>
-                            <TableCell className="font-semibold">OS</TableCell>
-                            <TableCell>
-                              {new Date(
-                                lastGonioscopyOS.recordedAt,
-                              ).toLocaleDateString("pt-BR")}
-                            </TableCell>
-                            <TableCell className="whitespace-pre-wrap">
-                              {lastGonioscopyOS.details}
-                            </TableCell>
-                          </TableRow>
-                        )}
+                        <TableRow>
+                          <TableCell className="font-semibold">
+                            {lastGonioscopy.eye}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(
+                              lastGonioscopy.recordedAt,
+                            ).toLocaleDateString("pt-BR")}
+                          </TableCell>
+                          <TableCell className="whitespace-pre-wrap">
+                            {lastGonioscopy.details}
+                          </TableCell>
+                        </TableRow>
                       </TableBody>
                     </Table>
                   );
@@ -208,10 +192,16 @@ export default async function PatientHistoryPage({
                   const pachymetries = patient.evaluations
                     .flatMap((ev) => [
                       ...(ev.eyes?.rightEye?.logs
-                        .filter((log) => log.type === "PACHYMETRY")
+                        .filter(
+                          (log) =>
+                            log.type === "PACHYMETRY" && log.details?.trim(),
+                        )
                         .map((log) => ({ ...log, eye: "OD" })) || []),
                       ...(ev.eyes?.leftEye?.logs
-                        .filter((log) => log.type === "PACHYMETRY")
+                        .filter(
+                          (log) =>
+                            log.type === "PACHYMETRY" && log.details?.trim(),
+                        )
                         .map((log) => ({ ...log, eye: "OS" })) || []),
                     ])
                     .sort(
@@ -220,20 +210,11 @@ export default async function PatientHistoryPage({
                         new Date(a.recordedAt).getTime(),
                     );
 
-                  const lastPachymetryOD = pachymetries.find(
-                    (log) => log.eye === "OD",
-                  );
-                  const lastPachymetryOS = pachymetries.find(
-                    (log) => log.eye === "OS",
-                  );
-
-                  if (!lastPachymetryOD && !lastPachymetryOS) {
-                    return (
-                      <div className="text-muted">
-                        Nenhuma paquimetria registrada.
-                      </div>
-                    );
+                  if (pachymetries.length === 0) {
+                    return null;
                   }
+
+                  const lastPachymetry = pachymetries[0]!;
 
                   return (
                     <Table>
@@ -245,32 +226,19 @@ export default async function PatientHistoryPage({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {lastPachymetryOD && (
-                          <TableRow>
-                            <TableCell className="font-semibold">OD</TableCell>
-                            <TableCell>
-                              {new Date(
-                                lastPachymetryOD.recordedAt,
-                              ).toLocaleDateString("pt-BR")}
-                            </TableCell>
-                            <TableCell className="whitespace-pre-wrap">
-                              {lastPachymetryOD.details}
-                            </TableCell>
-                          </TableRow>
-                        )}
-                        {lastPachymetryOS && (
-                          <TableRow>
-                            <TableCell className="font-semibold">OS</TableCell>
-                            <TableCell>
-                              {new Date(
-                                lastPachymetryOS.recordedAt,
-                              ).toLocaleDateString("pt-BR")}
-                            </TableCell>
-                            <TableCell className="whitespace-pre-wrap">
-                              {lastPachymetryOS.details}
-                            </TableCell>
-                          </TableRow>
-                        )}
+                        <TableRow>
+                          <TableCell className="font-semibold">
+                            {lastPachymetry.eye}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(
+                              lastPachymetry.recordedAt,
+                            ).toLocaleDateString("pt-BR")}
+                          </TableCell>
+                          <TableCell className="whitespace-pre-wrap">
+                            {lastPachymetry.details}
+                          </TableCell>
+                        </TableRow>
                       </TableBody>
                     </Table>
                   );
