@@ -1,27 +1,40 @@
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
+import { EvaluationHistoryList } from "~/components/organisms/evaluation-history-list";
 import Link from "next/link";
 import { PageHeading } from "~/components/atoms/page-heading";
-import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
+import { TonometryChart } from "~/components/molecules/tonometry-chart";
 import { api } from "~/trpc/server";
 
 type Params = Promise<{ id: string }>;
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export default async function PatientHistoryPage({
   params,
+  searchParams,
 }: {
   params: Params;
+  searchParams: SearchParams;
 }) {
   const { id } = await params;
+  const tabParam = (await searchParams).tab;
+  const currentTab =
+    typeof tabParam === "string"
+      ? tabParam
+      : Array.isArray(tabParam) && tabParam.length > 0
+        ? tabParam[0]
+        : "overview";
+
   const patient = await api.patient.getEvaluationHistory(id);
 
   if (!patient) {
@@ -39,7 +52,6 @@ export default async function PatientHistoryPage({
   return (
     <div className="space-y-4">
       <PageHeading>Histórico do Paciente</PageHeading>
-      {/* Header */}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -76,60 +88,366 @@ export default async function PatientHistoryPage({
 
       <Separator />
 
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold">Histórico de Avaliações</h2>
+      <Tabs value={currentTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview" asChild>
+            <Link href={`/patients/${id}/history?tab=overview`}>
+              Visão Geral
+            </Link>
+          </TabsTrigger>
+          <TabsTrigger value="evaluations" asChild>
+            <Link href={`/patients/${id}/history?tab=evaluations`}>
+              Avaliações
+            </Link>
+          </TabsTrigger>
+          <TabsTrigger value="prescriptions" asChild>
+            <Link href={`/patients/${id}/history?tab=prescriptions`}>
+              Prescrições
+            </Link>
+          </TabsTrigger>
+          <TabsTrigger value="surgeries" asChild>
+            <Link href={`/patients/${id}/history?tab=surgeries`}>
+              Cirurgias
+            </Link>
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Grid responsivo para acomodar os cards */}
-        <div className="grid grid-cols-1 gap-4">
-          {patient.evaluations.map((evaluation) => (
-            <Card key={evaluation.id} className="shadow-sm">
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Card de Última Gonioscopia */}
+            <Card>
               <CardHeader>
-                <CardTitle>
-                  {evaluation.clinic?.name || "Clínica não adicionada"}
-                </CardTitle>
-                <CardDescription>
-                  {evaluation.collaborator?.name || "Médico não selecionado"}
-                </CardDescription>
+                <CardTitle>Última Gonioscopia</CardTitle>
               </CardHeader>
+              <CardContent>
+                {(() => {
+                  const gonioscopies = patient.evaluations
+                    .flatMap((ev) => [
+                      ...(ev.eyes?.rightEye?.logs
+                        .filter((log) => log.type === "GONIOSCOPY")
+                        .map((log) => ({ ...log, eye: "OD" })) || []),
+                      ...(ev.eyes?.leftEye?.logs
+                        .filter((log) => log.type === "GONIOSCOPY")
+                        .map((log) => ({ ...log, eye: "OS" })) || []),
+                    ])
+                    .sort(
+                      (a, b) =>
+                        new Date(b.recordedAt).getTime() -
+                        new Date(a.recordedAt).getTime(),
+                    );
 
-              <CardContent className="space-y-2">
-                <p>
-                  <strong>Data:</strong>{" "}
-                  {new Date(evaluation.createdAt).toLocaleString("pt-BR", {
-                    timeZone: "America/Sao_Paulo",
-                  })}
-                </p>
-                <p>
-                  <strong>Diagnóstico:</strong> {evaluation.diagnosis || "N/A"}
-                </p>
-                <p>
-                  <strong>Tratamento:</strong> {evaluation.treatment || "N/A"}
-                </p>
-                <p>
-                  <strong>Acompanhamento:</strong>{" "}
-                  {evaluation.followUp || "N/A"}
-                </p>
-                <p>
-                  <strong>Próxima consulta:</strong>{" "}
-                  {evaluation.nextAppointment || "N/A"}
-                </p>
+                  const lastGonioscopyOD = gonioscopies.find(
+                    (log) => log.eye === "OD",
+                  );
+                  const lastGonioscopyOS = gonioscopies.find(
+                    (log) => log.eye === "OS",
+                  );
+
+                  if (!lastGonioscopyOD && !lastGonioscopyOS) {
+                    return (
+                      <div className="text-muted">
+                        Nenhuma gonioscopia registrada.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Olho</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Resultado</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {lastGonioscopyOD && (
+                          <TableRow>
+                            <TableCell className="font-semibold">OD</TableCell>
+                            <TableCell>
+                              {new Date(
+                                lastGonioscopyOD.recordedAt,
+                              ).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                              {lastGonioscopyOD.details}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {lastGonioscopyOS && (
+                          <TableRow>
+                            <TableCell className="font-semibold">OS</TableCell>
+                            <TableCell>
+                              {new Date(
+                                lastGonioscopyOS.recordedAt,
+                              ).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                              {lastGonioscopyOS.details}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  );
+                })()}
               </CardContent>
-
-              <CardFooter className="flex items-center justify-between">
-                {/* Exemplo de uso de Badge para o status */}
-                <Badge variant={evaluation.done ? "default" : "secondary"}>
-                  {evaluation.done ? "Finalizado" : "Pendente"}
-                </Badge>
-                <Link href={`/evaluations/${evaluation.id}`} passHref>
-                  <Button variant="outline" size="sm">
-                    Ver Detalhes
-                  </Button>
-                </Link>
-              </CardFooter>
             </Card>
-          ))}
-        </div>
-      </div>
+
+            {/* Card de Última Paquimetria */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Última Paquimetria</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const pachymetries = patient.evaluations
+                    .flatMap((ev) => [
+                      ...(ev.eyes?.rightEye?.logs
+                        .filter((log) => log.type === "PACHYMETRY")
+                        .map((log) => ({ ...log, eye: "OD" })) || []),
+                      ...(ev.eyes?.leftEye?.logs
+                        .filter((log) => log.type === "PACHYMETRY")
+                        .map((log) => ({ ...log, eye: "OS" })) || []),
+                    ])
+                    .sort(
+                      (a, b) =>
+                        new Date(b.recordedAt).getTime() -
+                        new Date(a.recordedAt).getTime(),
+                    );
+
+                  const lastPachymetryOD = pachymetries.find(
+                    (log) => log.eye === "OD",
+                  );
+                  const lastPachymetryOS = pachymetries.find(
+                    (log) => log.eye === "OS",
+                  );
+
+                  if (!lastPachymetryOD && !lastPachymetryOS) {
+                    return (
+                      <div className="text-muted">
+                        Nenhuma paquimetria registrada.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Olho</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Resultado</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {lastPachymetryOD && (
+                          <TableRow>
+                            <TableCell className="font-semibold">OD</TableCell>
+                            <TableCell>
+                              {new Date(
+                                lastPachymetryOD.recordedAt,
+                              ).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                              {lastPachymetryOD.details}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {lastPachymetryOS && (
+                          <TableRow>
+                            <TableCell className="font-semibold">OS</TableCell>
+                            <TableCell>
+                              {new Date(
+                                lastPachymetryOS.recordedAt,
+                              ).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                              {lastPachymetryOS.details}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Gráfico de Tonometria</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TonometryChart evaluations={patient.evaluations} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="prescriptions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico de Prescrições</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                const prescriptions = patient.evaluations
+                  .filter(
+                    (ev) => ev.prescriptions && ev.prescriptions.length > 0,
+                  )
+                  .flatMap((ev) =>
+                    ev.prescriptions.map((prescription) => ({
+                      ...prescription,
+                      evaluationDate: ev.createdAt,
+                      collaborator: ev.collaborator,
+                    })),
+                  )
+                  .sort(
+                    (a, b) =>
+                      new Date(b.evaluationDate).getTime() -
+                      new Date(a.evaluationDate).getTime(),
+                  );
+
+                if (prescriptions.length === 0) {
+                  return (
+                    <div className="text-muted">
+                      Nenhuma prescrição registrada.
+                    </div>
+                  );
+                }
+
+                return (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Profissional</TableHead>
+                        <TableHead>Olho</TableHead>
+                        <TableHead>Medicamento</TableHead>
+                        <TableHead>Instruções</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {prescriptions.map((prescription) =>
+                        prescription.prescriptionItems.map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell>
+                              {new Date(
+                                prescription.evaluationDate,
+                              ).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell>
+                              {prescription.collaborator.name}
+                            </TableCell>
+                            <TableCell>{item.eye}</TableCell>
+                            <TableCell>
+                              {item.medication?.name || "N/A"}
+                            </TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                              {item.selectedMedicationInstruction ||
+                                item.customInstruction ||
+                                "-"}
+                            </TableCell>
+                          </TableRow>
+                        )),
+                      )}
+                    </TableBody>
+                  </Table>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="surgeries" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico de Cirurgias</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                type EyeSurgery = {
+                  id: string;
+                  procedure: string;
+                  date: string | Date;
+                  notes?: string | null;
+                };
+                type Eye = {
+                  surgeries?: EyeSurgery[];
+                };
+                type EvaluationWithEyes =
+                  (typeof patient.evaluations)[number] & {
+                    eyes?: {
+                      leftEye?: Eye;
+                      rightEye?: Eye;
+                    };
+                  };
+                const surgeries = (
+                  (patient.evaluations as EvaluationWithEyes[]) || []
+                )
+                  .flatMap((ev) => [
+                    ...(ev.eyes?.rightEye?.surgeries?.map((s: any) => ({
+                      ...s,
+                      eye: "OD",
+                    })) || []),
+                    ...(ev.eyes?.leftEye?.surgeries?.map((s: any) => ({
+                      ...s,
+                      eye: "OS",
+                    })) || []),
+                  ])
+                  .sort(
+                    (a, b) =>
+                      new Date(b.date).getTime() - new Date(a.date).getTime(),
+                  );
+                if (surgeries.length === 0) {
+                  return (
+                    <div className="text-muted">
+                      Nenhuma cirurgia registrada.
+                    </div>
+                  );
+                }
+                return (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Olho</TableHead>
+                          <TableHead>Procedimento</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Notas</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {surgeries.map((surgery, idx) => (
+                          <TableRow key={surgery.id + surgery.eye + idx}>
+                            <TableCell className="font-semibold">
+                              {surgery.eye}
+                            </TableCell>
+                            <TableCell>{surgery.procedure || "N/A"}</TableCell>
+                            <TableCell>
+                              {surgery.date
+                                ? new Date(surgery.date).toLocaleDateString(
+                                    "pt-BR",
+                                  )
+                                : "N/A"}
+                            </TableCell>
+                            <TableCell>{surgery.notes || "-"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="evaluations" className="space-y-4">
+          <EvaluationHistoryList evaluations={patient.evaluations} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

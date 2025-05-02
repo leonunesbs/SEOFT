@@ -2,9 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Medication, type EyeSurgery, type Prisma } from "@prisma/client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { MdCheck, MdSave } from "react-icons/md";
+import { MdCheck, MdOutlineHistory, MdSave } from "react-icons/md";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { toast } from "~/hooks/use-toast";
@@ -326,6 +327,12 @@ export function EvaluationForm({
             evaluationId={evaluation.id}
             patientName={evaluation.patient.name}
           />
+          <Button asChild variant={"outline"}>
+            <Link href={`/patients/${evaluation.patient.id}/history`}>
+              <MdOutlineHistory />
+              <span className="hidden sm:inline">Histórico</span>
+            </Link>
+          </Button>
           <Button
             type="button"
             variant="outline"

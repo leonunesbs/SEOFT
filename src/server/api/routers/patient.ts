@@ -209,6 +209,15 @@ export const patientRouter = createTRPCRouter({
             include: {
               clinic: true,
               collaborator: true,
+              prescriptions: {
+                include: {
+                  prescriptionItems: {
+                    include: {
+                      medication: true,
+                    },
+                  },
+                },
+              },
               eyes: {
                 include: {
                   leftEye: {
