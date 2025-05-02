@@ -1,4 +1,3 @@
-import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Table,
@@ -9,14 +8,15 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { isValidURL, translateType } from "~/lib/utils";
+import { notFound, redirect } from "next/navigation";
 
+import { AccessFileButton } from "~/components/atoms/access-file-button";
+import { Button } from "~/components/ui/button";
+import { CopyPromptButton } from "~/components/atoms/copy-prompt-button";
 import Link from "next/link";
 import { MdOutlineHistory } from "react-icons/md";
-import { AccessFileButton } from "~/components/atoms/access-file-button";
-import { CopyPromptButton } from "~/components/atoms/copy-prompt-button";
 import { PageHeading } from "~/components/atoms/page-heading";
 import { ReopenEvaluationButton } from "~/components/atoms/reopen-evaluation-button";
-import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { db } from "~/server/db";
 
@@ -174,7 +174,7 @@ export default async function EvaluationSummaryPage({
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return "";
     return new Date(date).toLocaleDateString("pt-BR", {
-      timeZone: "UTC",
+      timeZone: "America/Sao_Paulo",
     });
   };
 
