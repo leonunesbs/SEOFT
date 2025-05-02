@@ -89,23 +89,27 @@ export default async function PatientHistoryPage({
       <Separator />
 
       <Tabs value={currentTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview" asChild>
+        <TabsList className="flex flex-col gap-2 sm:flex-row">
+          <TabsTrigger value="overview" asChild className="w-full sm:w-auto">
             <Link href={`/patients/${id}/history?tab=overview`}>
               Visão Geral
             </Link>
           </TabsTrigger>
-          <TabsTrigger value="evaluations" asChild>
+          <TabsTrigger value="evaluations" asChild className="w-full sm:w-auto">
             <Link href={`/patients/${id}/history?tab=evaluations`}>
               Avaliações
             </Link>
           </TabsTrigger>
-          <TabsTrigger value="prescriptions" asChild>
+          <TabsTrigger
+            value="prescriptions"
+            asChild
+            className="w-full sm:w-auto"
+          >
             <Link href={`/patients/${id}/history?tab=prescriptions`}>
               Prescrições
             </Link>
           </TabsTrigger>
-          <TabsTrigger value="surgeries" asChild>
+          <TabsTrigger value="surgeries" asChild className="w-full sm:w-auto">
             <Link href={`/patients/${id}/history?tab=surgeries`}>
               Cirurgias
             </Link>
