@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Eye, FileText, Pill, Stethoscope } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -9,11 +10,11 @@ import {
 } from "~/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
+import { EvaluationHistoryList } from "~/components/organisms/evaluation-history-list";
 import Link from "next/link";
 import { PageHeading } from "~/components/atoms/page-heading";
-import { TonometryChart } from "~/components/molecules/tonometry-chart";
-import { EvaluationHistoryList } from "~/components/organisms/evaluation-history-list";
 import { Separator } from "~/components/ui/separator";
+import { TonometryChart } from "~/components/molecules/tonometry-chart";
 import { api } from "~/trpc/server";
 
 type Params = Promise<{ id: string }>;
@@ -89,15 +90,23 @@ export default async function PatientHistoryPage({
       <Separator />
 
       <Tabs value={currentTab} className="space-y-4">
-        <TabsList className="flex flex-col gap-2 sm:flex-row">
+        <TabsList>
           <TabsTrigger value="overview" asChild className="w-full sm:w-auto">
-            <Link href={`/patients/${id}/history?tab=overview`}>
-              Visão Geral
+            <Link
+              href={`/patients/${id}/history?tab=overview`}
+              className="flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4 sm:hidden" />
+              <span className="hidden sm:inline">Visão Geral</span>
             </Link>
           </TabsTrigger>
           <TabsTrigger value="evaluations" asChild className="w-full sm:w-auto">
-            <Link href={`/patients/${id}/history?tab=evaluations`}>
-              Avaliações
+            <Link
+              href={`/patients/${id}/history?tab=evaluations`}
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4 sm:hidden" />
+              <span className="hidden sm:inline">Avaliações</span>
             </Link>
           </TabsTrigger>
           <TabsTrigger
@@ -105,13 +114,21 @@ export default async function PatientHistoryPage({
             asChild
             className="w-full sm:w-auto"
           >
-            <Link href={`/patients/${id}/history?tab=prescriptions`}>
-              Prescrições
+            <Link
+              href={`/patients/${id}/history?tab=prescriptions`}
+              className="flex items-center gap-2"
+            >
+              <Pill className="h-4 w-4 sm:hidden" />
+              <span className="hidden sm:inline">Prescrições</span>
             </Link>
           </TabsTrigger>
           <TabsTrigger value="surgeries" asChild className="w-full sm:w-auto">
-            <Link href={`/patients/${id}/history?tab=surgeries`}>
-              Cirurgias
+            <Link
+              href={`/patients/${id}/history?tab=surgeries`}
+              className="flex items-center gap-2"
+            >
+              <Stethoscope className="h-4 w-4 sm:hidden" />
+              <span className="hidden sm:inline">Cirurgias</span>
             </Link>
           </TabsTrigger>
         </TabsList>
@@ -138,7 +155,7 @@ export default async function PatientHistoryPage({
                           (log) =>
                             log.type === "GONIOSCOPY" && log.details?.trim(),
                         )
-                        .map((log) => ({ ...log, eye: "OS" })) || []),
+                        .map((log) => ({ ...log, eye: "OE" })) || []),
                     ])
                     .sort(
                       (a, b) =>
@@ -150,7 +167,12 @@ export default async function PatientHistoryPage({
                     return null;
                   }
 
-                  const lastGonioscopy = gonioscopies[0]!;
+                  const lastGonioscopyOD = gonioscopies.find(
+                    (g) => g.eye === "OD",
+                  );
+                  const lastGonioscopyOS = gonioscopies.find(
+                    (g) => g.eye === "OE",
+                  );
 
                   return (
                     <Table>
@@ -162,19 +184,36 @@ export default async function PatientHistoryPage({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        <TableRow>
-                          <TableCell className="font-semibold">
-                            {lastGonioscopy.eye}
-                          </TableCell>
-                          <TableCell>
-                            {new Date(
-                              lastGonioscopy.recordedAt,
-                            ).toLocaleDateString("pt-BR")}
-                          </TableCell>
-                          <TableCell className="whitespace-pre-wrap">
-                            {lastGonioscopy.details}
-                          </TableCell>
-                        </TableRow>
+                        {lastGonioscopyOD && (
+                          <TableRow>
+                            <TableCell className="font-semibold">
+                              {lastGonioscopyOD.eye}
+                            </TableCell>
+                            <TableCell>
+                              {new Date(
+                                lastGonioscopyOD.recordedAt,
+                              ).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                              {lastGonioscopyOD.details}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {lastGonioscopyOS && (
+                          <TableRow>
+                            <TableCell className="font-semibold">
+                              {lastGonioscopyOS.eye}
+                            </TableCell>
+                            <TableCell>
+                              {new Date(
+                                lastGonioscopyOS.recordedAt,
+                              ).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                              {lastGonioscopyOS.details}
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   );
@@ -202,7 +241,7 @@ export default async function PatientHistoryPage({
                           (log) =>
                             log.type === "PACHYMETRY" && log.details?.trim(),
                         )
-                        .map((log) => ({ ...log, eye: "OS" })) || []),
+                        .map((log) => ({ ...log, eye: "OE" })) || []),
                     ])
                     .sort(
                       (a, b) =>
@@ -214,7 +253,12 @@ export default async function PatientHistoryPage({
                     return null;
                   }
 
-                  const lastPachymetry = pachymetries[0]!;
+                  const lastPachymetryOD = pachymetries.find(
+                    (p) => p.eye === "OD",
+                  );
+                  const lastPachymetryOS = pachymetries.find(
+                    (p) => p.eye === "OE",
+                  );
 
                   return (
                     <Table>
@@ -226,19 +270,36 @@ export default async function PatientHistoryPage({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        <TableRow>
-                          <TableCell className="font-semibold">
-                            {lastPachymetry.eye}
-                          </TableCell>
-                          <TableCell>
-                            {new Date(
-                              lastPachymetry.recordedAt,
-                            ).toLocaleDateString("pt-BR")}
-                          </TableCell>
-                          <TableCell className="whitespace-pre-wrap">
-                            {lastPachymetry.details}
-                          </TableCell>
-                        </TableRow>
+                        {lastPachymetryOD && (
+                          <TableRow>
+                            <TableCell className="font-semibold">
+                              {lastPachymetryOD.eye}
+                            </TableCell>
+                            <TableCell>
+                              {new Date(
+                                lastPachymetryOD.recordedAt,
+                              ).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                              {lastPachymetryOD.details}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {lastPachymetryOS && (
+                          <TableRow>
+                            <TableCell className="font-semibold">
+                              {lastPachymetryOS.eye}
+                            </TableCell>
+                            <TableCell>
+                              {new Date(
+                                lastPachymetryOS.recordedAt,
+                              ).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                              {lastPachymetryOS.details}
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </TableBody>
                     </Table>
                   );
@@ -365,7 +426,7 @@ export default async function PatientHistoryPage({
                     })) || []),
                     ...(ev.eyes?.leftEye?.surgeries?.map((s: any) => ({
                       ...s,
-                      eye: "OS",
+                      eye: "OE",
                     })) || []),
                   ])
                   .sort(
