@@ -9,11 +9,11 @@ import {
 } from "~/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
-import { EvaluationHistoryList } from "~/components/organisms/evaluation-history-list";
 import Link from "next/link";
 import { PageHeading } from "~/components/atoms/page-heading";
-import { Separator } from "~/components/ui/separator";
 import { TonometryChart } from "~/components/molecules/tonometry-chart";
+import { EvaluationHistoryList } from "~/components/organisms/evaluation-history-list";
+import { Separator } from "~/components/ui/separator";
 import { api } from "~/trpc/server";
 
 type Params = Promise<{ id: string }>;
