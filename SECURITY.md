@@ -1,31 +1,116 @@
-# Política de Segurança
+# Política de Segurança do SEOFT
 
-## Relatando Vulnerabilidades
+## 🛡️ Compromisso com a Segurança
 
-Se você encontrar uma vulnerabilidade de segurança no projeto **SEOFT**, por favor, siga os passos abaixo para reportá-la:
+O projeto **SEOFT** leva a segurança muito a sério. Nos comprometemos a garantir que nossa plataforma seja segura para todos os colaboradores autorizados. Esta política descreve como reportar vulnerabilidades e como nossa equipe responderá a esses relatórios.
 
-1. **Entre em contato diretamente**: Envie um e-mail detalhado para **hgf.seoft@gmail.com** com as informações sobre a vulnerabilidade.
-2. **Inclua detalhes**:
-   - Descrição da vulnerabilidade.
-   - Passos para reproduzir o problema.
-   - Impacto potencial ou exemplos de como pode ser explorada.
-   - Sugestões (se aplicável) para resolver o problema.
+## 🚨 Relatando Vulnerabilidades
 
-Pedimos que **não abra um issue público** no repositório para evitar exposição indevida de informações sensíveis antes da correção.
+### Processo de Reporte
 
-## Política de Resposta
+Se você encontrar uma vulnerabilidade de segurança, por favor, siga este processo:
 
-Após o recebimento de um relatório, seguiremos este fluxo:
+1. **Contato Direto**: Envie um e-mail para **hgf.seoft@gmail.com** com o assunto `[SEGURANÇA] Relatório de Vulnerabilidade`.
 
-1. **Confirmação de recebimento**: Responderemos ao seu relatório em até **48 horas úteis**.
-2. **Análise**: Investigaremos a vulnerabilidade relatada e tentaremos replicar o problema.
-3. **Correção e atualização**: Desenvolveremos e aplicaremos um patch de correção, se necessário. Você será informado(a) sobre o progresso e a resolução.
-4. **Divulgação**: Após a resolução, faremos a divulgação pública da vulnerabilidade corrigida (se aplicável) para conscientização dos usuários.
+2. **Informações Necessárias**:
 
-## Compromisso com a Segurança
+   - Descrição detalhada da vulnerabilidade
+   - Passos para reproduzir o problema
+   - Impacto potencial da vulnerabilidade
+   - Possíveis vetores de ataque
+   - Sugestões de mitigação (se aplicável)
+   - Seu nome e informações de contato (opcional)
 
-Nos comprometemos a garantir que o **SEOFT** seja seguro para todos os colaboradores autorizados. Sua ajuda em identificar e corrigir possíveis vulnerabilidades é altamente apreciada.
+3. **Confidencialidade**:
+   - Não divulgue a vulnerabilidade publicamente
+   - Não abra issues no GitHub
+   - Não compartilhe informações em fóruns públicos
 
-Se você tiver dúvidas ou preocupações, entre em contato diretamente pelo e-mail mencionado acima.
+### O que Considerar uma Vulnerabilidade
 
-Obrigado por sua colaboração e por ajudar a proteger este projeto!
+- Exposição não autorizada de dados sensíveis
+- Vulnerabilidades de injeção (SQL, XSS, etc.)
+- Problemas de autenticação e autorização
+- Vulnerabilidades de CSRF
+- Problemas de configuração de segurança
+- Outros riscos de segurança significativos
+
+## ⏱️ Política de Resposta
+
+### Timeline de Resposta
+
+1. **Confirmação Inicial** (24-48 horas úteis)
+
+   - Confirmação de recebimento do relatório
+   - Atribuição de um responsável técnico
+
+2. **Análise Técnica** (3-5 dias úteis)
+
+   - Investigação da vulnerabilidade
+   - Validação do impacto
+   - Definição da severidade
+
+3. **Desenvolvimento da Correção** (1-2 semanas)
+
+   - Desenvolvimento do patch
+   - Testes de segurança
+   - Preparação da atualização
+
+4. **Implementação** (1-2 dias úteis)
+   - Aplicação da correção
+   - Verificação pós-implantação
+   - Notificação aos usuários
+
+### Níveis de Severidade
+
+- **Crítica**: Vulnerabilidades que podem levar a comprometimento imediato
+- **Alta**: Vulnerabilidades que podem causar danos significativos
+- **Média**: Vulnerabilidades com impacto limitado
+- **Baixa**: Vulnerabilidades com impacto mínimo
+
+## 🔄 Processo de Atualização
+
+1. **Desenvolvimento**
+
+   - Correção desenvolvida em branch separada
+   - Revisão de código focada em segurança
+   - Testes de segurança automatizados
+
+2. **Implantação**
+
+   - Atualização em ambiente de teste
+   - Validação de segurança
+   - Implantação em produção
+
+3. **Comunicação**
+   - Notificação aos usuários afetados
+   - Documentação da correção
+   - Atualização do changelog
+
+## 📞 Contato
+
+Para questões de segurança:
+
+- Email: hgf.seoft@gmail.com
+- Assunto: `[SEGURANÇA]`
+
+## 🔒 Boas Práticas de Segurança
+
+### Para Desenvolvedores
+
+- Mantenha todas as dependências atualizadas
+- Siga as práticas de segurança do OWASP
+- Implemente validação de entrada em todos os endpoints
+- Use HTTPS em todas as comunicações
+- Implemente autenticação forte
+
+### Para Usuários
+
+- Mantenha suas credenciais seguras
+- Use senhas fortes e únicas
+- Ative autenticação de dois fatores quando disponível
+- Reporte atividades suspeitas imediatamente
+
+---
+
+_Última atualização: Maio 2025_

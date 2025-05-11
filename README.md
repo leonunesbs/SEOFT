@@ -1,37 +1,45 @@
 # Projeto SEOFT
 
-Este repositório contém o projeto **SEOFT**, desenvolvido com a T3 Stack, utilizando Next.js, TypeScript, Tailwind CSS, tRPC e Prisma.
+Este repositório contém o projeto **SEOFT**, uma plataforma auxiliar do Setor de Oftalmologia do HGF, desenvolvida com a T3 Stack moderna, utilizando Next.js 15, TypeScript, Tailwind CSS, tRPC e Prisma.
 
-## Sobre a Plataforma
+## 🎯 Sobre a Plataforma
 
 A plataforma **SEOFT** não é um prontuário digital. Ela atua como um intermediador, organizando e armazenando algumas informações do atendimento dos pacientes para facilitar a dinâmica dos atendimentos no dia a dia. Com um design focado na eficiência e simplicidade, o SEOFT auxilia os colaboradores a acessarem e registrarem informações de maneira mais prática e ágil.
 
 O acesso à plataforma é **restrito aos colaboradores do SEOFT**, garantindo a segurança das informações e o uso exclusivo por pessoas autorizadas.
 
-## Estrutura do Projeto
+## 🏗️ Estrutura do Projeto
 
-A estrutura de diretórios do projeto é organizada da seguinte forma:
+```
+src/
+├── app/          # Rotas e páginas da aplicação (App Router)
+├── components/   # Componentes reutilizáveis
+├── hooks/        # Custom hooks React
+├── lib/          # Utilitários e configurações
+├── server/       # Lógica do servidor e API routes
+├── styles/       # Estilos globais e configurações do Tailwind
+└── trpc/         # Configuração e rotas do tRPC
+```
 
-- **.github/workflows/**: Configurações para integração contínua e automações do GitHub Actions.
-- **.husky/**: Hooks do Git para garantir a qualidade do código antes de commits e push.
-- **prisma/**: Esquemas e migrações do banco de dados gerenciados pelo Prisma.
-- **public/**: Arquivos estáticos acessíveis publicamente, como imagens e fontes.
-- **src/**: Código-fonte principal da aplicação, incluindo páginas, componentes e estilos.
+## 🛠️ Tecnologias Principais
 
-## Tecnologias Utilizadas
+- **Next.js 15**: Framework React com App Router e Server Components
+- **TypeScript**: Tipagem estática e melhor DX
+- **Tailwind CSS**: Estilização utilitária com suporte a temas
+- **tRPC**: API type-safe com TypeScript
+- **Prisma**: ORM moderno para PostgreSQL
+- **NextAuth.js**: Autenticação segura
+- **Radix UI**: Componentes acessíveis e customizáveis
+- **React Query**: Gerenciamento de estado e cache
+- **Zod**: Validação de dados em runtime
 
-- **Next.js**: Framework React para renderização híbrida e geração de sites estáticos.
-- **TypeScript**: Superset do JavaScript que adiciona tipagem estática ao código.
-- **Tailwind CSS**: Framework CSS utilitário para estilização rápida e eficiente.
-- **tRPC**: Facilita a criação de APIs type-safe com TypeScript.
-- **Prisma**: ORM para interação com o banco de dados de forma segura e eficiente.
-
-## Configuração e Instalação
+## 🚀 Configuração e Instalação
 
 1. **Clone o repositório**:
 
    ```bash
    git clone https://github.com/leonunesbs/seoft.git
+   cd seoft
    ```
 
 2. **Instale as dependências**:
@@ -42,33 +50,59 @@ A estrutura de diretórios do projeto é organizada da seguinte forma:
 
 3. **Configure as variáveis de ambiente**:
 
-   Renomeie o arquivo `.env.example` para `.env` e ajuste as variáveis conforme necessário.
+   ```bash
+   cp .env.example .env
+   ```
 
-4. **Execute o projeto**:
+   Ajuste as variáveis no arquivo `.env` conforme necessário.
 
+4. **Configure o banco de dados**:
+
+   ```bash
+   pnpm db:generate  # Gera as migrações
+   pnpm db:push     # Aplica as migrações
+   ```
+
+5. **Execute o projeto**:
    ```bash
    pnpm dev
    ```
-
    A aplicação estará disponível em `http://localhost:3000`.
 
-## Scripts Disponíveis
+## 📝 Scripts Disponíveis
 
-- `pnpm dev`: Inicia o servidor de desenvolvimento.
-- `pnpm build`: Compila a aplicação para produção.
-- `pnpm start`: Inicia o servidor em modo de produção.
-- `pnpm lint`: Executa o linter para verificar a qualidade do código.
+- `pnpm dev`: Inicia o servidor de desenvolvimento com Turbo
+- `pnpm build`: Compila a aplicação para produção
+- `pnpm start`: Inicia o servidor em modo de produção
+- `pnpm lint`: Executa o linter
+- `pnpm format`: Formata o código com Prettier
+- `pnpm typecheck`: Verifica tipos TypeScript
+- `pnpm test`: Executa os testes
+- `pnpm db:studio`: Abre o Prisma Studio para gerenciar o banco
 
-## Contribuição
+## 🔧 Ferramentas de Desenvolvimento
 
-Contribuições são bem-vindas! Siga os passos abaixo para contribuir:
+- **ESLint**: Linting e formatação de código
+- **Prettier**: Formatação consistente
+- **Husky**: Git hooks para qualidade de código
+- **Commitlint**: Padronização de commits
+- **Vitest**: Framework de testes
+- **Renovate**: Atualização automática de dependências
 
-1. **Fork o repositório**.
-2. **Crie uma nova branch**: `git checkout -b minha-feature`.
-3. **Faça as alterações desejadas** e commit: `git commit -m 'Minha nova feature'`.
-4. **Envie para o repositório remoto**: `git push origin minha-feature`.
-5. **Abra um Pull Request** para revisão.
+## 🤝 Contribuição
 
-## Licença
+Contribuições são bem-vindas! Siga os passos abaixo:
+
+1. **Fork o repositório**
+2. **Crie uma branch**: `git checkout -b feature/nova-funcionalidade`
+3. **Faça commit das alterações**: `git commit -m 'feat: adiciona nova funcionalidade'`
+4. **Envie para o repositório**: `git push origin feature/nova-funcionalidade`
+5. **Abra um Pull Request**
+
+## 📄 Licença
 
 Este projeto está licenciado sob a Licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
+
+## 🔒 Segurança
+
+Para reportar vulnerabilidades, consulte nosso [guia de segurança](SECURITY.md).
