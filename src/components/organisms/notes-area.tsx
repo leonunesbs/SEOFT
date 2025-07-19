@@ -124,7 +124,7 @@ export default function NotesArea({
         <Textarea
           {...register("note")}
           placeholder="Digite suas anotações aqui..."
-          className="min-h-[200px] sm:min-h-[250px]"
+          className="min-h-[80vh] sm:min-h-[250px]"
         />
 
         {/* Subtle border indicator for saving state */}
