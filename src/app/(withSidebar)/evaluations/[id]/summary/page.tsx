@@ -389,6 +389,7 @@ export default async function EvaluationSummaryPage({
     output += `\n🏥 DETALHES DO ATENDIMENTO\n`;
     output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     output += `Data da Avaliação: ${evaluation.createdAt ? formatDate(evaluation.createdAt) : "N/A"}\n`;
+    output += `Data de Atualização: ${evaluation.updatedAt ? formatDate(evaluation.updatedAt) : "N/A"}\n`;
     output += `Médico: ${collaborator.name || "N/A"}\n`;
     if (collaborator.persistentNote) {
       output += `Observação do Médico: ${collaborator.persistentNote}\n`;
@@ -495,39 +496,69 @@ export default async function EvaluationSummaryPage({
         <CardHeader>
           <CardTitle>Informações do Paciente</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <p>
-                <strong>Nome:</strong> {patient.name || "N/A"}
-              </p>
-              <p>
-                <strong>Idade:</strong>{" "}
-                {patient.birthDate
-                  ? calculateAge(patient.birthDate.toISOString()) + " anos"
-                  : "N/A"}
-              </p>
-            </div>
-            <div>
-              <p>
-                <strong>Histórico:</strong> {patientEvaluations.length}{" "}
-                avaliações concluídas
-              </p>
-              <p>
-                <strong>Primeira Avaliação:</strong>{" "}
-                {patientEvaluations.length > 0
-                  ? formatDate(
-                      patientEvaluations[patientEvaluations.length - 1]
-                        ?.createdAt,
-                    )
-                  : "N/A"}
-              </p>
-            </div>
-          </div>
+        <CardContent className="space-y-2 text-sm">
+          <p>
+            <strong>Nome:</strong> {patient.name || "N/A"}
+          </p>
+          <p>
+            <strong>Idade:</strong>{" "}
+            {patient.birthDate
+              ? calculateAge(patient.birthDate.toISOString()) + " anos"
+              : "N/A"}
+          </p>
+          <p>
+            <strong>Histórico de Avaliações:</strong>{" "}
+            {patientEvaluations.length > 0
+              ? `${patientEvaluations.length} avaliações concluídas`
+              : "N/A"}
+          </p>
         </CardContent>
       </Card>
-
-      {/* Dados dos Olhos, Acuidade Visual, Refração e Históricos */}
+      {/* Detalhes do Atendimento */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Detalhes do Atendimento</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p>
+            <strong>Data:</strong>{" "}
+            {evaluation.createdAt ? formatDate(evaluation.createdAt) : "N/A"}
+          </p>
+          <p>
+            <strong>Médico:</strong> {collaborator.name || "N/A"}
+          </p>
+          <p>
+            <strong>Ambulatório:</strong> {clinic?.name || "N/A"}{" "}
+            {clinic?.collaborators &&
+              clinic.collaborators.length > 0 &&
+              `(${clinic?.collaborators
+                .map((c) => c.collaborator.name)
+                .join(", ")})`}
+          </p>
+          <p>
+            <strong>Dados Clínicos:</strong>{" "}
+            {evaluation.clinicalData?.trim() || "N/A"}
+          </p>
+          <p>
+            <strong>Dados Persistentes:</strong>{" "}
+            {evaluation.continuousData?.trim() || "N/A"}
+          </p>
+          <p>
+            <strong>Diagnóstico:</strong> {evaluation.diagnosis || "N/A"}
+          </p>
+          <p>
+            <strong>Tratamento:</strong> {evaluation.treatment || "N/A"}
+          </p>
+          <p>
+            <strong>Acompanhamento:</strong> {evaluation.followUp || "N/A"}
+          </p>
+          <p>
+            <strong>Próxima Consulta:</strong>{" "}
+            {evaluation.nextAppointment || "N/A"}
+          </p>
+        </CardContent>
+      </Card>
+      {/* Dados dos Olhos, Acuidade Visual, Refração e Históricos de Cirurgias */}
       <div className="flex flex-col gap-6 sm:flex-row">
         {/* Olho Direito */}
         <Card className="w-full">
@@ -537,9 +568,9 @@ export default async function EvaluationSummaryPage({
           <CardContent className="space-y-4">
             {/* Acuidade Visual e Refração */}
             {bestRightRefraction ? (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-1">
                 <p>
-                  <strong>Acuidade Visual:</strong>{" "}
+                  <strong>Melhor Acuidade Visual:</strong>{" "}
                   {bestRightRefraction.visualAcuity || "N/A"}
                 </p>
                 <p>
@@ -554,112 +585,65 @@ export default async function EvaluationSummaryPage({
             )}
 
             <Separator />
-
-            {/* Exames Realizados */}
-            <div>
-              <h3 className="mb-2 font-semibold">Exames Realizados</h3>
-              {rightEyeLogs.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Detalhes</TableHead>
+            <h3 className="font-semibold">Olho Direito</h3>
+            {rightEyeLogs.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Detalhes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rightEyeLogs.map((log, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{translateType(log.type) || "N/A"}</TableCell>
+                      <TableCell>
+                        {log.details && isValidURL(log.details) ? (
+                          <AccessFileButton
+                            fileName={log.details.split("/").pop() as string}
+                            key={index}
+                          >
+                            Ver
+                          </AccessFileButton>
+                        ) : (
+                          log.details || "N/A"
+                        )}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rightEyeLogs.map((log, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          {translateType(log.type) || "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          {log.details && isValidURL(log.details) ? (
-                            <AccessFileButton
-                              fileName={log.details.split("/").pop() as string}
-                              key={index}
-                            >
-                              Ver
-                            </AccessFileButton>
-                          ) : (
-                            log.details || "N/A"
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p className="text-muted-foreground">Nenhum exame registrado</p>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Histórico de Cirurgias */}
-            <div>
-              <h3 className="mb-2 font-semibold">Histórico de Cirurgias</h3>
-              {rightEyeSurgeries.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Procedimento</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Notas</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rightEyeSurgeries.map((surgery, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{surgery.procedure || "N/A"}</TableCell>
-                        <TableCell>
-                          {surgery.date ? formatDate(surgery.date) : "N/A"}
-                        </TableCell>
-                        <TableCell>{surgery.notes || "N/A"}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p className="text-muted-foreground">
-                  Nenhum histórico de cirurgias
-                </p>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Colírios Prescritos */}
-            <div>
-              <h3 className="mb-2 font-semibold">Colírios Prescritos</h3>
-              {rightEyeEyedrops.length > 0 ? (
-                <div className="space-y-2">
-                  {rightEyeEyedrops.map((eyedrop, index) => (
-                    <div key={index} className="rounded-lg border p-3">
-                      <p>
-                        <strong>{eyedrop.name || "N/A"}</strong>
-                      </p>
-                      {eyedrop.dosage && (
-                        <p className="text-sm">Dosagem: {eyedrop.dosage}</p>
-                      )}
-                      {eyedrop.startDate && (
-                        <p className="text-sm">
-                          Início: {formatDate(eyedrop.startDate)}
-                        </p>
-                      )}
-                      {eyedrop.notes && (
-                        <p className="text-sm text-muted-foreground">
-                          Notas: {eyedrop.notes}
-                        </p>
-                      )}
-                    </div>
                   ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  Nenhum colírio prescrito
-                </p>
-              )}
-            </div>
+                </TableBody>
+              </Table>
+            ) : (
+              <p>Nenhum log disponível</p>
+            )}
+
+            <Separator />
+            <h3 className="font-semibold">Histórico de Cirurgias</h3>
+            {rightEyeSurgeries.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Procedimento</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Notas</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rightEyeSurgeries.map((surgery, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{surgery.procedure || "N/A"}</TableCell>
+                      <TableCell>
+                        {surgery.date ? formatDate(surgery.date) : "N/A"}
+                      </TableCell>
+                      <TableCell>{surgery.notes || "N/A"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p>Nenhum histórico de cirurgias</p>
+            )}
           </CardContent>
         </Card>
 
@@ -671,9 +655,9 @@ export default async function EvaluationSummaryPage({
           <CardContent className="space-y-4">
             {/* Acuidade Visual e Refração */}
             {bestLeftRefraction ? (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-1">
                 <p>
-                  <strong>Acuidade Visual:</strong>{" "}
+                  <strong>Melhor Acuidade Visual:</strong>{" "}
                   {bestLeftRefraction.visualAcuity || "N/A"}
                 </p>
                 <p>
@@ -688,270 +672,68 @@ export default async function EvaluationSummaryPage({
             )}
 
             <Separator />
-
-            {/* Exames Realizados */}
-            <div>
-              <h3 className="mb-2 font-semibold">Exames Realizados</h3>
-              {leftEyeLogs.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Detalhes</TableHead>
+            <h3 className="font-semibold">Olho Esquerdo</h3>
+            {leftEyeLogs.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Detalhes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leftEyeLogs.map((log, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{translateType(log.type) || "N/A"}</TableCell>
+                      <TableCell>
+                        {log.details && isValidURL(log.details) ? (
+                          <AccessFileButton
+                            fileName={log.details.split("/").pop() as string}
+                            key={index}
+                          >
+                            Ver
+                          </AccessFileButton>
+                        ) : (
+                          log.details || "N/A"
+                        )}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {leftEyeLogs.map((log, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          {translateType(log.type) || "N/A"}
-                        </TableCell>
-                        <TableCell>
-                          {log.details && isValidURL(log.details) ? (
-                            <AccessFileButton
-                              fileName={log.details.split("/").pop() as string}
-                              key={index}
-                            >
-                              Ver
-                            </AccessFileButton>
-                          ) : (
-                            log.details || "N/A"
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p className="text-muted-foreground">Nenhum exame registrado</p>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Histórico de Cirurgias */}
-            <div>
-              <h3 className="mb-2 font-semibold">Histórico de Cirurgias</h3>
-              {leftEyeSurgeries.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Procedimento</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Notas</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {leftEyeSurgeries.map((surgery, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{surgery.procedure || "N/A"}</TableCell>
-                        <TableCell>
-                          {surgery.date ? formatDate(surgery.date) : "N/A"}
-                        </TableCell>
-                        <TableCell>{surgery.notes || "N/A"}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p className="text-muted-foreground">
-                  Nenhum histórico de cirurgias
-                </p>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Colírios Prescritos */}
-            <div>
-              <h3 className="mb-2 font-semibold">Colírios Prescritos</h3>
-              {leftEyeEyedrops.length > 0 ? (
-                <div className="space-y-2">
-                  {leftEyeEyedrops.map((eyedrop, index) => (
-                    <div key={index} className="rounded-lg border p-3">
-                      <p>
-                        <strong>{eyedrop.name || "N/A"}</strong>
-                      </p>
-                      {eyedrop.dosage && (
-                        <p className="text-sm">Dosagem: {eyedrop.dosage}</p>
-                      )}
-                      {eyedrop.startDate && (
-                        <p className="text-sm">
-                          Início: {formatDate(eyedrop.startDate)}
-                        </p>
-                      )}
-                      {eyedrop.notes && (
-                        <p className="text-sm text-muted-foreground">
-                          Notas: {eyedrop.notes}
-                        </p>
-                      )}
-                    </div>
                   ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  Nenhum colírio prescrito
-                </p>
-              )}
-            </div>
+                </TableBody>
+              </Table>
+            ) : (
+              <p>Nenhum log disponível</p>
+            )}
+
+            <Separator />
+            <h3 className="font-semibold">Histórico de Cirurgias</h3>
+            {leftEyeSurgeries.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Procedimento</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Notas</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leftEyeSurgeries.map((surgery, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{surgery.procedure || "N/A"}</TableCell>
+                      <TableCell>
+                        {surgery.date ? formatDate(surgery.date) : "N/A"}
+                      </TableCell>
+                      <TableCell>{surgery.notes || "N/A"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p>Nenhum histórico de cirurgias</p>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      {/* Detalhes do Atendimento */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalhes do Atendimento</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <p>
-                <strong>Data da Avaliação:</strong>{" "}
-                {evaluation.createdAt
-                  ? formatDate(evaluation.createdAt)
-                  : "N/A"}
-              </p>
-              <p>
-                <strong>Médico:</strong> {collaborator.name || "N/A"}
-              </p>
-              {collaborator.persistentNote && (
-                <p>
-                  <strong>Observação do Médico:</strong>{" "}
-                  {collaborator.persistentNote}
-                </p>
-              )}
-            </div>
-            <div>
-              <p>
-                <strong>Ambulatório:</strong> {clinic?.name || "N/A"}
-              </p>
-              {clinic?.collaborators && clinic.collaborators.length > 0 && (
-                <p>
-                  <strong>Equipe do Ambulatório:</strong>{" "}
-                  {clinic.collaborators
-                    .map((c) => c.collaborator.name)
-                    .join(", ")}
-                </p>
-              )}
-              <p>
-                <strong>Próxima Consulta:</strong>{" "}
-                {evaluation.nextAppointment || "N/A"}
-              </p>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="space-y-3">
-            {evaluation.clinicalData?.trim() && (
-              <div>
-                <strong>Dados Clínicos:</strong>
-                <p className="mt-1 whitespace-pre-wrap rounded-lg bg-muted p-3">
-                  {evaluation.clinicalData.trim()}
-                </p>
-              </div>
-            )}
-
-            {evaluation.continuousData?.trim() && (
-              <div>
-                <strong>Dados Persistentes:</strong>
-                <p className="mt-1 whitespace-pre-wrap rounded-lg bg-muted p-3">
-                  {evaluation.continuousData.trim()}
-                </p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div>
-                <strong>Diagnóstico:</strong>
-                <p className="mt-1">{evaluation.diagnosis || "N/A"}</p>
-              </div>
-              <div>
-                <strong>Tratamento:</strong>
-                <p className="mt-1">{evaluation.treatment || "N/A"}</p>
-              </div>
-              <div>
-                <strong>Acompanhamento:</strong>
-                <p className="mt-1">{evaluation.followUp || "N/A"}</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Prescrições */}
-      {prescriptions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Prescrições</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {prescriptions.map((prescription, index) => (
-              <div key={index} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">
-                    Prescrição {index + 1} ({formatDate(prescription.createdAt)}
-                    )
-                  </h3>
-                </div>
-
-                {prescription.prescriptionItems.length > 0 ? (
-                  <div className="space-y-2">
-                    {prescription.prescriptionItems.map((item, itemIndex) => (
-                      <div key={itemIndex} className="rounded-lg border p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <p className="font-medium">
-                              {item.medication?.name ||
-                                "Medicação personalizada"}
-                            </p>
-                            {item.eye && (
-                              <p className="text-sm text-muted-foreground">
-                                {item.eye === "OD"
-                                  ? "Olho Direito"
-                                  : item.eye === "OE"
-                                    ? "Olho Esquerdo"
-                                    : "Ambos os Olhos"}
-                              </p>
-                            )}
-                            {item.quantity && (
-                              <p className="text-sm">
-                                Quantidade: {item.quantity}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {(item.selectedMedicationInstruction ||
-                          item.customInstruction) && (
-                          <div className="mt-2 border-t pt-2">
-                            {item.selectedMedicationInstruction && (
-                              <p className="text-sm">
-                                <strong>Instrução:</strong>{" "}
-                                {item.selectedMedicationInstruction}
-                              </p>
-                            )}
-                            {item.customInstruction && (
-                              <p className="text-sm">
-                                <strong>Instrução Personalizada:</strong>{" "}
-                                {item.customInstruction}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">Nenhum item prescrito</p>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
       {/* Histórico de Avaliações do Paciente */}
       <Card>
         <CardHeader>
@@ -959,46 +741,33 @@ export default async function EvaluationSummaryPage({
         </CardHeader>
         <CardContent className="space-y-4">
           {patientEvaluations.length > 0 ? (
-            <div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Diagnóstico</TableHead>
-                    <TableHead>Ações</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Diagnóstico</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {patientEvaluations.map((ev, index) => (
+                  <TableRow
+                    key={index}
+                    className={ev.id === evaluation.id ? "bg-muted" : undefined}
+                  >
+                    <TableCell>{formatDate(ev.createdAt)}</TableCell>
+                    <TableCell>{ev.diagnosis || "N/A"}</TableCell>
+                    <TableCell>
+                      <Link href={`/evaluations/${ev.id}`} passHref>
+                        <Button variant="outline" size="sm">
+                          Ver Detalhes
+                        </Button>
+                      </Link>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {patientEvaluations.slice(0, 5).map((ev, index) => (
-                    <TableRow
-                      key={index}
-                      className={
-                        ev.id === evaluation.id ? "bg-muted" : undefined
-                      }
-                    >
-                      <TableCell>
-                        {ev.id === evaluation.id ? "→ " : "  "}
-                        {formatDate(ev.createdAt)}
-                      </TableCell>
-                      <TableCell>{ev.diagnosis || "N/A"}</TableCell>
-                      <TableCell>
-                        <Link href={`/evaluations/${ev.id}`} passHref>
-                          <Button variant="outline" size="sm">
-                            Ver Detalhes
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {patientEvaluations.length > 5 && (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  ... e mais {patientEvaluations.length - 5} avaliações
-                </p>
-              )}
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
             <p>Nenhum histórico de avaliações disponível</p>
           )}

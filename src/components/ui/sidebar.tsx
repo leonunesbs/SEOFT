@@ -36,6 +36,7 @@ type SidebarContext = {
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  closeMobileSidebar: () => void;
 };
 
 const SidebarContext = React.createContext<SidebarContext | null>(null);
@@ -98,6 +99,13 @@ const SidebarProvider = React.forwardRef<
         : setOpen((open) => !open);
     }, [isMobile, setOpen, setOpenMobile]);
 
+    // Helper to close mobile sidebar.
+    const closeMobileSidebar = React.useCallback(() => {
+      if (isMobile) {
+        setOpenMobile(false);
+      }
+    }, [isMobile, setOpenMobile]);
+
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
@@ -127,6 +135,7 @@ const SidebarProvider = React.forwardRef<
         openMobile,
         setOpenMobile,
         toggleSidebar,
+        closeMobileSidebar,
       }),
       [
         state,
@@ -136,6 +145,7 @@ const SidebarProvider = React.forwardRef<
         openMobile,
         setOpenMobile,
         toggleSidebar,
+        closeMobileSidebar,
       ],
     );
 
@@ -545,7 +555,7 @@ const SidebarMenuButton = React.forwardRef<
   React.ComponentProps<"button"> & {
     asChild?: boolean;
     isActive?: boolean;
-
+    href?: string;
     tooltip?: string | React.ComponentProps<typeof TooltipContent>;
   } & VariantProps<typeof sidebarMenuButtonVariants>
 >(
@@ -553,24 +563,49 @@ const SidebarMenuButton = React.forwardRef<
     {
       asChild = false,
       isActive = false,
+      href,
       variant = "default",
       size = "default",
       tooltip,
       className,
+      onClick,
       ...props
     },
     ref,
   ) => {
     const Comp = asChild ? Slot : "button";
-    const { isMobile, state } = useSidebar();
+    const { isMobile, state, closeMobileSidebar } = useSidebar();
+    const pathname = usePathname();
+
+    // Auto-detect active state if href is provided
+    const isActiveState = isActive || (href ? pathname === href : false);
+
+    // Handle click to close mobile sidebar
+    const handleClick = React.useCallback(
+      (event: React.MouseEvent<HTMLButtonElement>) => {
+        // Call the original onClick if provided
+        if (onClick) {
+          onClick(event);
+        }
+
+        // Close mobile sidebar after a short delay to allow navigation
+        if (isMobile && href && href !== "#" && !href.startsWith("http")) {
+          setTimeout(() => {
+            closeMobileSidebar();
+          }, 100);
+        }
+      },
+      [isMobile, href, closeMobileSidebar, onClick],
+    );
 
     const button = (
       <Comp
         ref={ref}
         data-sidebar="menu-button"
         data-size={size}
-        data-active={isActive}
+        data-active={isActiveState}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        onClick={handleClick}
         {...props}
       />
     );
@@ -719,34 +754,70 @@ const SidebarMenuSubButton = React.forwardRef<
   React.ComponentProps<"a"> & {
     asChild?: boolean;
     size?: "sm" | "md";
+    exact?: boolean;
   }
->(({ asChild = false, size = "md", href = "#", className, ...props }, ref) => {
-  const pathname = usePathname();
-  const isActive = href === pathname;
+>(
+  (
+    {
+      asChild = false,
+      size = "md",
+      href = "#",
+      exact = false,
+      className,
+      onClick,
+      ...props
+    },
+    ref,
+  ) => {
+    const pathname = usePathname();
 
-  const Comp = asChild ? Slot : Link;
-  const { isMobile, toggleSidebar } = useSidebar();
+    // Improved active detection with support for nested routes
+    const isActive = exact
+      ? href === pathname
+      : href !== "#" && (pathname === href || pathname.startsWith(href + "/"));
 
-  return (
-    <Comp
-      ref={ref}
-      href={href}
-      data-sidebar="menu-sub-button"
-      data-size={size}
-      data-active={isActive}
-      className={cn(
-        "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground outline-none ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground",
-        "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
-        size === "sm" && "text-xs",
-        size === "md" && "text-sm",
-        "group-data-[collapsible=icon]:hidden",
-        className,
-      )}
-      onClick={() => isMobile && toggleSidebar()}
-      {...props}
-    />
-  );
-});
+    const Comp = asChild ? Slot : Link;
+    const { isMobile, closeMobileSidebar } = useSidebar();
+
+    // Handle click to close mobile sidebar
+    const handleClick = React.useCallback(
+      (event: React.MouseEvent<HTMLAnchorElement>) => {
+        // Call the original onClick if provided
+        if (onClick) {
+          onClick(event);
+        }
+
+        // Close mobile sidebar after a short delay to allow navigation
+        if (isMobile && href && href !== "#" && !href.startsWith("http")) {
+          setTimeout(() => {
+            closeMobileSidebar();
+          }, 100);
+        }
+      },
+      [isMobile, href, closeMobileSidebar, onClick],
+    );
+
+    return (
+      <Comp
+        ref={ref}
+        href={href}
+        data-sidebar="menu-sub-button"
+        data-size={size}
+        data-active={isActive}
+        className={cn(
+          "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground outline-none ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground",
+          "data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground",
+          size === "sm" && "text-xs",
+          size === "md" && "text-sm",
+          "group-data-[collapsible=icon]:hidden",
+          className,
+        )}
+        onClick={handleClick}
+        {...props}
+      />
+    );
+  },
+);
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton";
 
 export {

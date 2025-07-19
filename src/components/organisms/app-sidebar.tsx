@@ -173,7 +173,7 @@ export function AppSidebar({
           <SidebarMenu>
             {data.navMain.map((item) => (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild href={item.url}>
                   <Link href={item.url} className="font-medium">
                     {item.icon} {item.title}
                   </Link>
@@ -182,7 +182,11 @@ export function AppSidebar({
                   <SidebarMenuSub>
                     {item.items.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild href={subItem.url}>
+                        <SidebarMenuSubButton
+                          asChild
+                          href={subItem.url}
+                          exact={subItem.external}
+                        >
                           <Link
                             href={subItem.url}
                             target={subItem.external ? "_blank" : undefined}
