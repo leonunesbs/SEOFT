@@ -70,7 +70,7 @@ export default function NotesArea({
         icon: <Save className="h-4 w-4 animate-pulse" />,
         text: "Salvando...",
         textMobile: "Salvando...",
-        color: "text-blue-500",
+        color: "text-muted-foreground",
       };
     }
 
@@ -79,7 +79,7 @@ export default function NotesArea({
         icon: <Clock className="h-4 w-4" />,
         text: "Auto-salvando...",
         textMobile: "Auto-salvando...",
-        color: "text-amber-500",
+        color: "text-amber-600",
       };
     }
 
@@ -87,7 +87,7 @@ export default function NotesArea({
       icon: <CheckCircle2 className="h-4 w-4" />,
       text: "Salvo",
       textMobile: "Salvo",
-      color: "text-green-500",
+      color: "text-green-600",
     };
   };
 
