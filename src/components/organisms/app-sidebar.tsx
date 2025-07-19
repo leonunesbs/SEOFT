@@ -12,6 +12,7 @@ import {
   MdOutlineList,
   MdOutlineLocalPharmacy,
   MdOutlineLockPerson,
+  MdOutlineNotes,
   MdOutlinePersonAdd,
   MdOutlineSearch,
   MdSettings,
@@ -64,6 +65,12 @@ export function AppSidebar({
         title: "Início",
         url: "/",
         icon: <MdOutlineHome size={18} />,
+        items: [],
+      },
+      {
+        title: "Notas",
+        url: "/notes",
+        icon: <MdOutlineNotes size={18} />,
         items: [],
       },
       {

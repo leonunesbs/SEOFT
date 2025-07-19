@@ -120,7 +120,7 @@ export function CollaboratorSwitcher({
               groupedCollaborators.map((group) =>
                 group.collaborators.length > 0 ? (
                   <div key={group.role} className="p-2">
-                    <div className="mb-1 text-sm font-semibold uppercase text-gray-500">
+                    <div className="bold mb-1 text-sm uppercase">
                       {group.role}
                     </div>
                     {group.collaborators.map((collaborator) => (
@@ -133,7 +133,7 @@ export function CollaboratorSwitcher({
                         disabled={collaborator.id === selectedCollaborator} // Desabilita seleção
                         className={
                           collaborator.id === selectedCollaborator
-                            ? "cursor-not-allowed opacity-50"
+                            ? "cursor-not-allowed"
                             : ""
                         }
                       >
