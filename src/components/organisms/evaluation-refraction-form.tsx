@@ -1,6 +1,21 @@
 "use client";
 
-import { Prisma, Refraction } from "@prisma/client";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Collapsible, CollapsibleContent } from "../ui/collapsible";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
 import {
   MdArrowDownward,
   MdArrowUpward,
@@ -8,6 +23,8 @@ import {
   MdOutlineFileCopy,
   MdRemove,
 } from "react-icons/md";
+import { Prisma, Refraction } from "@prisma/client";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -21,35 +38,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Input } from "~/components/ui/input";
-import { toast } from "~/hooks/use-toast";
-import { api } from "~/trpc/react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Checkbox } from "../ui/checkbox";
+import { Input } from "~/components/ui/input";
+import { Loader2 } from "lucide-react";
 import { Separator } from "../ui/separator";
+import { api } from "~/trpc/react";
+import { toast } from "~/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const visualAcuityOptions = [
   ">20/20",
@@ -65,36 +66,48 @@ const visualAcuityOptions = [
   "20/200",
   "20/400",
   "20/800",
+  "CD 4m",
+  "CD 3m",
   "CD 2m",
   "CD 1m",
   "CD 0,5m",
+  "CD 30cm",
+  "CD 15cm",
   "CD FF",
   "MM",
   "PL",
+  "PL fraco",
+  "PL duvidoso",
   "SPL",
 ];
 
 // Mapeamento de acuidade visual para valores numéricos para comparação
 const visualAcuityValues: { [key: string]: number } = {
-  ">20/20": 19,
-  "20/20": 18,
-  "20/25": 17,
-  "20/30": 16,
-  "20/40": 15,
-  "20/50": 14,
-  "20/60": 13,
-  "20/70": 12,
-  "20/80": 11,
-  "20/100": 10,
-  "20/200": 9,
-  "20/400": 8,
-  "20/800": 7,
-  "CD 2m": 6,
-  "CD 1m": 5,
-  "CD 0,5m": 4,
-  "CD FF": 3,
-  MM: 2,
-  PL: 1,
+  ">20/20": 24,
+  "20/20": 23,
+  "20/25": 22,
+  "20/30": 21,
+  "20/40": 20,
+  "20/50": 19,
+  "20/60": 18,
+  "20/70": 17,
+  "20/80": 16,
+  "20/100": 15,
+  "20/200": 14,
+  "20/400": 13,
+  "20/800": 12,
+  "CD 4m": 11,
+  "CD 3m": 10,
+  "CD 2m": 9,
+  "CD 1m": 8,
+  "CD 0,5m": 7,
+  "CD 30cm": 6,
+  "CD 15cm": 5,
+  "CD FF": 4,
+  MM: 3,
+  PL: 2,
+  "PL fraco": 1,
+  "PL duvidoso": 0,
   SPL: 0,
 };
 
@@ -102,8 +115,8 @@ const visualAcuityValues: { [key: string]: number } = {
 const refractionSchema = z.object({
   leftEyeId: z.string().optional(),
   rightEyeId: z.string().optional(),
-  scOD: z.boolean().optional(), // Se o paciente não tem refração
-  scOS: z.boolean().optional(), // Se o paciente não tem refração
+  correctionTypeOD: z.enum(["sc", "ph", "rx"]).default("sc"), // Tipo de correção para olho direito
+  correctionTypeOS: z.enum(["sc", "ph", "rx"]).default("sc"), // Tipo de correção para olho esquerdo
   sphericalOD: z.union([z.string(), z.number()]).optional(),
   cylinderOD: z.union([z.string(), z.number()]).optional(),
   axisOD: z.union([z.string(), z.number()]).optional(),
@@ -200,24 +213,43 @@ function EyeRefractionList({
                 }
               }
 
+              // Mapeamento do tipo de correção
+              const correctionTypeMap = {
+                sc: "S/C",
+                ph: "PH",
+                rx: "RX",
+              };
+
+              const correctionType =
+                correctionTypeMap[
+                  ((refraction as any).correctionType ||
+                    "sc") as keyof typeof correctionTypeMap
+                ];
+
               return (
                 <tr key={refraction.id} className="border-b">
                   <td className="py-2">
-                    {refraction.spherical! > 0
-                      ? `+${refraction.spherical?.toFixed(2)}`
-                      : (refraction.spherical?.toFixed(2) ?? "S/C")}
+                    {correctionType === "RX"
+                      ? refraction.spherical! > 0
+                        ? `+${refraction.spherical?.toFixed(2)}`
+                        : (refraction.spherical?.toFixed(2) ?? "S/C")
+                      : correctionType}
                   </td>
                   <td className="py-2">
-                    {refraction.cylinder! > 0
-                      ? `+${refraction.cylinder?.toFixed(2)}`
-                      : (refraction.cylinder?.toFixed(2) ?? "S/C")}
+                    {correctionType === "RX"
+                      ? refraction.cylinder! > 0
+                        ? `+${refraction.cylinder?.toFixed(2)}`
+                        : (refraction.cylinder?.toFixed(2) ?? "S/C")
+                      : correctionType}
                   </td>
                   <td className="py-2">
-                    {refraction.cylinder
-                      ? refraction.axis
-                        ? `${refraction.axis}º`
+                    {correctionType === "RX"
+                      ? refraction.cylinder
+                        ? refraction.axis
+                          ? `${refraction.axis}º`
+                          : "S/C"
                         : "S/C"
-                      : "S/C"}
+                      : correctionType}
                   </td>
                   <td>
                     <div className="flex items-center">
@@ -275,8 +307,8 @@ export function EvaluationRefractionForm({
     defaultValues: {
       leftEyeId: leftEye?.id ?? "",
       rightEyeId: rightEye?.id ?? "",
-      scOD: false,
-      scOS: false,
+      correctionTypeOD: "sc",
+      correctionTypeOS: "sc",
       sphericalOD: 0,
       sphericalOS: 0,
       cylinderOD: 0,
@@ -288,8 +320,8 @@ export function EvaluationRefractionForm({
     },
   });
 
-  const scOD = form.watch("scOD");
-  const scOS = form.watch("scOS");
+  const correctionTypeOD = form.watch("correctionTypeOD");
+  const correctionTypeOS = form.watch("correctionTypeOS");
 
   const router = useRouter();
   const [deletingIds, setDeletingIds] = useState<string[]>([]); // Estado para rastrear IDs que estão sendo deletados
@@ -301,7 +333,12 @@ export function EvaluationRefractionForm({
         title: "Refração salva!",
         description: "A refração foi salva com sucesso.",
       });
+      // Mantém os tipos de correção selecionados após salvar
+      const currentCorrectionTypeOD = form.getValues("correctionTypeOD");
+      const currentCorrectionTypeOS = form.getValues("correctionTypeOS");
       form.reset();
+      form.setValue("correctionTypeOD", currentCorrectionTypeOD);
+      form.setValue("correctionTypeOS", currentCorrectionTypeOS);
       router.refresh();
     },
     onError: () => {
@@ -339,12 +376,14 @@ export function EvaluationRefractionForm({
         cylinder: data.cylinderOS ? Number(data.cylinderOS) : null,
         axis: data.axisOS ? Number(data.axisOS) : null,
         visualAcuity: data.visualAcuityOS,
+        correctionType: data.correctionTypeOS,
       },
       rightEyeData: {
         spherical: data.sphericalOD ? Number(data.sphericalOD) : null,
         cylinder: data.cylinderOD ? Number(data.cylinderOD) : null,
         axis: data.axisOD ? Number(data.axisOD) : null,
         visualAcuity: data.visualAcuityOD,
+        correctionType: data.correctionTypeOD,
       },
     });
   };
@@ -399,6 +438,7 @@ export function EvaluationRefractionForm({
                 cylinder: leftEyeData.cylinder,
                 axis: leftEyeData.axis,
                 visualAcuity: leftEyeData.visualAcuity,
+                correctionType: (leftEyeData as any).correctionType || "sc",
               }
             : undefined,
         rightEyeData:
@@ -408,6 +448,7 @@ export function EvaluationRefractionForm({
                 cylinder: rightEyeData.cylinder,
                 axis: rightEyeData.axis,
                 visualAcuity: rightEyeData.visualAcuity,
+                correctionType: (rightEyeData as any).correctionType || "sc",
               }
             : undefined,
       });
@@ -481,139 +522,148 @@ export function EvaluationRefractionForm({
                 <div className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="scOD"
+                    name="correctionTypeOD"
                     render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
+                      <FormItem className="space-y-3">
                         <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked);
-                              if (checked) {
-                                form.setValue("sphericalOD", "");
-                                form.setValue("cylinderOD", "");
-                                form.setValue("axisOD", "");
-                              } else {
-                                form.setValue("sphericalOD", "0");
-                                form.setValue("cylinderOD", "0");
-                                form.setValue("axisOD", "0");
-                              }
-                            }}
-                          />
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-1"
+                          >
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <RadioGroupItem value="sc" />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">
+                                Sem Correção
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <RadioGroupItem value="ph" />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">
+                                Pinhole
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <RadioGroupItem value="rx" />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">
+                                Refração
+                              </FormLabel>
+                            </FormItem>
+                          </RadioGroup>
                         </FormControl>
-                        <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Sem correção
-                        </FormLabel>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
-                  {/* Esférico OD */}
-                  <FormField
-                    control={form.control}
-                    name="sphericalOD"
-                    render={({ field }) => {
-                      const numericValue = parseFloat(
-                        String(field.value) || "0",
-                      );
-                      return (
-                        <FormItem>
-                          <FormLabel>
-                            Esférico:{" "}
-                            {scOD
-                              ? "S/C"
-                              : numericValue > 0
-                                ? `+${numericValue.toFixed(2)}`
-                                : numericValue.toFixed(2)}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step={0.25}
-                              value={field.value}
-                              onChange={(e) => {
-                                field.onChange(e.target.value);
-                              }}
-                              disabled={scOD}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      );
-                    }}
-                  />
-                  {/* Cilíndrico OD */}
-                  <FormField
-                    control={form.control}
-                    name="cylinderOD"
-                    render={({ field }) => {
-                      const numericValue = parseFloat(
-                        String(field.value) || "0",
-                      );
-                      return (
-                        <FormItem>
-                          <FormLabel>
-                            Cilíndrico:{" "}
-                            {scOD
-                              ? "S/C"
-                              : numericValue > 0
-                                ? `+${numericValue.toFixed(2)}`
-                                : numericValue.toFixed(2)}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step={0.25}
-                              value={field.value}
-                              onChange={(e) => {
-                                /**
-                                 * Se quiser manter a lógica de "valor negativo" do slider,
-                                 * podemos forçar o valor para negativo aqui.
-                                 */
-                                const rawValue = parseFloat(
-                                  e.target.value || "0",
-                                );
-                                // Exemplo: forçar para negativo
-                                field.onChange(
-                                  (-Math.abs(rawValue)).toString(),
-                                );
-                              }}
-                              disabled={scOD}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      );
-                    }}
-                  />
-                  {/* Eixo OD */}
-                  <FormField
-                    control={form.control}
-                    name="axisOD"
-                    render={({ field }) => {
-                      const numericValue = parseFloat(
-                        String(field.value) || "0",
-                      );
-                      return (
-                        <FormItem>
-                          <FormLabel>
-                            Eixo: {scOD ? "S/C" : `${numericValue}º`}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step={5}
-                              value={field.value}
-                              onChange={(e) => {
-                                field.onChange(e.target.value);
-                              }}
-                              disabled={scOD}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      );
-                    }}
-                  />
+                  {/* Collapsible para inputs de refração OD */}
+                  <Collapsible open={correctionTypeOD === "rx"}>
+                    <CollapsibleContent className="space-y-4">
+                      {/* Esférico OD */}
+                      <FormField
+                        control={form.control}
+                        name="sphericalOD"
+                        render={({ field }) => {
+                          const numericValue = parseFloat(
+                            String(field.value) || "0",
+                          );
+                          return (
+                            <FormItem>
+                              <FormLabel>
+                                Esférico:{" "}
+                                {numericValue > 0
+                                  ? `+${numericValue.toFixed(2)}`
+                                  : numericValue.toFixed(2)}
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step={0.25}
+                                  value={field.value}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                      {/* Cilíndrico OD */}
+                      <FormField
+                        control={form.control}
+                        name="cylinderOD"
+                        render={({ field }) => {
+                          const numericValue = parseFloat(
+                            String(field.value) || "0",
+                          );
+                          return (
+                            <FormItem>
+                              <FormLabel>
+                                Cilíndrico:{" "}
+                                {numericValue > 0
+                                  ? `+${numericValue.toFixed(2)}`
+                                  : numericValue.toFixed(2)}
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step={0.25}
+                                  value={field.value}
+                                  onChange={(e) => {
+                                    /**
+                                     * Se quiser manter a lógica de "valor negativo" do slider,
+                                     * podemos forçar o valor para negativo aqui.
+                                     */
+                                    const rawValue = parseFloat(
+                                      e.target.value || "0",
+                                    );
+                                    // Exemplo: forçar para negativo
+                                    field.onChange(
+                                      (-Math.abs(rawValue)).toString(),
+                                    );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                      {/* Eixo OD */}
+                      <FormField
+                        control={form.control}
+                        name="axisOD"
+                        render={({ field }) => {
+                          const numericValue = parseFloat(
+                            String(field.value) || "0",
+                          );
+                          return (
+                            <FormItem>
+                              <FormLabel>Eixo: {`${numericValue}º`}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step={5}
+                                  value={field.value}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
                   {/* Acuidade Visual OD */}
                   <FormField
                     control={form.control}
@@ -652,131 +702,146 @@ export function EvaluationRefractionForm({
                 <div className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="scOS"
+                    name="correctionTypeOS"
                     render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
+                      <FormItem className="space-y-3">
                         <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked);
-                              if (checked) {
-                                form.setValue("sphericalOS", "");
-                                form.setValue("cylinderOS", "");
-                                form.setValue("axisOS", "");
-                              } else {
-                                form.setValue("sphericalOS", "0");
-                                form.setValue("cylinderOS", "0");
-                                form.setValue("axisOS", "0");
-                              }
-                            }}
-                          />
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-1"
+                          >
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <RadioGroupItem value="sc" />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">
+                                Sem Correção
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <RadioGroupItem value="ph" />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">
+                                Pinhole
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2">
+                              <FormControl>
+                                <RadioGroupItem value="rx" />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal">
+                                Refração
+                              </FormLabel>
+                            </FormItem>
+                          </RadioGroup>
                         </FormControl>
-                        <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Sem correção
-                        </FormLabel>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
-                  {/* Esférico OS */}
-                  <FormField
-                    control={form.control}
-                    name="sphericalOS"
-                    render={({ field }) => {
-                      const numericValue = parseFloat(
-                        String(field.value) || "0",
-                      );
-                      return (
-                        <FormItem>
-                          <FormLabel>
-                            Esférico:{" "}
-                            {numericValue > 0
-                              ? `+${numericValue.toFixed(2)}`
-                              : numericValue.toFixed(2)}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step={0.25}
-                              value={field.value}
-                              onChange={(e) => {
-                                field.onChange(e.target.value);
-                              }}
-                              disabled={scOS}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      );
-                    }}
-                  />
-                  {/* Cilíndrico OS */}
-                  <FormField
-                    control={form.control}
-                    name="cylinderOS"
-                    render={({ field }) => {
-                      const numericValue = parseFloat(
-                        String(field.value) || "0",
-                      );
-                      return (
-                        <FormItem>
-                          <FormLabel>
-                            Cilíndrico:{" "}
-                            {numericValue > 0
-                              ? `+${numericValue.toFixed(2)}`
-                              : numericValue.toFixed(2)}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step={0.25}
-                              value={field.value}
-                              onChange={(e) => {
-                                /**
-                                 * Novamente, se quiser manter a lógica de valor negativo:
-                                 */
-                                const rawValue = parseFloat(
-                                  e.target.value || "0",
-                                );
-                                field.onChange(
-                                  (-Math.abs(rawValue)).toString(),
-                                );
-                              }}
-                              disabled={scOS}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      );
-                    }}
-                  />
-                  {/* Eixo OS */}
-                  <FormField
-                    control={form.control}
-                    name="axisOS"
-                    render={({ field }) => {
-                      const numericValue = parseFloat(
-                        String(field.value) || "0",
-                      );
-                      return (
-                        <FormItem>
-                          <FormLabel>Eixo: {numericValue}º</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step={5}
-                              value={field.value}
-                              onChange={(e) => {
-                                field.onChange(e.target.value);
-                              }}
-                              disabled={scOS}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      );
-                    }}
-                  />
+                  {/* Collapsible para inputs de refração OS */}
+                  <Collapsible open={correctionTypeOS === "rx"}>
+                    <CollapsibleContent className="space-y-4">
+                      {/* Esférico OS */}
+                      <FormField
+                        control={form.control}
+                        name="sphericalOS"
+                        render={({ field }) => {
+                          const numericValue = parseFloat(
+                            String(field.value) || "0",
+                          );
+                          return (
+                            <FormItem>
+                              <FormLabel>
+                                Esférico:{" "}
+                                {numericValue > 0
+                                  ? `+${numericValue.toFixed(2)}`
+                                  : numericValue.toFixed(2)}
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step={0.25}
+                                  value={field.value}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                      {/* Cilíndrico OS */}
+                      <FormField
+                        control={form.control}
+                        name="cylinderOS"
+                        render={({ field }) => {
+                          const numericValue = parseFloat(
+                            String(field.value) || "0",
+                          );
+                          return (
+                            <FormItem>
+                              <FormLabel>
+                                Cilíndrico:{" "}
+                                {numericValue > 0
+                                  ? `+${numericValue.toFixed(2)}`
+                                  : numericValue.toFixed(2)}
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step={0.25}
+                                  value={field.value}
+                                  onChange={(e) => {
+                                    /**
+                                     * Novamente, se quiser manter a lógica de valor negativo:
+                                     */
+                                    const rawValue = parseFloat(
+                                      e.target.value || "0",
+                                    );
+                                    field.onChange(
+                                      (-Math.abs(rawValue)).toString(),
+                                    );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                      {/* Eixo OS */}
+                      <FormField
+                        control={form.control}
+                        name="axisOS"
+                        render={({ field }) => {
+                          const numericValue = parseFloat(
+                            String(field.value) || "0",
+                          );
+                          return (
+                            <FormItem>
+                              <FormLabel>Eixo: {`${numericValue}º`}</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  step={5}
+                                  value={field.value}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
                   {/* Acuidade Visual OS */}
                   <FormField
                     control={form.control}

@@ -1,7 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
-import { z } from "zod";
 import { db } from "~/server/db";
+import { z } from "zod";
 
 const refractionSchema = z.object({
   leftEyeId: z.string({
@@ -16,6 +16,7 @@ const refractionSchema = z.object({
       cylinder: z.number().nullable().optional(),
       axis: z.number().min(0).max(180).nullable().optional(),
       visualAcuity: z.string(),
+      correctionType: z.enum(["sc", "ph", "rx"]).default("sc"),
     })
     .optional(),
   rightEyeData: z
@@ -24,6 +25,7 @@ const refractionSchema = z.object({
       cylinder: z.number().nullable().optional(),
       axis: z.number().min(0).max(180).nullable().optional(),
       visualAcuity: z.string(),
+      correctionType: z.enum(["sc", "ph", "rx"]).default("sc"),
     })
     .optional(),
 });

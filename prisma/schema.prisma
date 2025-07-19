@@ -123,14 +123,15 @@ model EyeLog {
 }
 
 model Refraction {
-  id           String   @id @default(cuid())
-  eyeId        String
-  spherical    Float?
-  cylinder     Float?
-  axis         Float?
-  visualAcuity String?
-  recordedAt   DateTime @default(now())
-  eye          Eye      @relation(fields: [eyeId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
+  eyeId          String
+  spherical      Float?
+  cylinder       Float?
+  axis           Float?
+  visualAcuity   String?
+  correctionType String   @default("sc")
+  recordedAt     DateTime @default(now())
+  eye            Eye      @relation(fields: [eyeId], references: [id], onDelete: Cascade)
 }
 
 model EyeSurgery {
