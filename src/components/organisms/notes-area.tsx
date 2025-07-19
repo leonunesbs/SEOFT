@@ -120,7 +120,7 @@ export default function NotesArea({
       </div>
 
       {/* Textarea container */}
-      <div className="relative">
+      <div>
         <Textarea
           {...register("note")}
           placeholder="Digite suas anotações aqui..."
