@@ -278,8 +278,8 @@ export default async function EvaluationSummaryPage({
     let output = "";
 
     // 1. Informações do Paciente
-    output += `📋 INFORMAÇÕES DO PACIENTE\n`;
-    output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    output += `*📋 INFORMAÇÕES DO PACIENTE*\n`;
+    output += `━━━━━━━━━━━━━━━━━━\n`;
     output += `Nome: ${patient.name || "N/A"}\n`;
     output += `Idade: ${
       patient.birthDate
@@ -290,8 +290,8 @@ export default async function EvaluationSummaryPage({
     output += `Primeira Avaliação: ${patientEvaluations.length > 0 ? formatDate(patientEvaluations[patientEvaluations.length - 1]?.createdAt) : "N/A"}\n\n`;
 
     // 2. Olho Direito (OD)
-    output += `👁️ OLHO DIREITO (OD)\n`;
-    output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    output += `*👁️ OLHO DIREITO (OD)*\n`;
+    output += `━━━━━━━━━━━━━━━━━━\n`;
     if (bestRightRefraction) {
       output += `Acuidade Visual: ${bestRightRefraction.visualAcuity || "N/A"}\n`;
       if (bestRightRefraction.correctionType === "rx") {
@@ -338,8 +338,8 @@ export default async function EvaluationSummaryPage({
     }
 
     // 3. Olho Esquerdo (OE)
-    output += `\n👁️ OLHO ESQUERDO (OE)\n`;
-    output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    output += `\n*👁️ OLHO ESQUERDO (OE)*\n`;
+    output += `━━━━━━━━━━━━━━━━━━\n`;
     if (bestLeftRefraction) {
       output += `Acuidade Visual: ${bestLeftRefraction.visualAcuity || "N/A"}\n`;
       if (bestLeftRefraction.correctionType === "rx") {
@@ -386,8 +386,8 @@ export default async function EvaluationSummaryPage({
     }
 
     // 4. Detalhes do Atendimento
-    output += `\n🏥 DETALHES DO ATENDIMENTO\n`;
-    output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    output += `\n*🏥 DETALHES DO ATENDIMENTO*\n`;
+    output += `━━━━━━━━━━━━━━━━━━\n`;
     output += `Data da Avaliação: ${evaluation.createdAt ? formatDate(evaluation.createdAt) : "N/A"}\n`;
     output += `Data de Atualização: ${evaluation.updatedAt ? formatDate(evaluation.updatedAt) : "N/A"}\n`;
     output += `Médico: ${collaborator.name || "N/A"}\n`;
@@ -417,8 +417,8 @@ export default async function EvaluationSummaryPage({
 
     // 5. Prescrições
     if (prescriptions.length > 0) {
-      output += `\n💊 PRESCRIÇÕES\n`;
-      output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      output += `\n*💊 PRESCRIÇÕES*\n`;
+      output += `━━━━━━━━━━━━━━━━━━\n`;
       prescriptions.forEach((prescription, index) => {
         output += `Prescrição ${index + 1} (${formatDate(prescription.createdAt)}):\n`;
         if (prescription.prescriptionItems.length > 0) {
@@ -452,8 +452,8 @@ export default async function EvaluationSummaryPage({
 
     // 6. Histórico de Avaliações
     if (patientEvaluations.length > 1) {
-      output += `\n📚 HISTÓRICO DE AVALIAÇÕES\n`;
-      output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      output += `\n*📚 HISTÓRICO DE AVALIAÇÕES*\n`;
+      output += `━━━━━━━━━━━━━━━━━━\n`;
       patientEvaluations.slice(0, 5).forEach((ev) => {
         const isCurrent = ev.id === evaluation.id;
         output += `${isCurrent ? "→ " : "  "}${formatDate(ev.createdAt)}: ${ev.diagnosis || "N/A"}\n`;
