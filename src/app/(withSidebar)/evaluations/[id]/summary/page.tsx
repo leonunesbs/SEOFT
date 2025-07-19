@@ -389,7 +389,6 @@ export default async function EvaluationSummaryPage({
     output += `\n*🏥 DETALHES DO ATENDIMENTO*\n`;
     output += `━━━━━━━━━━━━━━━━━━\n`;
     output += `Data da Avaliação: ${evaluation.createdAt ? formatDate(evaluation.createdAt) : "N/A"}\n`;
-    output += `Data de Atualização: ${evaluation.updatedAt ? formatDate(evaluation.updatedAt) : "N/A"}\n`;
     output += `Médico: ${collaborator.name || "N/A"}\n`;
     if (collaborator.persistentNote) {
       output += `Observação do Médico: ${collaborator.persistentNote}\n`;
