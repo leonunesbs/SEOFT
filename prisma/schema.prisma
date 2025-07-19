@@ -37,12 +37,13 @@ model Clinic {
 }
 
 model Collaborator {
-  id          String               @id @default(cuid())
-  name        String
-  crm         String               @unique
-  role        Role
-  clinics     ClinicCollaborator[]
-  evaluations Evaluation[]
+  id             String               @id @default(cuid())
+  name           String
+  crm            String               @unique
+  persistentNote String?
+  role           Role
+  clinics        ClinicCollaborator[]
+  evaluations    Evaluation[]
 
   // integraUsername String?
   // integraPassword String?

@@ -87,7 +87,6 @@ export default async function Dashboard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Paciente</TableHead>
-                  <TableHead>Médico</TableHead>
                   <TableHead>Ambulatório</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead>Avaliação</TableHead>
@@ -104,9 +103,6 @@ export default async function Dashboard() {
                       >
                         {evaluation.patient?.name || "N/A"}
                       </Link>
-                    </TableCell>
-                    <TableCell>
-                      {evaluation.collaborator?.name || "N/A"}
                     </TableCell>
                     <TableCell>{evaluation.clinic?.name ?? "N/A"}</TableCell>
                     <TableCell>
