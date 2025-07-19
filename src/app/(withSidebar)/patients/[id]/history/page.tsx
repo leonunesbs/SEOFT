@@ -20,6 +20,54 @@ import { api } from "~/trpc/server";
 type Params = Promise<{ id: string }>;
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
+// Mapeamento de acuidade visual para valores numéricos para comparação
+const visualAcuityValues: { [key: string]: number } = {
+  ">20/20": 24,
+  "20/20": 23,
+  "20/25": 22,
+  "20/30": 21,
+  "20/40": 20,
+  "20/50": 19,
+  "20/60": 18,
+  "20/70": 17,
+  "20/80": 16,
+  "20/100": 15,
+  "20/200": 14,
+  "20/400": 13,
+  "20/800": 12,
+  "CD 4m": 11,
+  "CD 3m": 10,
+  "CD 2m": 9,
+  "CD 1m": 8,
+  "CD 0,5m": 7,
+  "CD 30cm": 6,
+  "CD 15cm": 5,
+  "CD FF": 4,
+  MM: 3,
+  PL: 2,
+  "PL fraco": 1,
+  "PL duvidoso": 0,
+  SPL: 0,
+};
+
+// Função para determinar a melhor refração com base na acuidade visual
+const getBestRefraction = (refractions: any[]) => {
+  return refractions.reduce((best, current) => {
+    if (!current.visualAcuity) return best;
+
+    const currentValue = visualAcuityValues[current.visualAcuity];
+    if (currentValue === undefined) return best;
+
+    if (!best || !best.visualAcuity) return current;
+
+    const bestValue = visualAcuityValues[best.visualAcuity];
+    if (bestValue === undefined) return current;
+
+    // Maior valor numérico = melhor acuidade visual
+    return currentValue > bestValue ? current : best;
+  }, null);
+};
+
 export default async function PatientHistoryPage({
   params,
   searchParams,
@@ -135,6 +183,97 @@ export default async function PatientHistoryPage({
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
+            {/* Card de Melhor Acuidade Visual */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Melhor Acuidade Visual</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  // Coletar todas as refrações de todas as avaliações
+                  const allRefractions = patient.evaluations.flatMap((ev) => [
+                    ...(ev.eyes?.rightEye?.refraction?.map((r) => ({
+                      ...r,
+                      eye: "OD",
+                    })) || []),
+                    ...(ev.eyes?.leftEye?.refraction?.map((r) => ({
+                      ...r,
+                      eye: "OE",
+                    })) || []),
+                  ]);
+
+                  if (allRefractions.length === 0) {
+                    return (
+                      <div className="text-muted">
+                        Nenhuma refração registrada.
+                      </div>
+                    );
+                  }
+
+                  // Encontrar a melhor refração para cada olho
+                  const rightEyeRefractions = allRefractions.filter(
+                    (r) => r.eye === "OD",
+                  );
+                  const leftEyeRefractions = allRefractions.filter(
+                    (r) => r.eye === "OE",
+                  );
+
+                  const bestRightRefraction =
+                    getBestRefraction(rightEyeRefractions);
+                  const bestLeftRefraction =
+                    getBestRefraction(leftEyeRefractions);
+
+                  return (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Olho</TableHead>
+                          <TableHead>Melhor Acuidade</TableHead>
+                          <TableHead>Data</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {bestRightRefraction && (
+                          <TableRow>
+                            <TableCell className="font-semibold">
+                              {bestRightRefraction.eye}
+                            </TableCell>
+                            <TableCell>
+                              {bestRightRefraction.visualAcuity || "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {bestRightRefraction.recordedAt
+                                ? new Date(
+                                    bestRightRefraction.recordedAt,
+                                  ).toLocaleDateString("pt-BR")
+                                : "N/A"}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {bestLeftRefraction && (
+                          <TableRow>
+                            <TableCell className="font-semibold">
+                              {bestLeftRefraction.eye}
+                            </TableCell>
+                            <TableCell>
+                              {bestLeftRefraction.visualAcuity || "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {bestLeftRefraction.recordedAt
+                                ? new Date(
+                                    bestLeftRefraction.recordedAt,
+                                  ).toLocaleDateString("pt-BR")
+                                : "N/A"}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+
             {/* Card de Última Gonioscopia */}
             <Card>
               <CardHeader>

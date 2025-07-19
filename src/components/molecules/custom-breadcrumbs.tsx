@@ -28,6 +28,11 @@ const routeConfig: RouteConfig[] = [
     redirectUrl: "/",
   },
   {
+    path: "/notes",
+    label: () => "Notas",
+    redirectUrl: "/notes",
+  },
+  {
     path: "/evaluations",
     label: () => "Avaliações",
     redirectUrl: "#",
