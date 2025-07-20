@@ -143,10 +143,7 @@ const LogsSection = ({ logs, title }: { logs: any[]; title: string }) => {
       <h4 className="text-sm font-semibold">{title}</h4>
       <div className="space-y-2">
         {logs.map((log, index) => (
-          <div
-            key={index}
-            className="rounded-lg border border-gray-100 p-3"
-          >
+          <div key={index} className="rounded-lg border border-gray-100 p-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex items-center gap-2">
@@ -197,10 +194,7 @@ const SurgeriesSection = ({
       <h4 className="text-sm font-semibold">{title}</h4>
       <div className="space-y-2">
         {surgeries.map((surgery, index) => (
-          <div
-            key={index}
-            className="rounded-lg border border-gray-100 p-3"
-          >
+          <div key={index} className="rounded-lg border border-gray-100 p-3">
             <div className="mb-2 flex items-start justify-between gap-3">
               <h5 className="text-sm font-medium text-gray-900">
                 {surgery.procedure || "N/A"}
@@ -520,10 +514,7 @@ export default async function EvaluationSummaryPage({
           {patientEvaluations.length > 0 ? (
             <div className="space-y-3">
               {patientEvaluations.map((ev, index) => (
-                <div
-                  key={index}
-                  className='p-4'
-                >
+                <div key={index} className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex items-center gap-2">
