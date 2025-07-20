@@ -146,13 +146,13 @@ export function AppSidebar({
         items: [
           {
             title: "AntiVEGF",
-            url: "https://antivegf.seoft.com.br",
+            url: "https://antivegf.seoft.app",
             icon: <MdLink size={18} />,
             external: true,
           },
           {
             title: "Justificativas",
-            url: "https://just.seoft.com.br",
+            url: "https://just.seoft.app",
             icon: <MdLink size={18} />,
             external: true,
           },

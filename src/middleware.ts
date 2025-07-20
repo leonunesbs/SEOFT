@@ -4,10 +4,10 @@ import { NextResponse } from "next/server";
 
 export function middleware(req: NextRequest) {
   const host = req.headers.get("host");
-  // se veio do subdomínio notes.seoft.com.br
-  if (host === "notes.seoft.com.br") {
+  // se veio do subdomínio notes.seoft.app
+  if (host === "notes.seoft.app") {
     const url = new URL(req.url);
-    url.hostname = "seoft.com.br";
+    url.hostname = "seoft.app";
     url.pathname = "/notes";
     return NextResponse.redirect(url);
   }

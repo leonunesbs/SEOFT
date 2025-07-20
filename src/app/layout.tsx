@@ -32,20 +32,20 @@ export const metadata: Metadata = {
     follow: true,
   },
   alternates: {
-    canonical: "https://seoft.com.br/",
-    languages: { "pt-BR": "https://seoft.com.br" },
+    canonical: "https://seoft.app/",
+    languages: { "pt-BR": "https://seoft.app" },
   },
   openGraph: {
     title: "iSEOFT - Plataforma Auxiliar do Setor de Oftalmologia do HGF",
     description:
       "Bem-vindo à iSEOFT, uma plataforma desenvolvida exclusivamente para o Setor de Oftalmologia do HGF. Ferramentas otimizadas para residentes, integração eficiente e recursos exclusivos para colaboradores. Descubra mais!",
-    url: "https://seoft.com.br",
+    url: "https://seoft.app",
     siteName: "SEOFT",
     locale: "pt_BR",
     type: "website",
     images: [
       {
-        url: "https://seoft.com.br/iSEOFT-logo.png",
+        url: "https://seoft.app/iSEOFT-logo.png",
         width: 512,
         height: 512,
         alt: "Logo do SEOFT - Setor de Oftalmologia do HGF",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     title: "SEOFT - Ferramentas Exclusivas para Oftalmologia no HGF",
     description:
       "O iSEOFT é a solução definitiva para residentes e colaboradores do Setor de Oftalmologia do HGF. Recursos personalizados e integração para otimizar sua rotina. Acesse já!",
-    images: ["https://seoft.com.br/iSEOFT-logo.png"],
+    images: ["https://seoft.app/iSEOFT-logo.png"],
   },
   manifest: "/favicon/site.webmanifest",
   icons: {

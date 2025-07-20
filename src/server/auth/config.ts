@@ -35,7 +35,7 @@ const providers: Provider[] = [
     allowDangerousEmailAccountLinking: true,
   }),
   ResendProvider({
-    from: "signin@seoft.com.br",
+    from: "signin@seoft.app",
   }),
 ];
 

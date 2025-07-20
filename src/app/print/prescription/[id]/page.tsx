@@ -1,9 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { PDFDocument, StandardFonts } from "pdf-lib";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
-import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { MdOutlinePrint } from "react-icons/md";
+import { Button } from "~/components/ui/button";
 import { db } from "~/server/db";
 
 type Params = Promise<{ id: string }>;
@@ -393,7 +393,7 @@ export default async function Page({ params }: { params: Params }) {
     const internalGroups = chunkArray(internalItems, 5);
     for (const group of internalGroups) {
       const responseSimples = await fetch(
-        "https://seoft.com.br/assets/simples.pdf",
+        "https://seoft.app/assets/simples.pdf",
       );
       if (!responseSimples.ok) {
         return <p>Erro ao carregar o template do PDF simples.</p>;
@@ -417,7 +417,7 @@ export default async function Page({ params }: { params: Params }) {
     const externalGroups = chunkArray(externalItems, 5);
     for (const group of externalGroups) {
       const responseSimples = await fetch(
-        "https://seoft.com.br/assets/simples.pdf",
+        "https://seoft.app/assets/simples.pdf",
       );
       if (!responseSimples.ok) {
         return <p>Erro ao carregar o template do PDF simples.</p>;
@@ -444,7 +444,7 @@ export default async function Page({ params }: { params: Params }) {
     const specialInternalGroups = chunkArray(specialInternalItems, 2);
     for (const group of specialInternalGroups) {
       const responseEspecial = await fetch(
-        "https://seoft.com.br/assets/especial.pdf",
+        "https://seoft.app/assets/especial.pdf",
       );
       if (!responseEspecial.ok) {
         return <p>Erro ao carregar o template do PDF especial.</p>;
@@ -471,7 +471,7 @@ export default async function Page({ params }: { params: Params }) {
     const specialExternalGroups = chunkArray(specialExternalItems, 2);
     for (const group of specialExternalGroups) {
       const responseEspecial = await fetch(
-        "https://seoft.com.br/assets/especial.pdf",
+        "https://seoft.app/assets/especial.pdf",
       );
       if (!responseEspecial.ok) {
         return <p>Erro ao carregar o template do PDF especial.</p>;
