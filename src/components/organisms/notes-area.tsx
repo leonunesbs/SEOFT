@@ -2,11 +2,14 @@
 "use client";
 
 import { CheckCircle2, Clock, Save } from "lucide-react";
+import {
+  getCollaboratorNoteAction,
+  updateNoteAction,
+} from "~/app/(withSidebar)/notes/actions";
 import { startTransition, useEffect, useRef, useState } from "react";
 
 import { FaUserMd } from "react-icons/fa";
 import { Textarea } from "../ui/textarea";
-import { updateNoteAction } from "~/app/(withSidebar)/notes/actions";
 import { useForm } from "react-hook-form";
 
 type NotesForm = {
@@ -24,9 +27,54 @@ export default function NotesArea({
     defaultValues: { note: initialNote },
   });
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [currentCollaboratorName, setCurrentCollaboratorName] =
+    useState(collaboratorName);
   const debounce = useRef<NodeJS.Timeout | null>(null);
+
+  // Detecta mudança de colaborador e limpa o input
+  useEffect(() => {
+    if (collaboratorName !== currentCollaboratorName) {
+      console.log("[NotesArea] Colaborador mudou:", {
+        from: currentCollaboratorName,
+        to: collaboratorName,
+      });
+
+      // Colaborador mudou - inicia loading e busca novos dados
+      setLoading(true);
+      setCurrentCollaboratorName(collaboratorName);
+
+      // Limpa qualquer debounce pendente
+      if (debounce.current) {
+        clearTimeout(debounce.current);
+        debounce.current = null;
+      }
+
+      // Busca os dados do novo colaborador
+      startTransition(async () => {
+        try {
+          const { note, name } = await getCollaboratorNoteAction();
+          console.log("[NotesArea] Dados do novo colaborador carregados:", {
+            note: note.substring(0, 50) + "...",
+            name,
+          });
+          reset({ note });
+          setLastSaved(note);
+          setHasUnsavedChanges(false);
+        } catch (error) {
+          console.error("Erro ao buscar dados do colaborador:", error);
+          // Fallback para os dados iniciais
+          reset({ note: initialNote });
+          setLastSaved(initialNote);
+          setHasUnsavedChanges(false);
+        } finally {
+          setLoading(false);
+        }
+      });
+    }
+  }, [collaboratorName, currentCollaboratorName, initialNote, reset]);
 
   // Se o initialNote mudar (por exemplo, troca de colaborador), resetamos o form
   useEffect(() => {
@@ -65,6 +113,15 @@ export default function NotesArea({
 
   // Determina qual status mostrar
   const getStatusDisplay = () => {
+    if (loading) {
+      return {
+        icon: <Clock className="h-4 w-4 animate-spin" />,
+        text: "Carregando...",
+        textMobile: "Carregando...",
+        color: "text-muted-foreground",
+      };
+    }
+
     if (saving) {
       return {
         icon: <Save className="h-4 w-4 animate-pulse" />,
@@ -125,6 +182,7 @@ export default function NotesArea({
           {...register("note")}
           placeholder="Digite suas anotações aqui..."
           className="min-h-[60vh] sm:min-h-[250px]"
+          disabled={loading}
         />
 
         {/* Subtle border indicator for saving state */}

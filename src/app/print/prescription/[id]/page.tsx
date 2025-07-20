@@ -90,6 +90,7 @@ async function fillPdfTemplateWithPrescription(
       quantityVal === 0
         ? "Uso contínuo"
         : `${quantityVal} ${item.medication?.unit}${quantityVal > 1 ? "s" : ""}`.toLocaleUpperCase();
+
     const itemIndexAndName = `${index + 1}) ${medicationName}`;
     page.drawText(itemIndexAndName, {
       x: leftMargin,
@@ -128,7 +129,15 @@ async function fillPdfTemplateWithPrescription(
       item.selectedMedicationInstruction ||
       item.customInstruction ||
       "Instrução não informada";
-    page.drawText(instructionText, {
+
+    // Remove ponto final se houver, adiciona o olho (apenas para uso externo) e coloca ponto final
+    let finalInstructionText = instructionText.replace(/\.$/, "");
+    if (item.eye && item.medication?.external) {
+      finalInstructionText += ` (${item.eye})`;
+    }
+    finalInstructionText += ".";
+
+    page.drawText(finalInstructionText, {
       x: leftMargin + 20,
       y: textY,
       size: fontSize,
@@ -188,6 +197,7 @@ async function fillPdfTemplateWithPrescriptionEspecial(
   prescription: any,
   modelPDFBytes: ArrayBuffer,
   itemsOverride?: any[],
+  usageType?: "INTERNO" | "EXTERNO",
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.load(modelPDFBytes);
   const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
@@ -228,7 +238,9 @@ async function fillPdfTemplateWithPrescriptionEspecial(
 
   // 2) Exibe “Prescrição: USO EXTERNO/USO INTERNO”
   let usage = "USO EXTERNO";
-  if (itemsOverride && itemsOverride.length > 0) {
+  if (usageType) {
+    usage = `USO ${usageType}`;
+  } else if (itemsOverride && itemsOverride.length > 0) {
     usage = itemsOverride[0].medication?.external
       ? "USO EXTERNO"
       : "USO INTERNO";
@@ -262,6 +274,14 @@ async function fillPdfTemplateWithPrescriptionEspecial(
       item.selectedMedicationInstruction ||
       item.customInstruction ||
       "Instrução não informada";
+
+    // Remove ponto final se houver, adiciona o olho (apenas para uso externo) e coloca ponto final
+    let finalInstructionText = instructionText.replace(/\.$/, "");
+    if (item.eye && item.medication?.external) {
+      finalInstructionText += ` (${item.eye})`;
+    }
+    finalInstructionText += ".";
+
     const itemLine = `${index + 1}) ${medicationName} - ${quantityText}`;
 
     // Coluna esquerda (1ª via)
@@ -271,7 +291,7 @@ async function fillPdfTemplateWithPrescriptionEspecial(
       size: fontSize,
     });
     textYLeft -= fontSize + 10;
-    page.drawText(`  ${instructionText}`, {
+    page.drawText(`  ${finalInstructionText}`, {
       x: leftColumnX,
       y: textYLeft,
       size: fontSize,
@@ -285,7 +305,7 @@ async function fillPdfTemplateWithPrescriptionEspecial(
       size: fontSize,
     });
     textYRight -= fontSize + 10;
-    page.drawText(`  ${instructionText}`, {
+    page.drawText(`  ${finalInstructionText}`, {
       x: rightColumnX,
       y: textYRight,
       size: fontSize,
@@ -416,10 +436,13 @@ export default async function Page({ params }: { params: Params }) {
     }
   }
 
-  // --- Receituário ESPECIAL (ex: 3 itens por página) ---
-  if (specialItems.length > 0) {
-    const specialGroups = chunkArray(specialItems, 2);
-    for (const group of specialGroups) {
+  // --- Receituário ESPECIAL (interno) ---
+  const specialInternalItems = specialItems.filter(
+    (item: any) => item.medication && !item.medication.external,
+  );
+  if (specialInternalItems.length > 0) {
+    const specialInternalGroups = chunkArray(specialInternalItems, 2);
+    for (const group of specialInternalGroups) {
       const responseEspecial = await fetch(
         "https://seoft.com.br/assets/especial.pdf",
       );
@@ -427,11 +450,39 @@ export default async function Page({ params }: { params: Params }) {
         return <p>Erro ao carregar o template do PDF especial.</p>;
       }
       const templateBytes = await responseEspecial.arrayBuffer();
-      // Preenche o template ESPECIAL (sem dados do médico, somente data)
+      // Preenche o template ESPECIAL para uso interno
       const filledPdfBytes = await fillPdfTemplateWithPrescriptionEspecial(
         prescription,
         templateBytes,
         group,
+        "INTERNO",
+      );
+      const pdfEspecialDoc = await PDFDocument.load(filledPdfBytes);
+      const [page] = await mergedPdfDoc.copyPages(pdfEspecialDoc, [0]);
+      mergedPdfDoc.addPage(page);
+    }
+  }
+
+  // --- Receituário ESPECIAL (externo) ---
+  const specialExternalItems = specialItems.filter(
+    (item: any) => item.medication && item.medication.external,
+  );
+  if (specialExternalItems.length > 0) {
+    const specialExternalGroups = chunkArray(specialExternalItems, 2);
+    for (const group of specialExternalGroups) {
+      const responseEspecial = await fetch(
+        "https://seoft.com.br/assets/especial.pdf",
+      );
+      if (!responseEspecial.ok) {
+        return <p>Erro ao carregar o template do PDF especial.</p>;
+      }
+      const templateBytes = await responseEspecial.arrayBuffer();
+      // Preenche o template ESPECIAL para uso externo
+      const filledPdfBytes = await fillPdfTemplateWithPrescriptionEspecial(
+        prescription,
+        templateBytes,
+        group,
+        "EXTERNO",
       );
       const pdfEspecialDoc = await PDFDocument.load(filledPdfBytes);
       const [page] = await mergedPdfDoc.copyPages(pdfEspecialDoc, [0]);

@@ -48,9 +48,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 // --- Schema Base com campos comuns --- //
 const baseSchema = z.object({
-  continuousUse: z.boolean().default(true),
+  continuousUse: z.boolean().default(false),
   quantity: z.string().optional(),
-  eye: z.enum(["OD", "OE", "AO"]), // Campo obrigatório para colírios
+  eye: z.enum(["OD", "OE", "AO"]).optional(), // Campo opcional, só obrigatório para colírios
 });
 
 // Extensão para medicação, instruções, etc.
@@ -82,6 +82,7 @@ export type MedicationItem = {
   category: string;
   unit: string; // Ex: "mg", "ml" etc.
   instructions: string[];
+  external: boolean; // Indica se é para uso externo (colírio)
   createdAt: string;
   updatedAt: string;
   prescriptionItems?: any[];
@@ -120,9 +121,9 @@ export function PrescriptionFormDialog({
       medicationId: "",
       selectedMedicationInstruction: "",
       customInstruction: "",
-      continuousUse: true,
+      continuousUse: false,
       quantity: "0",
-      eye: "AO",
+      eye: undefined,
     },
   });
 
@@ -185,9 +186,7 @@ export function PrescriptionFormDialog({
           : undefined,
     };
 
-    createOrUpdateMutation.mutate({
-      ...processedData,
-    });
+    createOrUpdateMutation.mutate(processedData);
   };
 
   return (
@@ -385,36 +384,38 @@ export function PrescriptionFormDialog({
             </div>
 
             {/* Seleção do Olho (obrigatória para colírios) */}
-            <FormField
-              control={form.control}
-              name="eye"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Selecione o olho</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="OD" id="eye-od" />
-                        <FormLabel htmlFor="eye-od">OD</FormLabel>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="OE" id="eye-oe" />
-                        <FormLabel htmlFor="eye-oe">OE</FormLabel>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="AO" id="eye-ao" />
-                        <FormLabel htmlFor="eye-ao">AO</FormLabel>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {selectedMedication?.external && (
+              <FormField
+                control={form.control}
+                name="eye"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Selecione o olho</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className="flex space-x-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="OD" id="eye-od" />
+                          <FormLabel htmlFor="eye-od">OD</FormLabel>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="OE" id="eye-oe" />
+                          <FormLabel htmlFor="eye-oe">OE</FormLabel>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="AO" id="eye-ao" />
+                          <FormLabel htmlFor="eye-ao">AO</FormLabel>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="flex justify-end">
               <Button type="submit">Salvar Prescrição</Button>

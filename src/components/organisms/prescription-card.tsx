@@ -1,5 +1,3 @@
-import { Medication, Prisma } from "@prisma/client";
-import { MdCancel, MdOutlineInfo, MdOutlinePrint } from "react-icons/md";
 import {
   Card,
   CardContent,
@@ -7,6 +5,8 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import { MdCancel, MdOutlineInfo, MdOutlinePrint } from "react-icons/md";
+import { Medication, Prisma } from "@prisma/client";
 import {
   Tooltip,
   TooltipContent,
@@ -14,13 +14,13 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 
-import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { api } from "~/trpc/react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { Loader2 } from "lucide-react";
 import { PrescriptionFormDialog } from "./prescription-dialog-form";
+import { api } from "~/trpc/react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 type PrescriptionItemProps = {
   item: Prisma.PrescriptionItemGetPayload<{
@@ -39,12 +39,22 @@ function PrescriptionItem({
   onDelete,
   isLoading,
 }: PrescriptionItemProps) {
+  const isExternal = item.medication?.external;
+
   return (
     <div className="flex items-center justify-between gap-2">
-      <div className="flex gap-1">
-        <Badge className="w-10 justify-center">{eye}</Badge>
+      <div className="flex min-w-[40px] gap-1">
+        {/* Badge só aparece para medicações externas */}
+        {isExternal && eye && (
+          <Badge
+            variant="secondary"
+            className="w-10 justify-center border-blue-200 bg-blue-100 text-blue-800"
+          >
+            {eye}
+          </Badge>
+        )}
       </div>
-      <span className="flex gap-1">
+      <span className="flex flex-1 items-center gap-1">
         {item.medication?.name}
         {item.medication && (
           <TooltipProvider>

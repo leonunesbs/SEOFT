@@ -6,9 +6,7 @@ import { z } from "zod";
 const prescriptionInputSchema = z
   .object({
     evaluationId: z.string().nonempty("ID da avaliação é obrigatório"),
-    eye: z.enum(["OD", "OE", "AO"], {
-      errorMap: () => ({ message: "Selecione um olho para o item" }),
-    }),
+    eye: z.enum(["OD", "OE", "AO"]).optional(),
     medicationId: z.string().nonempty("Selecione uma medicação"),
     selectedMedicationInstruction: z.string().optional(),
     customInstruction: z.string().optional(),
@@ -49,7 +47,7 @@ export const prescriptionRouter = createTRPCRouter({
             prescriptionItems: {
               create: {
                 medicationId: input.medicationId,
-                eye: input.eye,
+                eye: input.eye || null,
                 selectedMedicationInstruction:
                   input.selectedMedicationInstruction || null,
                 customInstruction: input.customInstruction || null,
@@ -73,7 +71,7 @@ export const prescriptionRouter = createTRPCRouter({
             prescriptionItems: {
               create: {
                 medicationId: input.medicationId,
-                eye: input.eye,
+                eye: input.eye || null,
                 selectedMedicationInstruction:
                   input.selectedMedicationInstruction || null,
                 customInstruction: input.customInstruction || null,
