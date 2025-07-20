@@ -68,9 +68,9 @@ const translateCorrectionType = (correctionType: string) => {
 
 // Clean info display component
 const InfoItem = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex justify-between border-b border-gray-100 py-2 last:border-b-0">
+  <div className="flex justify-between py-2">
     <span className="font-medium text-muted-foreground">{label}</span>
-    <span className="text-gray-900">{value}</span>
+    <span>{value}</span>
   </div>
 );
 
@@ -84,7 +84,7 @@ const RefractionInfo = ({
 }) => {
   if (!refraction) {
     return (
-      <div className="py-4 text-center text-gray-500">
+      <div className="py-4 text-center text-muted-foreground">
         Sem dados de refração
       </div>
     );
@@ -110,21 +110,21 @@ const RefractionInfo = ({
 
       {refraction.correctionType === "rx" ? (
         <div className="grid grid-cols-3 gap-3 text-sm">
-          <div className="rounded bg-gray-50 p-2 text-center">
+          <div className="rounded p-2 text-center">
             <div className="text-xs text-muted-foreground">Esférico</div>
             <div className="font-mono font-medium">{spherical}</div>
           </div>
-          <div className="rounded bg-gray-50 p-2 text-center">
+          <div className="rounded p-2 text-center">
             <div className="text-xs text-muted-foreground">Cilíndrico</div>
             <div className="font-mono font-medium">{cylinder}</div>
           </div>
-          <div className="rounded bg-gray-50 p-2 text-center">
+          <div className="rounded p-2 text-center">
             <div className="text-xs text-muted-foreground">Eixo</div>
             <div className="font-mono font-medium">{axis}</div>
           </div>
         </div>
       ) : (
-        <div className="rounded bg-gray-50 p-2 text-center">
+        <div className="rounded p-2 text-center">
           <span className="font-medium">{correctionType}</span>
         </div>
       )}
@@ -145,7 +145,7 @@ const LogsSection = ({ logs, title }: { logs: any[]; title: string }) => {
         {logs.map((log, index) => (
           <div
             key={index}
-            className="rounded-lg border border-gray-100 bg-gray-50 p-3"
+            className="rounded-lg border border-gray-100 p-3"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
@@ -199,7 +199,7 @@ const SurgeriesSection = ({
         {surgeries.map((surgery, index) => (
           <div
             key={index}
-            className="rounded-lg border border-gray-100 bg-gray-50 p-3"
+            className="rounded-lg border border-gray-100 p-3"
           >
             <div className="mb-2 flex items-start justify-between gap-3">
               <h5 className="text-sm font-medium text-gray-900">
@@ -522,11 +522,7 @@ export default async function EvaluationSummaryPage({
               {patientEvaluations.map((ev, index) => (
                 <div
                   key={index}
-                  className={`rounded-lg border p-4 ${
-                    ev.id === evaluation.id
-                      ? "border-blue-200 bg-blue-50"
-                      : "border-gray-200 bg-gray-50 hover:bg-gray-100"
-                  }`}
+                  className='p-4'
                 >
                   <div className="flex items-center justify-between">
                     <div className="min-w-0 flex-1">
