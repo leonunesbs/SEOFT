@@ -19,3 +19,29 @@ export function useIsMobile() {
 
   return !!isMobile;
 }
+
+// iOS-specific detection
+export function useIsIOS() {
+  const [isIOS, setIsIOS] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
+    const isStandalone = window.matchMedia(
+      "(display-mode: standalone)",
+    ).matches;
+    const isInHomeApp = isIOSDevice && isStandalone;
+
+    setIsIOS(isInHomeApp);
+  }, []);
+
+  return isIOS;
+}
+
+// Enhanced mobile detection including iOS home app
+export function useIsMobileOrIOSHome() {
+  const isMobile = useIsMobile();
+  const isIOSHome = useIsIOS();
+
+  return isMobile || isIOSHome;
+}

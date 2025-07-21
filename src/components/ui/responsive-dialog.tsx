@@ -19,7 +19,7 @@ import {
   DrawerTrigger,
 } from "~/components/ui/drawer";
 
-import { useIsMobile } from "~/hooks/use-mobile";
+import { useIsMobileOrIOSHome } from "~/hooks/use-mobile";
 
 interface ResponsiveDialogProps {
   trigger: React.ReactNode;
@@ -42,11 +42,11 @@ export function ResponsiveDialog({
   description,
   footer,
 }: ResponsiveDialogProps) {
-  const isMobile = useIsMobile();
+  const isMobileOrIOSHome = useIsMobileOrIOSHome();
 
-  if (isMobile) {
+  if (isMobileOrIOSHome) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
+      <Drawer open={open} onOpenChange={onOpenChange} modal={false}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className={className}>
           <div className="flex h-full max-h-[85vh] flex-col">

@@ -24,5 +24,9 @@
   "orientation": "portrait",
   "short_name": "iSEOFT",
   "start_url": "https://seoft.app",
-  "theme_color": "#ffffff"
+  "theme_color": "#ffffff",
+  "scope": "/",
+  "lang": "pt-BR",
+  "categories": ["medical", "productivity"],
+  "description": "Plataforma auxiliar do Setor de Oftalmologia do HGF"
 }
