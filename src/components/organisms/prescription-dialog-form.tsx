@@ -149,6 +149,7 @@ export function PrescriptionFormDialog({
         description: "A prescrição foi salva com sucesso.",
       });
       form.reset();
+      setOpen(false);
       router.refresh();
     },
     onError: (error) => {
@@ -190,7 +191,11 @@ export function PrescriptionFormDialog({
 
   const formContent = (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        id="prescription-form"
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4"
+      >
         {/* Combobox para Seleção da Medicação */}
         <FormField
           control={form.control}
@@ -400,10 +405,6 @@ export function PrescriptionFormDialog({
             )}
           />
         )}
-
-        <div className="flex justify-end">
-          <Button type="submit">Salvar Prescrição</Button>
-        </div>
       </form>
     </Form>
   );
@@ -414,6 +415,18 @@ export function PrescriptionFormDialog({
       title="Nova Prescrição"
       open={open}
       onOpenChange={setOpen}
+      footer={
+        <Button
+          type="submit"
+          form="prescription-form"
+          disabled={createOrUpdateMutation.isPending}
+          className="w-full"
+        >
+          {createOrUpdateMutation.isPending
+            ? "Salvando..."
+            : "Salvar Prescrição"}
+        </Button>
+      }
     >
       {formContent}
     </ResponsiveDialog>

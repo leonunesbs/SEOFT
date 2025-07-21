@@ -10,9 +10,7 @@ import {
 } from "~/components/ui/form";
 import { useEffect, useState } from "react";
 
-import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { MdSave } from "react-icons/md";
 import { api } from "~/trpc/react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -58,14 +56,16 @@ const formSchema = z.object({
 
 type AddPatientFormProps = {
   onSuccess?: () => void;
+  onLoadingChange?: (loading: boolean) => void;
 };
 
-export function AddPatientForm({ onSuccess }: AddPatientFormProps) {
+export function AddPatientForm({
+  onSuccess,
+  onLoadingChange,
+}: AddPatientFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [currentCollaboratorId, setCurrentCollaboratorId] = useState<
-    string | null
-  >(null);
+  const [, setCurrentCollaboratorId] = useState<string | null>(null);
 
   // Obter o colaborador atual via cookie
   useEffect(() => {
@@ -99,53 +99,36 @@ export function AddPatientForm({ onSuccess }: AddPatientFormProps) {
         duration: 2000,
       });
     },
-    onSuccess(patient) {
+    onSuccess() {
       toast({
-        title: "Sucesso!",
-        description: "Paciente criado com sucesso.",
-        variant: "default",
+        title: "Sucesso",
+        description: "Paciente criado com sucesso!",
         duration: 2000,
       });
-      formHandler.reset();
       onSuccess?.();
-
-      // Criar avaliação automaticamente se houver colaborador selecionado
-      if (currentCollaboratorId) {
-        createEvaluation.mutate({
-          patientId: patient.id,
-          collaboratorId: currentCollaboratorId,
-        });
-      } else {
-        // Se não houver colaborador selecionado, apenas recarregar a página
-        window.location.reload();
-      }
     },
   });
 
   const createEvaluation = api.evaluation.create.useMutation({
     onError(error) {
       toast({
-        title: "Erro ao criar avaliação",
+        title: "Erro",
         description: error.message,
         variant: "destructive",
         duration: 2000,
       });
-      // Em caso de erro na criação da avaliação, recarregar a página
-      window.location.reload();
     },
     onSuccess(evaluation) {
-      toast({
-        title: "Avaliação criada!",
-        description: "Redirecionando para a avaliação...",
-        variant: "default",
-        duration: 2000,
-      });
-      // Redirecionar para a página da avaliação
       router.push(`/evaluations/${evaluation.id}`);
     },
   });
 
   const isLoading = createPatient.isPending || createEvaluation.isPending;
+
+  // Notificar mudanças no estado de loading
+  useEffect(() => {
+    onLoadingChange?.(isLoading);
+  }, [isLoading, onLoadingChange]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const formattedValues = {
@@ -159,6 +142,7 @@ export function AddPatientForm({ onSuccess }: AddPatientFormProps) {
   return (
     <Form {...formHandler}>
       <form
+        id="add-patient-form"
         onSubmit={formHandler.handleSubmit(onSubmit)}
         className="space-y-4"
         aria-label="Formulário de Adição de Paciente"
@@ -234,11 +218,6 @@ export function AddPatientForm({ onSuccess }: AddPatientFormProps) {
             )}
           />
         </div>
-
-        <Button type="submit" disabled={isLoading} size="sm" className="w-full">
-          <MdSave />
-          {isLoading ? "Salvando..." : "Salvar Paciente"}
-        </Button>
       </form>
     </Form>
   );

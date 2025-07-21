@@ -26,6 +26,8 @@ interface ResponsiveDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   className?: string;
+  description?: string;
+  footer?: React.ReactNode;
 }
 
 export function ResponsiveDialog({
@@ -35,6 +37,8 @@ export function ResponsiveDialog({
   open,
   onOpenChange,
   className,
+  description,
+  footer,
 }: ResponsiveDialogProps) {
   const isMobile = useIsMobile();
 
@@ -45,8 +49,20 @@ export function ResponsiveDialog({
         <DrawerContent className={className}>
           <DrawerHeader>
             <DrawerTitle>{title}</DrawerTitle>
+            {description && (
+              <p className="text-sm text-muted-foreground">{description}</p>
+            )}
           </DrawerHeader>
-          <div className="mx-auto max-w-md px-4 pb-4">{children}</div>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex-1 overflow-y-auto px-4">
+              <div className="mx-auto max-w-md pb-4">{children}</div>
+            </div>
+            {footer && (
+              <div className="border-t bg-background px-4 py-3">
+                <div className="mx-auto max-w-md">{footer}</div>
+              </div>
+            )}
+          </div>
         </DrawerContent>
       </Drawer>
     );
@@ -58,8 +74,14 @@ export function ResponsiveDialog({
       <DialogContent className={className}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
         </DialogHeader>
-        {children}
+        <div className="flex max-h-[70vh] flex-col">
+          <div className="flex-1 overflow-y-auto pr-2">{children}</div>
+          {footer && <div className="mt-4 border-t pt-4">{footer}</div>}
+        </div>
       </DialogContent>
     </Dialog>
   );
