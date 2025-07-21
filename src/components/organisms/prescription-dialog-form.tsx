@@ -12,14 +12,6 @@ import {
   CommandList,
 } from "~/components/ui/command";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
-import {
   Form,
   FormControl,
   FormField,
@@ -38,6 +30,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
+import { ResponsiveDialog } from "~/components/ui/responsive-dialog";
 import { Textarea } from "../ui/textarea";
 import { api } from "~/trpc/react";
 import { cn } from "~/lib/utils";
@@ -189,241 +182,240 @@ export function PrescriptionFormDialog({
     createOrUpdateMutation.mutate(processedData);
   };
 
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button type="button" className="w-full">
-          Adicionar Prescrição
-        </Button>
-      </DialogTrigger>
+  const trigger = (
+    <Button type="button" className="w-full">
+      Adicionar Prescrição
+    </Button>
+  );
 
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Nova Prescrição</DialogTitle>
-        </DialogHeader>
+  const formContent = (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Combobox para Seleção da Medicação */}
+        <FormField
+          control={form.control}
+          name="medicationId"
+          render={({ field }) => {
+            // Estado para controlar o Popover
+            const currentMedication = medications.find(
+              (med) => med.id === field.value,
+            );
+            return (
+              <FormItem>
+                <FormLabel>Medicação</FormLabel>
+                <FormControl>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="w-full justify-between"
+                      >
+                        {currentMedication ? (
+                          <>{currentMedication.name}</>
+                        ) : (
+                          "Selecione uma medicação"
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Buscar medicação..."
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>
+                            <span className="px-2">
+                              Nenhuma medicação encontrada.
+                            </span>
+                          </CommandEmpty>
+                          {Object.entries(groupByCategory(medications)).map(
+                            ([category, items]) => (
+                              <CommandGroup key={category} heading={category}>
+                                {items.map((med) => (
+                                  <CommandItem
+                                    key={med.id}
+                                    value={`${med.name} ${med.category}`} // inclui a categoria para filtrar também
+                                    onSelect={() => {
+                                      field.onChange(med.id); // armazena o id da medicação no formulário
+                                      setOpen(false);
+                                    }}
+                                  >
+                                    {med.name}
+                                    <Check
+                                      className={cn(
+                                        "ml-auto",
+                                        field.value === med.id
+                                          ? "opacity-100"
+                                          : "opacity-0",
+                                      )}
+                                    />
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            ),
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Combobox para Seleção da Medicação */}
+        {/* Instruções Padrão e Personalizadas */}
+        {selectedMedication && (
+          <>
             <FormField
               control={form.control}
-              name="medicationId"
-              render={({ field }) => {
-                // Estado para controlar o Popover
-                const currentMedication = medications.find(
-                  (med) => med.id === field.value,
-                );
-                return (
-                  <FormItem>
-                    <FormLabel>Medicação</FormLabel>
-                    <FormControl>
-                      <Popover open={open} onOpenChange={setOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={open}
-                            className="w-full justify-between"
+              name="selectedMedicationInstruction"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Instrução Padrão</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className="flex flex-col space-y-2"
+                    >
+                      {selectedMedication.instructions.map((instr) => (
+                        <div
+                          key={instr}
+                          className="flex items-center space-x-2"
+                        >
+                          <RadioGroupItem
+                            value={instr}
+                            id={`instr-${selectedMedication.id}-${instr}`}
+                          />
+                          <FormLabel
+                            htmlFor={`instr-${selectedMedication.id}-${instr}`}
                           >
-                            {currentMedication ? (
-                              <>{currentMedication.name}</>
-                            ) : (
-                              "Selecione uma medicação"
-                            )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
-                          <Command>
-                            <CommandInput
-                              placeholder="Buscar medicação..."
-                              className="h-9"
-                            />
-                            <CommandList>
-                              <CommandEmpty>
-                                <span className="px-2">
-                                  Nenhuma medicação encontrada.
-                                </span>
-                              </CommandEmpty>
-                              {Object.entries(groupByCategory(medications)).map(
-                                ([category, items]) => (
-                                  <CommandGroup
-                                    key={category}
-                                    heading={category}
-                                  >
-                                    {items.map((med) => (
-                                      <CommandItem
-                                        key={med.id}
-                                        value={`${med.name} ${med.category}`} // inclui a categoria para filtrar também
-                                        onSelect={() => {
-                                          field.onChange(med.id); // armazena o id da medicação no formulário
-                                          setOpen(false);
-                                        }}
-                                      >
-                                        {med.name}
-                                        <Check
-                                          className={cn(
-                                            "ml-auto",
-                                            field.value === med.id
-                                              ? "opacity-100"
-                                              : "opacity-0",
-                                          )}
-                                        />
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                ),
-                              )}
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+                            {instr}
+                          </FormLabel>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
-            {/* Instruções Padrão e Personalizadas */}
-            {selectedMedication && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="selectedMedicationInstruction"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Instrução Padrão</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          className="flex flex-col space-y-2"
-                        >
-                          {selectedMedication.instructions.map((instr) => (
-                            <div
-                              key={instr}
-                              className="flex items-center space-x-2"
-                            >
-                              <RadioGroupItem
-                                value={instr}
-                                id={`instr-${selectedMedication.id}-${instr}`}
-                              />
-                              <FormLabel
-                                htmlFor={`instr-${selectedMedication.id}-${instr}`}
-                              >
-                                {instr}
-                              </FormLabel>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="customInstruction"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Instrução Personalizada</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Digite a instrução personalizada"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
-
-            <div className="grid grid-cols-2">
-              {/* Uso Contínuo */}
-              <FormField
-                control={form.control}
-                name="continuousUse"
-                render={({ field }) => (
-                  <FormItem className="flex items-center space-x-2">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked)}
-                      />
-                    </FormControl>
-                    <FormLabel>Uso Contínuo</FormLabel>
-                  </FormItem>
-                )}
-              />
-
-              {/* Se não for uso contínuo, exibe o input para Quantidade */}
-              {!form.watch("continuousUse") && (
-                <FormField
-                  control={form.control}
-                  name="quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Quantidade</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Informe a quantidade"
-                          required
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <FormField
+              control={form.control}
+              name="customInstruction"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Instrução Personalizada</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Digite a instrução personalizada"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
+            />
+          </>
+        )}
 
-            {/* Seleção do Olho (obrigatória para colírios) */}
-            {selectedMedication?.external && (
-              <FormField
-                control={form.control}
-                name="eye"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Selecione o olho</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        className="flex space-x-4"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="OD" id="eye-od" />
-                          <FormLabel htmlFor="eye-od">OD</FormLabel>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="OE" id="eye-oe" />
-                          <FormLabel htmlFor="eye-oe">OE</FormLabel>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="AO" id="eye-ao" />
-                          <FormLabel htmlFor="eye-ao">AO</FormLabel>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <div className="grid grid-cols-2">
+          {/* Uso Contínuo */}
+          <FormField
+            control={form.control}
+            name="continuousUse"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked)}
+                  />
+                </FormControl>
+                <FormLabel>Uso Contínuo</FormLabel>
+              </FormItem>
             )}
+          />
 
-            <div className="flex justify-end">
-              <Button type="submit">Salvar Prescrição</Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-      <DialogFooter>{/* Botão de cancelamento opcional */}</DialogFooter>
-    </Dialog>
+          {/* Se não for uso contínuo, exibe o input para Quantidade */}
+          {!form.watch("continuousUse") && (
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Quantidade</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Informe a quantidade"
+                      required
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+        </div>
+
+        {/* Seleção do Olho (obrigatória para colírios) */}
+        {selectedMedication?.external && (
+          <FormField
+            control={form.control}
+            name="eye"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Selecione o olho</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    className="flex space-x-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="OD" id="eye-od" />
+                      <FormLabel htmlFor="eye-od">OD</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="OE" id="eye-oe" />
+                      <FormLabel htmlFor="eye-oe">OE</FormLabel>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="AO" id="eye-ao" />
+                      <FormLabel htmlFor="eye-ao">AO</FormLabel>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        <div className="flex justify-end">
+          <Button type="submit">Salvar Prescrição</Button>
+        </div>
+      </form>
+    </Form>
+  );
+
+  return (
+    <ResponsiveDialog
+      trigger={trigger}
+      title="Nova Prescrição"
+      open={open}
+      onOpenChange={setOpen}
+    >
+      {formContent}
+    </ResponsiveDialog>
   );
 }
