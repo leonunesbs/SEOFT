@@ -179,7 +179,6 @@ export function AddPatientForm({ onSuccess }: AddPatientFormProps) {
                     {...field}
                     aria-invalid={fieldState.invalid}
                     aria-describedby="refId-error"
-                    className="h-8 text-sm"
                   />
                 </FormControl>
                 <FormMessage id="refId-error" className="text-xs" />
@@ -202,7 +201,6 @@ export function AddPatientForm({ onSuccess }: AddPatientFormProps) {
                     {...field}
                     aria-invalid={fieldState.invalid}
                     aria-describedby="name-error"
-                    className="h-8 text-sm"
                   />
                 </FormControl>
                 <FormMessage id="name-error" className="text-xs" />
@@ -229,7 +227,6 @@ export function AddPatientForm({ onSuccess }: AddPatientFormProps) {
                     }}
                     aria-invalid={fieldState.invalid}
                     aria-describedby="birthDate-error"
-                    className="h-8 text-sm"
                   />
                 </FormControl>
                 <FormMessage id="birthDate-error" className="text-xs" />
