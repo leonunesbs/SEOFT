@@ -9,10 +9,10 @@
 
 import { TRPCError, initTRPC } from "@trpc/server";
 
-import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+import superjson from "superjson";
 
 /**
  * 1. CONTEXT
@@ -52,6 +52,17 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
         ...shape.data,
         zodError:
           error.cause instanceof ZodError ? error.cause.flatten() : null,
+        // Adiciona informações de erro customizadas se disponível
+        customError:
+          error.cause &&
+          typeof error.cause === "object" &&
+          "code" in error.cause
+            ? {
+                code: (error.cause as any).code,
+                statusCode: (error.cause as any).statusCode,
+                context: (error.cause as any).context,
+              }
+            : null,
       },
     };
   },
