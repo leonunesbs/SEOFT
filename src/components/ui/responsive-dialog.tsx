@@ -13,6 +13,7 @@ import {
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -46,14 +47,14 @@ export function ResponsiveDialog({
 
   if (isMobileOrIOSHome) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange} modal={false}>
+      <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className={className}>
-          <div className="flex h-full max-h-[85vh] flex-col">
+          <div className="mx-auto w-full max-w-xl">
             <DrawerHeader>
               <DrawerTitle>{title}</DrawerTitle>
               {description && (
-                <p className="text-sm text-muted-foreground">{description}</p>
+                <DrawerDescription>{description}</DrawerDescription>
               )}
             </DrawerHeader>
             <div className="flex-1 overflow-y-auto px-4 pb-4">{children}</div>
@@ -70,9 +71,7 @@ export function ResponsiveDialog({
       <DialogContent className={className}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
-          )}
+          {description && <DrawerDescription>{description}</DrawerDescription>}
         </DialogHeader>
         <div className="max-h-[70vh] overflow-y-auto px-1 pb-4">{children}</div>
         {footer && <DialogFooter>{footer}</DialogFooter>}

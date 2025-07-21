@@ -2,10 +2,10 @@
 
 import { MdOutlinePersonAdd, MdSave } from "react-icons/md";
 
-import { Button } from "~/components/ui/button";
-import { PatientForm } from "./patient-form";
-import { ResponsiveDialog } from "~/components/ui/responsive-dialog";
 import { useState } from "react";
+import { Button } from "~/components/ui/button";
+import { ResponsiveDialog } from "~/components/ui/responsive-dialog";
+import { PatientForm } from "./patient-form";
 
 export function AddPatientDialog() {
   const [open, setOpen] = useState(false);
@@ -61,7 +61,6 @@ export function AddPatientDialog() {
       description="Preencha os dados do paciente para criar um novo registro."
       open={open}
       onOpenChange={setOpen}
-      className="sm:max-w-[425px]"
       footer={footer}
     >
       {content}
