@@ -10,11 +10,6 @@ export default async function NotesPage() {
     "selected-collaborator",
   )?.value;
 
-  console.log(
-    "[NotesPage] Carregando página com collaboratorId:",
-    collaboratorId,
-  );
-
   let initialNote = "";
   let collaboratorName = "";
   if (collaboratorId) {
@@ -24,11 +19,6 @@ export default async function NotesPage() {
     });
     initialNote = collab?.persistentNote ?? "";
     collaboratorName = collab?.name ?? "";
-
-    console.log("[NotesPage] Dados do colaborador carregados:", {
-      name: collaboratorName,
-      noteLength: initialNote.length,
-    });
   }
 
   return (

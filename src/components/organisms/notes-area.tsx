@@ -2,15 +2,15 @@
 "use client";
 
 import { CheckCircle2, Clock, Save } from "lucide-react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import {
   getCollaboratorNoteAction,
   updateNoteAction,
 } from "~/app/(withSidebar)/notes/actions";
-import { startTransition, useEffect, useRef, useState } from "react";
 
+import { useForm } from "react-hook-form";
 import { FaUserMd } from "react-icons/fa";
 import { Textarea } from "../ui/textarea";
-import { useForm } from "react-hook-form";
 
 type NotesForm = {
   note: string;
@@ -37,11 +37,6 @@ export default function NotesArea({
   // Detecta mudança de colaborador e limpa o input
   useEffect(() => {
     if (collaboratorName !== currentCollaboratorName) {
-      console.log("[NotesArea] Colaborador mudou:", {
-        from: currentCollaboratorName,
-        to: collaboratorName,
-      });
-
       // Colaborador mudou - inicia loading e busca novos dados
       setLoading(true);
       setCurrentCollaboratorName(collaboratorName);
@@ -55,11 +50,8 @@ export default function NotesArea({
       // Busca os dados do novo colaborador
       startTransition(async () => {
         try {
-          const { note, name } = await getCollaboratorNoteAction();
-          console.log("[NotesArea] Dados do novo colaborador carregados:", {
-            note: note.substring(0, 50) + "...",
-            name,
-          });
+          const { note } = await getCollaboratorNoteAction();
+
           reset({ note });
           setLastSaved(note);
           setHasUnsavedChanges(false);
