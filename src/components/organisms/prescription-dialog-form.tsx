@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import {
   Command,
   CommandEmpty,
@@ -12,6 +13,11 @@ import {
   CommandList,
 } from "~/components/ui/command";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import {
   Form,
   FormControl,
   FormField,
@@ -19,31 +25,26 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { useParams, useRouter } from "next/navigation";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { ResponsiveDialog } from "~/components/ui/responsive-dialog";
+import { toast } from "~/hooks/use-toast";
+import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
-import { ResponsiveDialog } from "~/components/ui/responsive-dialog";
 import { Textarea } from "../ui/textarea";
-import { api } from "~/trpc/react";
-import { cn } from "~/lib/utils";
-import { toast } from "~/hooks/use-toast";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 // --- Schema Base com campos comuns --- //
 const baseSchema = z.object({
   continuousUse: z.boolean().default(false),
   quantity: z.string().optional(),
-  eye: z.enum(["OD", "OE", "AO"]).optional(), // Campo opcional, só obrigatório para colírios
+  isExternal: z.boolean().default(false),
+  eye: z.enum(["OD", "OE", "AO"]).optional(), // Campo opcional, só obrigatório para uso externo
 });
 
 // Extensão para medicação, instruções, etc.
@@ -63,6 +64,19 @@ const prescriptionSchema = baseSchema
     {
       message:
         "Selecione uma instrução padrão ou insira uma instrução personalizada",
+    },
+  )
+  .refine(
+    (data) => {
+      // Se for uso externo, o campo eye é obrigatório
+      if (data.isExternal) {
+        return data.eye !== undefined && data.eye !== null;
+      }
+      return true;
+    },
+    {
+      message: "Selecione o olho para uso externo",
+      path: ["eye"],
     },
   );
 
@@ -106,7 +120,8 @@ export function PrescriptionFormDialog({
   const { id } = useParams();
   const evaluationId = id as string;
   const router = useRouter();
-  const [open, setOpen] = React.useState(false);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [popoverOpen, setPopoverOpen] = React.useState(false);
 
   const form = useForm<PrescriptionFormValues>({
     resolver: zodResolver(prescriptionSchema),
@@ -117,6 +132,7 @@ export function PrescriptionFormDialog({
       continuousUse: false,
       quantity: "0",
       eye: undefined,
+      isExternal: false,
     },
   });
 
@@ -149,7 +165,7 @@ export function PrescriptionFormDialog({
         description: "A prescrição foi salva com sucesso.",
       });
       form.reset();
-      setOpen(false);
+      setDialogOpen(false);
       router.refresh();
     },
     onError: (error) => {
@@ -209,12 +225,12 @@ export function PrescriptionFormDialog({
               <FormItem>
                 <FormLabel>Medicação</FormLabel>
                 <FormControl>
-                  <Popover open={open} onOpenChange={setOpen}>
+                  <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         role="combobox"
-                        aria-expanded={open}
+                        aria-expanded={popoverOpen}
                         className="w-full justify-between"
                       >
                         {currentMedication ? (
@@ -246,7 +262,7 @@ export function PrescriptionFormDialog({
                                     value={`${med.name} ${med.category}`} // inclui a categoria para filtrar também
                                     onSelect={() => {
                                       field.onChange(med.id); // armazena o id da medicação no formulário
-                                      setOpen(false);
+                                      setPopoverOpen(false);
                                     }}
                                   >
                                     {med.name}
@@ -331,7 +347,7 @@ export function PrescriptionFormDialog({
           </>
         )}
 
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-2 gap-4">
           {/* Uso Contínuo */}
           <FormField
             control={form.control}
@@ -349,31 +365,54 @@ export function PrescriptionFormDialog({
             )}
           />
 
-          {/* Se não for uso contínuo, exibe o input para Quantidade */}
-          {!form.watch("continuousUse") && (
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Quantidade</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Informe a quantidade"
-                      required
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          {/* Uso Externo */}
+          <FormField
+            control={form.control}
+            name="isExternal"
+            render={({ field }) => (
+              <FormItem className="flex items-center space-x-2">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked);
+                      // Limpa a seleção do olho quando desmarca uso externo
+                      if (!checked) {
+                        form.setValue("eye", undefined);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormLabel>Uso Externo</FormLabel>
+              </FormItem>
+            )}
+          />
         </div>
 
-        {/* Seleção do Olho (obrigatória para colírios) */}
-        {selectedMedication?.external && (
+        {/* Se não for uso contínuo, exibe o input para Quantidade */}
+        {!form.watch("continuousUse") && (
+          <FormField
+            control={form.control}
+            name="quantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantidade</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Informe a quantidade"
+                    required
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Seleção do Olho (obrigatória para uso externo) */}
+        {form.watch("isExternal") && (
           <FormField
             control={form.control}
             name="eye"
@@ -413,8 +452,8 @@ export function PrescriptionFormDialog({
     <ResponsiveDialog
       trigger={trigger}
       title="Nova Prescrição"
-      open={open}
-      onOpenChange={setOpen}
+      open={dialogOpen}
+      onOpenChange={setDialogOpen}
       footer={
         <Button
           type="submit"
