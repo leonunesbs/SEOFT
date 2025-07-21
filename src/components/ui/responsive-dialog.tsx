@@ -5,6 +5,7 @@ import * as React from "react";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -12,6 +13,7 @@ import {
 import {
   Drawer,
   DrawerContent,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -47,14 +49,16 @@ export function ResponsiveDialog({
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className={className}>
-          <DrawerHeader>
-            <DrawerTitle>{title}</DrawerTitle>
-            {description && (
-              <p className="text-sm text-muted-foreground">{description}</p>
-            )}
-          </DrawerHeader>
-          <div className="px-4 pb-4">{children}</div>
-          {footer && <div className="border-t px-4 py-3">{footer}</div>}
+          <div className="flex h-full max-h-[85vh] flex-col">
+            <DrawerHeader>
+              <DrawerTitle>{title}</DrawerTitle>
+              {description && (
+                <p className="text-sm text-muted-foreground">{description}</p>
+              )}
+            </DrawerHeader>
+            <div className="flex-1 overflow-y-auto px-4 pb-4">{children}</div>
+            {footer && <DrawerFooter>{footer}</DrawerFooter>}
+          </div>
         </DrawerContent>
       </Drawer>
     );
@@ -71,7 +75,7 @@ export function ResponsiveDialog({
           )}
         </DialogHeader>
         <div className="max-h-[70vh] overflow-y-auto px-1 pb-4">{children}</div>
-        {footer && <div className="border-t pt-4">{footer}</div>}
+        {footer && <DialogFooter>{footer}</DialogFooter>}
       </DialogContent>
     </Dialog>
   );
