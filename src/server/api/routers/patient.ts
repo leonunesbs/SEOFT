@@ -17,6 +17,11 @@ export const patientRouter = createTRPCRouter({
         birthDate: new Date(patient.birthDate).toISOString(),
       }));
     } catch (error) {
+      // Se já é um TRPCError, re-throw para preservar a mensagem original
+      if (error instanceof TRPCError) {
+        throw error;
+      }
+
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Erro ao listar pacientes. Tente novamente mais tarde.",
@@ -61,6 +66,11 @@ export const patientRouter = createTRPCRouter({
           birthDate: newPatient.birthDate.toISOString(),
         };
       } catch (error) {
+        // Se já é um TRPCError, re-throw para preservar a mensagem original
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -92,6 +102,11 @@ export const patientRouter = createTRPCRouter({
           birthDate: patient.birthDate.toISOString(),
         };
       } catch (error) {
+        // Se já é um TRPCError, re-throw para preservar a mensagem original
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -133,6 +148,11 @@ export const patientRouter = createTRPCRouter({
           birthDate: patient.birthDate.toISOString(),
         }));
       } catch (error) {
+        // Se já é um TRPCError, re-throw para preservar a mensagem original
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erro ao buscar pacientes. Tente novamente mais tarde.",
@@ -166,6 +186,11 @@ export const patientRouter = createTRPCRouter({
           birthDate: patient.birthDate.toISOString(),
         };
       } catch (error) {
+        // Se já é um TRPCError, re-throw para preservar a mensagem original
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Erro ao atualizar paciente. Tente novamente mais tarde.",
@@ -188,6 +213,11 @@ export const patientRouter = createTRPCRouter({
           birthDate: patient.birthDate.toISOString(),
         };
       } catch (error) {
+        // Se já é um TRPCError, re-throw para preservar a mensagem original
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:

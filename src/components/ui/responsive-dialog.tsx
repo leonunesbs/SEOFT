@@ -53,16 +53,8 @@ export function ResponsiveDialog({
               <p className="text-sm text-muted-foreground">{description}</p>
             )}
           </DrawerHeader>
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex-1 overflow-y-auto px-4">
-              <div className="mx-auto max-w-md pb-4">{children}</div>
-            </div>
-            {footer && (
-              <div className="border-t bg-background px-4 py-3">
-                <div className="mx-auto max-w-md">{footer}</div>
-              </div>
-            )}
-          </div>
+          <div className="px-4 pb-4">{children}</div>
+          {footer && <div className="border-t px-4 py-3">{footer}</div>}
         </DrawerContent>
       </Drawer>
     );
@@ -78,10 +70,8 @@ export function ResponsiveDialog({
             <p className="text-sm text-muted-foreground">{description}</p>
           )}
         </DialogHeader>
-        <div className="flex max-h-[70vh] flex-col">
-          <div className="flex-1 overflow-y-auto pr-2">{children}</div>
-          {footer && <div className="mt-4 border-t pt-4">{footer}</div>}
-        </div>
+        <div className="max-h-[70vh] overflow-y-auto px-1 pb-4">{children}</div>
+        {footer && <div className="border-t pt-4">{footer}</div>}
       </DialogContent>
     </Dialog>
   );

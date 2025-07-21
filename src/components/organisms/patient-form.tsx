@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { MdDelete, MdSave } from "react-icons/md";
+import { useEffect, useState } from "react";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -90,14 +91,34 @@ type PatientFormProps = {
     birthDate: string; // ISO string
   };
   redirect?: boolean;
+  // Novas props para suporte ao dialog
+  onSuccess?: () => void;
+  onLoadingChange?: (loading: boolean) => void;
+  formId?: string;
+  variant?: "dialog" | "page";
+  showDescriptions?: boolean;
+  compact?: boolean;
 };
 
 export function PatientForm({
   initialData,
   redirect = true,
+  onSuccess,
+  onLoadingChange,
+  formId,
+  variant = "page",
+  showDescriptions = true,
+  compact = false,
 }: PatientFormProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const [createdPatientId, setCreatedPatientId] = useState<string | null>(null);
+
+  const {
+    data: collaboratorData,
+    isLoading: isCollaboratorLoading,
+    error: collaboratorError,
+  } = api.utils.currentCollaborator.useQuery();
 
   const formHandler = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -130,10 +151,59 @@ export function PatientForm({
         variant: "default",
         duration: 2000,
       });
-      formHandler.reset();
-      if (redirect) router.push(`/patients/${patient.id}`);
+
+      if (variant === "dialog") {
+        // Para dialog, não resetar o form e chamar onSuccess
+        setCreatedPatientId(patient.id);
+      } else {
+        // Para página, resetar o form
+        formHandler.reset();
+        setCreatedPatientId(patient.id);
+      }
+
+      // Após criar o paciente, criar automaticamente uma avaliação
+      if (collaboratorData?.collaboratorId) {
+        createEvaluation.mutate({
+          patientId: patient.id,
+          collaboratorId: collaboratorData.collaboratorId,
+        });
+      } else if (redirect && variant === "page") {
+        // Se não houver colaborador selecionado, redirecionar para a página do paciente
+        router.push(`/patients/${patient.id}`);
+      } else if (variant === "dialog") {
+        // Para dialog, fechar o dialog
+        onSuccess?.();
+      }
     },
   });
+
+  const createEvaluation = api.evaluation.create.useMutation({
+    onError(error) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+        duration: 2000,
+      });
+      // Em caso de erro na criação da avaliação
+      if (redirect && createdPatientId && variant === "page") {
+        router.push(`/patients/${createdPatientId}`);
+      } else if (variant === "dialog") {
+        onSuccess?.();
+      }
+    },
+    onSuccess(evaluation) {
+      toast({
+        title: "Avaliação criada!",
+        description: `Nova avaliação de ${formHandler.getValues("name")} criada.`,
+        variant: "default",
+        duration: 3000,
+      });
+      // Redirecionar para a página da avaliação
+      router.push(`/evaluations/${evaluation.id}`);
+    },
+  });
+
   const updatePatient = api.patient.update.useMutation({
     onError(error) {
       toast({
@@ -153,6 +223,7 @@ export function PatientForm({
       if (redirect) router.push(`/patients/search?q=${data.refId}`);
     },
   });
+
   const deletePatient = api.patient.delete.useMutation({
     onSuccess() {
       toast({
@@ -176,10 +247,42 @@ export function PatientForm({
 
   const isLoading =
     createPatient.isPending ||
+    createEvaluation.isPending ||
     updatePatient.isPending ||
-    deletePatient.isPending;
+    deletePatient.isPending ||
+    isCollaboratorLoading;
+
+  // Notificar mudanças no estado de loading (para dialog)
+  useEffect(() => {
+    onLoadingChange?.(isLoading);
+  }, [isLoading, onLoadingChange]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    // Verificar se há um colaborador selecionado (apenas para criação de novo paciente)
+    if (!initialData) {
+      if (isCollaboratorLoading) {
+        toast({
+          title: "Carregando",
+          description: "Aguarde enquanto carregamos as informações do médico.",
+          variant: "default",
+          duration: 3000,
+        });
+        return;
+      }
+
+      if (collaboratorError || !collaboratorData?.collaboratorId) {
+        toast({
+          title: "Erro!",
+          description:
+            collaboratorError?.message ??
+            "Médico não encontrado. Verifique o menu lateral ou atualize a página.",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+    }
+
     const formattedValues = {
       ...values,
       birthDate: parseToYYYYMMDD(values.birthDate),
@@ -200,20 +303,35 @@ export function PatientForm({
     await deletePatient.mutateAsync(initialData.id);
   }
 
+  const isEditing = !!initialData;
+  const gridCols = compact ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2";
+  const gap = compact ? "gap-3" : "gap-4";
+  const labelSize = compact ? "text-sm" : "";
+  const messageSize = compact ? "text-xs" : "";
+
   return (
     <Form {...formHandler}>
       <form
+        id={formId || "patient-form"}
         onSubmit={formHandler.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
-        aria-label="Formulário de Edição de Paciente"
+        className={`flex flex-col ${gap}`}
+        aria-label={
+          isEditing
+            ? "Formulário de Edição de Paciente"
+            : "Formulário de Adição de Paciente"
+        }
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className={`grid ${gridCols} ${gap}`}>
           <FormField
             control={formHandler.control}
             name="refId"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel htmlFor="refId" aria-disabled={!!initialData}>
+                <FormLabel
+                  htmlFor="refId"
+                  className={labelSize}
+                  aria-disabled={isEditing}
+                >
                   Nº do prontuário
                 </FormLabel>
                 <FormControl>
@@ -222,19 +340,19 @@ export function PatientForm({
                       id="refId"
                       placeholder="Digite o número do prontuário"
                       {...field}
-                      disabled={!!initialData}
-                      aria-disabled={!!initialData}
+                      disabled={isEditing}
+                      aria-disabled={isEditing}
                       aria-invalid={fieldState.invalid}
                       aria-describedby="refId-error"
                     />
                   </div>
                 </FormControl>
-                {!initialData && (
+                {showDescriptions && !isEditing && (
                   <FormDescription id="refId-description">
                     Insira o número do prontuário do paciente.
                   </FormDescription>
                 )}
-                <FormMessage id="refId-error" />
+                <FormMessage id="refId-error" className={messageSize} />
               </FormItem>
             )}
           />
@@ -244,7 +362,9 @@ export function PatientForm({
             name="name"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel htmlFor="name">Nome completo</FormLabel>
+                <FormLabel htmlFor="name" className={labelSize}>
+                  Nome completo
+                </FormLabel>
                 <FormControl>
                   <Input
                     id="name"
@@ -254,21 +374,24 @@ export function PatientForm({
                     aria-describedby="name-error"
                   />
                 </FormControl>
-                {!initialData && (
+                {showDescriptions && !isEditing && (
                   <FormDescription id="name-description">
                     Exemplo: João da Silva.
                   </FormDescription>
                 )}
-                <FormMessage id="name-error" />
+                <FormMessage id="name-error" className={messageSize} />
               </FormItem>
             )}
           />
+
           <FormField
             control={formHandler.control}
             name="birthDate"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel htmlFor="birthDate">Data de nascimento</FormLabel>
+                <FormLabel htmlFor="birthDate" className={labelSize}>
+                  Data de nascimento
+                </FormLabel>
                 <FormControl>
                   <Input
                     id="birthDate"
@@ -282,52 +405,61 @@ export function PatientForm({
                     aria-describedby="birthDate-error"
                   />
                 </FormControl>
-                {!initialData && (
+                {showDescriptions && !isEditing && (
                   <FormDescription id="birthDate-description">
                     Insira a data no formato DD/MM/YYYY. Digite apenas números.
                   </FormDescription>
                 )}
-                <FormMessage id="birthDate-error" />
+                <FormMessage id="birthDate-error" className={messageSize} />
               </FormItem>
             )}
           />
         </div>
-        <div className="flex justify-end gap-2">
-          {initialData && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  type="button"
-                  disabled={deletePatient.isPending}
-                >
-                  <MdDelete size={20} />
-                  {deletePatient.isPending ? "Excluindo..." : "Excluir"}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta ação não pode ser desfeita. Isso excluirá
-                    permanentemente este paciente e removerá todos os dados de
-                    nossos servidores.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete}>
-                    Excluir
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-          <Button type="submit" disabled={isLoading}>
-            <MdSave size={20} />
-            {isLoading ? "Salvando..." : "Salvar"}
-          </Button>
-        </div>
+
+        {variant === "page" && (
+          <div className="flex justify-end gap-2">
+            {isEditing && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    type="button"
+                    disabled={deletePatient.isPending}
+                  >
+                    <MdDelete size={20} />
+                    {deletePatient.isPending ? "Excluindo..." : "Excluir"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. Isso excluirá
+                      permanentemente este paciente e removerá todos os dados de
+                      nossos servidores.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <Button type="submit" disabled={isLoading}>
+              <MdSave size={20} />
+              {isLoading
+                ? isEditing
+                  ? "Salvando..."
+                  : "Criando paciente e avaliação..."
+                : isEditing
+                  ? "Salvar"
+                  : "Salvar Paciente e Criar Avaliação"}
+            </Button>
+          </div>
+        )}
       </form>
     </Form>
   );

@@ -2,8 +2,8 @@
 
 import { MdOutlinePersonAdd, MdSave } from "react-icons/md";
 
-import { AddPatientForm } from "./add-patient-form";
 import { Button } from "~/components/ui/button";
+import { PatientForm } from "./patient-form";
 import { ResponsiveDialog } from "~/components/ui/responsive-dialog";
 import { useState } from "react";
 
@@ -29,7 +29,11 @@ export function AddPatientDialog() {
 
   const content = (
     <div className="space-y-4">
-      <AddPatientForm
+      <PatientForm
+        variant="dialog"
+        compact={true}
+        showDescriptions={false}
+        formId="add-patient-form"
         onSuccess={handleSuccess}
         onLoadingChange={handleLoadingChange}
       />
@@ -44,7 +48,9 @@ export function AddPatientDialog() {
       className="w-full"
     >
       <MdSave />
-      {isLoading ? "Salvando..." : "Salvar Paciente"}
+      {isLoading
+        ? "Criando paciente e avaliação..."
+        : "Salvar Paciente e Criar Avaliação"}
     </Button>
   );
 
@@ -52,7 +58,7 @@ export function AddPatientDialog() {
     <ResponsiveDialog
       trigger={trigger}
       title="Adicionar Novo Paciente"
-      description="Preencha os dados do paciente para criar um novo registro e iniciar sua primeira avaliação."
+      description="Preencha os dados do paciente para criar um novo registro."
       open={open}
       onOpenChange={setOpen}
       className="sm:max-w-[425px]"

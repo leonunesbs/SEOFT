@@ -87,6 +87,11 @@ export const evaluationRouter = createTRPCRouter({
 
         return newEvaluation;
       } catch (error) {
+        // Se já é um TRPCError, re-throw para preservar a mensagem original
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
         console.error("Erro ao criar avaliação:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
