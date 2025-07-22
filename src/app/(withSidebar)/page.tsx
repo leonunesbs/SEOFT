@@ -1,6 +1,5 @@
 // app/dashboard/page.tsx
 
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   MdOutlineAccessTime,
   MdOutlineArchive,
@@ -10,6 +9,7 @@ import {
   MdOutlineLocalHospital,
   MdOutlinePending,
 } from "react-icons/md";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,13 +19,13 @@ import {
   TableRow,
 } from "~/components/ui/table";
 
-import { Badge } from "~/components/ui/badge";
+import Link from "next/link";
 import { DashboardCharts } from "~/components/organisms/dashboard-charts";
 import { DashboardMetrics } from "~/components/organisms/dashboard-metrics";
 import { DashboardQuickActions } from "~/components/organisms/dashboard-quick-actions";
-import { HydrateClient } from "~/trpc/server";
-import Link from "next/link";
+import { Badge } from "~/components/ui/badge";
 import { db } from "~/server/db";
+import { HydrateClient } from "~/trpc/server";
 
 export default async function Dashboard() {
   // Métricas básicas
@@ -303,7 +303,7 @@ export default async function Dashboard() {
                   <TableRow key={evaluation.id}>
                     <TableCell>
                       <Link
-                        href={`/patients/${evaluation.patientId}`}
+                        href={`/evaluations/${evaluation.id}`}
                         className="font-semibold hover:underline"
                       >
                         {evaluation.patient?.name || "N/A"}
