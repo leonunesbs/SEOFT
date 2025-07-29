@@ -146,9 +146,9 @@ export function AppSidebar({
         items: [
           {
             title: "AntiVEGF",
-            url: "https://antivegf.seoft.app",
+            url: "/antivegf",
             icon: <MdLink size={18} />,
-            external: true,
+            external: false,
           },
           {
             title: "Justificativas",

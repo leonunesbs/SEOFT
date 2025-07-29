@@ -116,40 +116,47 @@ export const patientRouter = createTRPCRouter({
   search: protectedProcedure.input(z.string().optional()).query(
     withErrorHandling(
       async ({ input, ctx }) => {
+        // Se não há termo de busca, retorna lista vazia
         if (!input || input.trim().length === 0) {
-          // Se não há termo de busca, retorna lista limitada
-          const patients = await ctx.db.patient.findMany({
-            take: 10,
-            orderBy: { name: "asc" },
-          });
-
-          return patients.map((patient) => ({
-            id: patient.id,
-            refId: patient.refId,
-            name: patient.name,
-            birthDate: patient.birthDate.toISOString(),
-          }));
+          return [];
         }
 
+        const searchTerm = input.trim();
+
+        // Busca por nome ou prontuário
         const patients = await ctx.db.patient.findMany({
           where: {
             OR: [
               {
-                name: {
-                  contains: input,
+                refId: {
+                  contains: searchTerm,
                   mode: "insensitive",
                 },
               },
               {
-                refId: {
-                  contains: input,
+                name: {
+                  contains: searchTerm,
                   mode: "insensitive",
                 },
               },
             ],
           },
-          take: 10,
-          orderBy: { name: "asc" },
+          take: 10, // Limitar a 10 resultados para performance
+          orderBy: [
+            // Priorizar correspondências exatas no refId
+            {
+              refId: "asc",
+            },
+            {
+              name: "asc",
+            },
+          ],
+          select: {
+            id: true,
+            refId: true,
+            name: true,
+            birthDate: true,
+          },
         });
 
         return patients.map((patient) => ({

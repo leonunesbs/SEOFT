@@ -5,19 +5,20 @@ import {
 } from "~/components/ui/sidebar";
 import { auth, signOut } from "~/server/auth";
 
-import { AppSidebar } from "~/components/organisms/app-sidebar";
-import { Button } from "~/components/ui/button";
-import { CustomBreadcrumbs } from "~/components/molecules/custom-breadcrumbs";
 import Form from "next/form";
-import { HydrateClient } from "~/trpc/server";
-import Image from "next/image";
-import { IntegraButton } from "~/components/atoms/integra-button";
-import Link from "next/link";
-import { MdLogout } from "react-icons/md";
-import { ThemeToggle } from "~/components/atoms/theme-toggle";
 import { cookies } from "next/headers";
-import { db } from "~/server/db";
+import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { MdLogout } from "react-icons/md";
+import { IntegraButton } from "~/components/atoms/integra-button";
+import { ThemeToggle } from "~/components/atoms/theme-toggle";
+import { CustomBreadcrumbs } from "~/components/molecules/custom-breadcrumbs";
+import { AppSidebar } from "~/components/organisms/app-sidebar";
+import { CommandPalette } from "~/components/organisms/command-palette";
+import { Button } from "~/components/ui/button";
+import { db } from "~/server/db";
+import { HydrateClient } from "~/trpc/server";
 
 export default async function Layout({
   children,
@@ -74,6 +75,7 @@ export default async function Layout({
             </HydrateClient>
           </div>
           <div className="flex items-center gap-2">
+            <CommandPalette trigger />
             <IntegraButton />
             <ThemeToggle />
             <Form
@@ -89,7 +91,7 @@ export default async function Layout({
             </Form>
           </div>
         </header>
-        <main className="mx-auto flex w-full max-w-[1280px] flex-1 flex-col gap-4 px-2 py-4 sm:px-4 md:px-8">
+        <main className="mx-auto flex w-full max-w-screen-2xl flex-1 flex-col gap-4 px-2 py-4 sm:px-4 md:px-8">
           {children}
         </main>
         <footer className="flex">
@@ -99,6 +101,7 @@ export default async function Layout({
               href={"https://instagram.com/leonunesbs"}
               className="link font-bold no-underline"
               target="_blank"
+              rel="noopener noreferrer"
             >
               @leonunesbs
             </Link>

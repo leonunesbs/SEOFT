@@ -1,16 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider  = "postgresql"
-  // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-  // Further reading:
-  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
@@ -21,32 +14,32 @@ model Patient {
   name      String
   birthDate DateTime
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime                          @default(now())
+  updatedAt   DateTime                          @updatedAt
   evaluations Evaluation[]
+  injections  IntravitrealInjectionIndication[]
 }
 
 model Clinic {
-  id            String               @id @default(cuid())
+  id            String                            @id @default(cuid())
   name          String
   collaborators ClinicCollaborator[]
   evaluations   Evaluation[]
+  injections    IntravitrealInjectionIndication[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Collaborator {
-  id             String               @id @default(cuid())
+  id             String                            @id @default(cuid())
   name           String
-  crm            String               @unique
+  crm            String                            @unique
   persistentNote String?
   role           Role
   clinics        ClinicCollaborator[]
   evaluations    Evaluation[]
-
-  // integraUsername String?
-  // integraPassword String?
+  indications    IntravitrealInjectionIndication[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -77,15 +70,24 @@ model Evaluation {
   treatment       String?
   followUp        String?
   nextAppointment String?
-  eyes            Eyes?
+
+  // Form inputs
+  swalisClassification String?
+  observations         String?
+  indication           String?
+  indicationOther      String?
+  medication           String?
+  medicationOther      String?
+
+  eyes          Eyes?
+  prescriptions Prescription[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  patient       Patient        @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  collaborator  Collaborator   @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
-  clinic        Clinic?        @relation(fields: [clinicId], references: [id], onDelete: SetNull)
-  prescriptions Prescription[]
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  collaborator Collaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  clinic       Clinic?      @relation(fields: [clinicId], references: [id], onDelete: SetNull)
 }
 
 model Eyes {
@@ -153,19 +155,14 @@ model Eyedrop {
   eye       Eye       @relation(fields: [eyeId], references: [id], onDelete: Cascade)
 }
 
-enum PrescriptionEye {
-  OD
-  OE
-  AO
-}
-
+// Medicamentos e prescrições
 model Medication {
   id             String   @id @default(cuid())
   name           String
   category       String
   unit           String
-  instructions   String[] // Array de instruções padrão
-  specialControl Boolean  @default(false) // Indica se o medicamento tem controle especial
+  instructions   String[]
+  specialControl Boolean  @default(false)
   external       Boolean  @default(false) @map("eyedrop")
 
   createdAt DateTime @default(now())
@@ -185,23 +182,25 @@ model Prescription {
 }
 
 model PrescriptionItem {
-  id                            String  @id @default(cuid())
+  id                            String           @id @default(cuid())
   prescriptionId                String
-  medicationId                  String? // Caso seja medicação padrão, referência à Medication
-  // Para medicações padrão:
-  selectedMedicationInstruction String? // Instrução escolhida das disponíveis do medicamento
-  // Possível override: instrução personalizada adicional (opcional)
+  medicationId                  String?
+  selectedMedicationInstruction String?
   customInstruction             String?
-
-  quantity Int? // Quantidade total de unidades
-
-  eye PrescriptionEye?
+  quantity                      Int?
+  eye                           PrescriptionEye?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
   medication   Medication?  @relation(fields: [medicationId], references: [id], onDelete: SetNull)
+}
+
+enum PrescriptionEye {
+  OD
+  OE
+  AO
 }
 
 enum Role {
@@ -236,7 +235,107 @@ enum EyeLogType {
   OTHER_3
 }
 
-// Necessary for Next auth
+// Enums para injeções intravítreas
+enum InjectionStatus {
+  PENDING
+  RESCHEDULED
+  CONFIRMED
+  COMPLETED
+}
+
+enum InjectionDayOfWeek {
+  MONDAY
+  TUESDAY
+  THURSDAY
+}
+
+enum InjectionShift {
+  MORNING
+  AFTERNOON
+}
+
+enum InjectionEye {
+  OD
+  OE
+}
+
+enum IndicationStatus {
+  PENDING
+  PENDING_NIR
+  APPROVED
+  REJECTED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model InjectionDayCapacity {
+  id        String             @id @default(cuid())
+  dayOfWeek InjectionDayOfWeek
+  shift     InjectionShift
+  capacity  Int                @default(30)
+  overbook  Int                @default(2)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@unique([dayOfWeek, shift])
+}
+
+model IntravitrealInjectionIndication {
+  id             String  @id @default(cuid())
+  patientId      String
+  collaboratorId String
+  clinicId       String?
+
+  // Diagnóstico e tratamento
+  indication      String
+  indicationOther String?
+  medication      String
+  medicationOther String?
+
+  // Classificação Swalis (único critério de urgência e prioridade)
+  swalisClassification String
+
+  // Configuração de doses
+  totalOD            Int
+  totalOS            Int
+  startEye           InjectionEye
+  treatmentStartDate DateTime
+
+  // Observações
+  observations      String?
+  contraindications String?
+  allergies         String?
+
+  // Status
+  status IndicationStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  injections IntravitrealInjection[]
+
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  collaborator Collaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  clinic       Clinic?      @relation(fields: [clinicId], references: [id], onDelete: SetNull)
+}
+
+model IntravitrealInjection {
+  id                  String          @id @default(cuid())
+  indicationId        String
+  scheduledDate       DateTime
+  status              InjectionStatus @default(PENDING)
+  eye                 InjectionEye
+  patientAttended     Boolean         @default(false)
+  lateralityConfirmed Boolean         @default(false)
+  performedAt         DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  indication IntravitrealInjectionIndication @relation(fields: [indicationId], references: [id], onDelete: Cascade)
+}
+
+// NextAuth models omitted for brevity
 model Account {
   id                       String  @id @default(cuid())
   userId                   String

@@ -1,5 +1,6 @@
 // app/dashboard/page.tsx
 
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   MdOutlineAccessTime,
   MdOutlineArchive,
@@ -9,7 +10,6 @@ import {
   MdOutlineLocalHospital,
   MdOutlinePending,
 } from "react-icons/md";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,13 +19,13 @@ import {
   TableRow,
 } from "~/components/ui/table";
 
-import Link from "next/link";
+import { Badge } from "~/components/ui/badge";
 import { DashboardCharts } from "~/components/organisms/dashboard-charts";
 import { DashboardMetrics } from "~/components/organisms/dashboard-metrics";
 import { DashboardQuickActions } from "~/components/organisms/dashboard-quick-actions";
-import { Badge } from "~/components/ui/badge";
-import { db } from "~/server/db";
 import { HydrateClient } from "~/trpc/server";
+import Link from "next/link";
+import { db } from "~/server/db";
 
 export default async function Dashboard() {
   // Métricas básicas
@@ -136,8 +136,12 @@ export default async function Dashboard() {
   // Dados para gráficos
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
-    date.setDate(date.getDate() - i);
-    return date.toISOString().split("T")[0];
+    date.setUTCDate(date.getUTCDate() - i);
+    // Usar UTC para evitar problemas de fuso horário
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }).reverse();
 
   const evaluationsByDay = await Promise.all(

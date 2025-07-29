@@ -199,8 +199,12 @@ export function PatientForm({
         variant: "default",
         duration: 3000,
       });
-      // Redirecionar para a página da avaliação
-      router.push(`/evaluations/${evaluation.id}`);
+      // Redirecionar para a página da avaliação apenas se não for dialog
+      if (variant === "page") {
+        router.push(`/evaluations/${evaluation.id}`);
+      } else {
+        onSuccess?.();
+      }
     },
   });
 
@@ -416,6 +420,7 @@ export function PatientForm({
           />
         </div>
 
+        {/* Botões específicos para cada situação */}
         {variant === "page" && (
           <div className="flex justify-end gap-2">
             {isEditing && (
