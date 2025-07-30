@@ -10,14 +10,13 @@ import { db } from "~/server/db";
 import { notFound } from "next/navigation";
 
 interface IndicationPageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }
 
 export default async function IndicationPage({ params }: IndicationPageProps) {
+  const { id } = await params;
   const indication = await db.intravitrealInjectionIndication.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       patient: true,
       collaborator: true,
