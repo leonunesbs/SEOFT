@@ -3,7 +3,6 @@
 import * as React from "react";
 
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
 import {
   Command,
   CommandEmpty,
@@ -13,11 +12,6 @@ import {
   CommandList,
 } from "~/components/ui/command";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import {
   Form,
   FormControl,
   FormField,
@@ -25,24 +19,31 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { useParams, useRouter } from "next/navigation";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { ResponsiveDialog } from "~/components/ui/responsive-dialog";
-import { toast } from "~/hooks/use-toast";
-import { cn } from "~/lib/utils";
-import { api } from "~/trpc/react";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
+import { ResponsiveDialog } from "~/components/ui/responsive-dialog";
 import { Textarea } from "../ui/textarea";
+import { api } from "~/trpc/react";
+import { cn } from "~/lib/utils";
+import { toast } from "~/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 // --- Schema Base com campos comuns --- //
 const baseSchema = z.object({
   continuousUse: z.boolean().default(false),
   quantity: z.string().optional(),
+  daysOfUse: z.string().optional(),
   isExternal: z.boolean().default(false),
   eye: z.enum(["OD", "OE", "AO"]).optional(), // Campo opcional, só obrigatório para uso externo
 });
@@ -77,6 +78,27 @@ const prescriptionSchema = baseSchema
     {
       message: "Selecione o olho para uso externo",
       path: ["eye"],
+    },
+  )
+  .refine(
+    (data) => {
+      // Se não for uso contínuo, quantidade e dias de uso são obrigatórios
+      if (!data.continuousUse) {
+        const hasQuantity =
+          data.quantity &&
+          data.quantity.trim() !== "" &&
+          Number(data.quantity) > 0;
+        const hasDaysOfUse =
+          data.daysOfUse &&
+          data.daysOfUse.trim() !== "" &&
+          Number(data.daysOfUse) > 0;
+        return hasQuantity && hasDaysOfUse;
+      }
+      return true;
+    },
+    {
+      message:
+        "Para medicações não contínuas, informe a quantidade e os dias de uso",
     },
   );
 
@@ -131,6 +153,7 @@ export function PrescriptionFormDialog({
       customInstruction: "",
       continuousUse: false,
       quantity: "0",
+      daysOfUse: "0",
       eye: undefined,
       isExternal: false,
     },
@@ -193,6 +216,11 @@ export function PrescriptionFormDialog({
         ? 0
         : data.quantity
           ? Number(data.quantity)
+          : undefined,
+      daysOfUse: data.continuousUse
+        ? undefined
+        : data.daysOfUse
+          ? Number(data.daysOfUse)
           : undefined,
     };
 
@@ -389,26 +417,52 @@ export function PrescriptionFormDialog({
           />
         </div>
 
-        {/* Se não for uso contínuo, exibe o input para Quantidade */}
+        {/* Se não for uso contínuo, exibe os inputs para Quantidade e Dias de Uso */}
         {!form.watch("continuousUse") && (
-          <FormField
-            control={form.control}
-            name="quantity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Quantidade</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Informe a quantidade"
-                    required
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Quantidade
+                    {selectedMedication?.unit
+                      ? ` (${selectedMedication.unit})`
+                      : ""}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Informe a quantidade"
+                      required
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="daysOfUse"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dias de Uso</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Informe os dias"
+                      required
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         )}
 
         {/* Seleção do Olho (obrigatória para uso externo) */}

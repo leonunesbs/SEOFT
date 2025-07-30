@@ -2,7 +2,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 import { z } from "zod";
 
-// Schema de input para PrescriptionItem, incluindo o campo "quantity"
+// Schema de input para PrescriptionItem, incluindo o campo "quantity" e "daysOfUse"
 const prescriptionInputSchema = z
   .object({
     evaluationId: z.string().nonempty("ID da avaliação é obrigatório"),
@@ -11,6 +11,7 @@ const prescriptionInputSchema = z
     selectedMedicationInstruction: z.string().optional(),
     customInstruction: z.string().optional(),
     quantity: z.number().optional(),
+    daysOfUse: z.number().optional(),
   })
   .refine(
     (data) => {
@@ -52,6 +53,7 @@ export const prescriptionRouter = createTRPCRouter({
                   input.selectedMedicationInstruction || null,
                 customInstruction: input.customInstruction || null,
                 quantity: input.quantity,
+                daysOfUse: input.daysOfUse,
               },
             },
           },
@@ -76,6 +78,7 @@ export const prescriptionRouter = createTRPCRouter({
                   input.selectedMedicationInstruction || null,
                 customInstruction: input.customInstruction || null,
                 quantity: input.quantity,
+                daysOfUse: input.daysOfUse,
               },
             },
           },

@@ -1,9 +1,9 @@
-import { PDFDocument, StandardFonts } from "pdf-lib";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { PDFDocument, StandardFonts } from "pdf-lib";
 
+import { Button } from "~/components/ui/button";
 import Link from "next/link";
 import { MdOutlinePrint } from "react-icons/md";
-import { Button } from "~/components/ui/button";
 import { db } from "~/server/db";
 
 type Params = Promise<{ id: string }>;
@@ -17,6 +17,22 @@ function chunkArray<T>(array: T[], size: number): T[][] {
     result.push(array.slice(i, i + size));
   }
   return result;
+}
+
+/**
+ * Função auxiliar para converter abreviações dos olhos
+ */
+function convertEyeAbbreviation(eye: string): string {
+  switch (eye) {
+    case "OD":
+      return "OLHO DIREITO";
+    case "OE":
+      return "OLHO ESQUERDO";
+    case "AO":
+      return "AMBOS OS OLHOS";
+    default:
+      return eye;
+  }
 }
 
 /**
@@ -86,10 +102,15 @@ async function fillPdfTemplateWithPrescription(
   itemsOverride?.forEach((item: any, index: number) => {
     const medicationName = item.medication?.name || "Medicamento não informado";
     const quantityVal = item.quantity ?? 1;
-    const quantityText =
-      quantityVal === 0
-        ? "Uso contínuo"
-        : `${quantityVal} ${item.medication?.unit}${quantityVal > 1 ? "s" : ""}`.toLocaleUpperCase();
+    const daysOfUseVal = item.daysOfUse;
+
+    let quantityText;
+    if (quantityVal === 0) {
+      quantityText = "Uso contínuo";
+    } else {
+      quantityText =
+        `${quantityVal} ${item.medication?.unit}${quantityVal > 1 ? "s" : ""}`.toLocaleUpperCase();
+    }
 
     const itemIndexAndName = `${index + 1}) ${medicationName}`;
     page.drawText(itemIndexAndName, {
@@ -130,10 +151,14 @@ async function fillPdfTemplateWithPrescription(
       item.customInstruction ||
       "Instrução não informada";
 
-    // Remove ponto final se houver, adiciona o olho (apenas para uso externo) e coloca ponto final
+    // Remove ponto final se houver, adiciona o olho (apenas para uso externo), dias de uso e coloca ponto final
     let finalInstructionText = instructionText.replace(/\.$/, "");
     if (item.eye && item.medication?.external) {
-      finalInstructionText += ` (${item.eye})`;
+      finalInstructionText += ` (${convertEyeAbbreviation(item.eye)})`;
+    }
+    // Adiciona os dias de uso nas instruções se disponível
+    if (daysOfUseVal && daysOfUseVal > 0) {
+      finalInstructionText += ` por ${daysOfUseVal} dia${daysOfUseVal > 1 ? "s" : ""}`;
     }
     finalInstructionText += ".";
 
@@ -266,19 +291,32 @@ async function fillPdfTemplateWithPrescriptionEspecial(
   itemsOverride?.forEach((item: any, index: number) => {
     const medicationName = item.medication?.name || "Medicamento não informado";
     const quantityVal = item.quantity ?? 1;
-    const quantityText =
-      quantityVal === 0
-        ? "Uso contínuo"
-        : `${quantityVal} ${item.medication?.unit}${quantityVal > 1 ? "s" : ""}`.toLocaleUpperCase();
+    const daysOfUseVal = item.daysOfUse;
+
+    let quantityText;
+    if (quantityVal === 0) {
+      quantityText = "Uso contínuo";
+    } else {
+      quantityText =
+        `${quantityVal} ${item.medication?.unit}${quantityVal > 1 ? "s" : ""}`.toLocaleUpperCase();
+      // Adiciona os dias de uso se disponível
+      if (daysOfUseVal && daysOfUseVal > 0) {
+        quantityText += ` - ${daysOfUseVal} dia${daysOfUseVal > 1 ? "s" : ""}`;
+      }
+    }
     const instructionText =
       item.selectedMedicationInstruction ||
       item.customInstruction ||
       "Instrução não informada";
 
-    // Remove ponto final se houver, adiciona o olho (apenas para uso externo) e coloca ponto final
+    // Remove ponto final se houver, adiciona o olho (apenas para uso externo), dias de uso e coloca ponto final
     let finalInstructionText = instructionText.replace(/\.$/, "");
     if (item.eye && item.medication?.external) {
-      finalInstructionText += ` (${item.eye})`;
+      finalInstructionText += ` (${convertEyeAbbreviation(item.eye)})`;
+    }
+    // Adiciona os dias de uso nas instruções se disponível
+    if (daysOfUseVal && daysOfUseVal > 0) {
+      finalInstructionText += ` por ${daysOfUseVal} dia${daysOfUseVal > 1 ? "s" : ""}`;
     }
     finalInstructionText += ".";
 

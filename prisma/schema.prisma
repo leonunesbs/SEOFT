@@ -188,6 +188,7 @@ model PrescriptionItem {
   selectedMedicationInstruction String?
   customInstruction             String?
   quantity                      Int?
+  daysOfUse                     Int?
   eye                           PrescriptionEye?
 
   createdAt DateTime @default(now())

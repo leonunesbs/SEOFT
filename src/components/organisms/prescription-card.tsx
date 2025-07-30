@@ -56,6 +56,16 @@ function PrescriptionItem({
       </div>
       <span className="flex flex-1 items-center gap-1">
         {item.medication?.name}
+        {/* Exibe quantidade e dias de uso quando disponíveis */}
+        {item.quantity && item.quantity > 0 && (
+          <span className="text-sm text-muted-foreground">
+            ({item.quantity}
+            {item.daysOfUse &&
+              item.daysOfUse > 0 &&
+              ` - ${item.daysOfUse} dias`}
+            )
+          </span>
+        )}
         {item.medication && (
           <TooltipProvider>
             <Tooltip>

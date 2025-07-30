@@ -1,15 +1,7 @@
 import { notFound, redirect } from "next/navigation";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb";
 
-import { EvaluationHeader } from "~/components/molecules/evaluation-header";
 import { EvaluationForm } from "~/components/organisms/evaluation-form";
+import { EvaluationHeader } from "~/components/molecules/evaluation-header";
 import { getEvaluationPageData } from "~/server/api/services/evaluation-data";
 
 type Params = Promise<{ id: string }>;
@@ -43,21 +35,6 @@ export default async function EvaluationPage({ params }: { params: Params }) {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb Navigation */}
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/evaluations/pending">
-              Avaliações
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Avaliação</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
       {/* Header Section */}
       <EvaluationHeader evaluation={evaluation} />
 

@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Medication, type EyeSurgery, type Prisma } from "@prisma/client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { MdCheck, MdOutlineHistory, MdSave } from "react-icons/md";
 import { z } from "zod";
@@ -13,6 +13,7 @@ import { api } from "~/trpc/react";
 import { ElapsedTime } from "../atoms/elapsed-time";
 import { RemoveEvaluationButton } from "../atoms/remove-evaluation-button";
 import { Separator } from "../ui/separator";
+import { EvaluationFeedbackDialog } from "./evaluation-feedback-dialog";
 import { EvaluationIdentificationForm } from "./evaluation-identification-form";
 import { EvaluationMainForm } from "./evaluation-main-form";
 import { EvaluationRefractionForm } from "./evaluation-refraction-form";
@@ -148,7 +149,11 @@ export function EvaluationForm({
   medications,
   firstPrescription,
 }: EvaluationFormProps) {
-  const router = useRouter();
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [lastSavedData, setLastSavedData] = useState<{
+    done: boolean;
+    id: string;
+  } | null>(null);
 
   const identificationForm = useForm<IdentificationFormValues>({
     resolver: zodResolver(identificationSchema),
@@ -264,10 +269,10 @@ export function EvaluationForm({
         variant: "default",
       });
 
-      if (variables.done) {
-        router.push(`/evaluations/${variables.id}/summary`);
-      } else {
-        router.refresh();
+      // Salvar dados da última operação e mostrar dialog
+      if (variables.id) {
+        setLastSavedData({ done: variables.done ?? false, id: variables.id });
+        setShowFeedbackDialog(true);
       }
     },
     onError: (error, variables) => {
@@ -400,6 +405,17 @@ export function EvaluationForm({
         </div>
       </div>
       <FormActions />
+
+      {/* Dialog de Feedback */}
+      {lastSavedData && (
+        <EvaluationFeedbackDialog
+          open={showFeedbackDialog}
+          evaluationId={lastSavedData.id}
+          patientId={evaluation.patient.id}
+          patientName={evaluation.patient.name}
+          isDone={lastSavedData.done}
+        />
+      )}
     </div>
   );
 }
