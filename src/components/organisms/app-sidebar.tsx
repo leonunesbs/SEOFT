@@ -75,7 +75,7 @@ export function AppSidebar({
       },
       {
         title: "Avaliações",
-        url: "#",
+        url: "/evaluations",
         icon: <MdOutlineArchive size={18} />,
         items: [
           {
@@ -140,16 +140,42 @@ export function AppSidebar({
         ],
       },
       {
+        title: "AntiVEGF",
+        url: "/antivegf",
+        icon: <MdLink size={18} />,
+        items: [
+          {
+            title: "Indicações",
+            url: "/antivegf/indications",
+            icon: <MdOutlineAssignmentInd size={18} />,
+          },
+          {
+            title: "Agendamentos",
+            url: "/antivegf/appointments",
+            icon: <MdOutlineList size={18} />,
+          },
+          {
+            title: "Gestão de Injeções",
+            url: "/antivegf/injection-day-management",
+            icon: <MdOutlineLocalPharmacy size={18} />,
+          },
+          {
+            title: "Gestão de Agenda",
+            url: "/antivegf/schedule-management",
+            icon: <MdOutlineHome size={18} />,
+          },
+          {
+            title: "Avaliação NIR",
+            url: "/antivegf/nir-evaluation",
+            icon: <MdOutlineArchive size={18} />,
+          },
+        ],
+      },
+      {
         title: "Outros",
         url: "#",
         icon: <MdOutlineList size={18} />,
         items: [
-          {
-            title: "AntiVEGF",
-            url: "/antivegf",
-            icon: <MdLink size={18} />,
-            external: false,
-          },
           {
             title: "Justificativas",
             url: "https://just.seoft.app",
