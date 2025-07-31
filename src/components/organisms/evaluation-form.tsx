@@ -411,7 +411,6 @@ export function EvaluationForm({
         <EvaluationFeedbackDialog
           open={showFeedbackDialog}
           evaluationId={lastSavedData.id}
-          patientId={evaluation.patient.id}
           patientName={evaluation.patient.name}
           isDone={lastSavedData.done}
         />
