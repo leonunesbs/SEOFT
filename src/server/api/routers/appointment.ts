@@ -61,7 +61,7 @@ export const appointmentRouter = createTRPCRouter({
             time: appointment.scheduledDate
               ? appointment.scheduledDate
                   .toTimeString()
-                  .split(" ")[0]
+                  .split(" ")[0]!
                   .substring(0, 5)
               : "",
             duration: 30, // Duração padrão em minutos
@@ -70,11 +70,10 @@ export const appointmentRouter = createTRPCRouter({
               "Médico não encontrado",
             room: "Sala 1", // Valor padrão
             status: appointment.status.toLowerCase() as
-              | "scheduled"
+              | "pending"
+              | "rescheduled"
               | "confirmed"
-              | "completed"
-              | "cancelled"
-              | "no-show",
+              | "completed",
             medication: appointment.indication?.medication || "AntiVEGF",
             priority: "medium" as "low" | "medium" | "high",
             notes: "", // Campo não existe no schema
