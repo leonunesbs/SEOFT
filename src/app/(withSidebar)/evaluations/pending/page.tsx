@@ -207,41 +207,19 @@ export default async function EvaluationPending() {
     },
   });
 
-  const selectedCollaborator = collaborators.find(
-    (collaborator) => collaborator.id === collaboratorId,
-  );
-
   return (
     <div className="space-y-6">
       {/* Header with Collaborator Info */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <div className="flex items-center gap-4">
-              <div className="flex aspect-square size-12 items-center justify-center rounded-lg border bg-background">
-                <MdPerson className="h-6 w-6" />
-              </div>
-              <div className="space-y-1">
-                <h2 className="text-xl font-semibold">
-                  {selectedCollaborator?.name ?? "Colaborador"}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {evaluations.length} avaliação
-                  {evaluations.length !== 1 ? "ões" : ""} pendente
-                  {evaluations.length !== 1 ? "s" : ""}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/patients/add">
-                  <MdOutlineUploadFile className="mr-2 h-4 w-4" />
-                  Nova Avaliação
-                </Link>
-              </Button>
-              <CollaboratorSwitcher collaborators={collaborators} />
-            </div>
+          <div className="flex flex-col justify-between gap-2 sm:flex-row">
+            <CollaboratorSwitcher collaborators={collaborators} />
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/patients/add">
+                <MdOutlineUploadFile className="mr-2 h-4 w-4" />
+                Nova Avaliação
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
