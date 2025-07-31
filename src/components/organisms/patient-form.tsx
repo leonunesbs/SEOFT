@@ -103,7 +103,6 @@ type PatientFormProps = {
 export function PatientForm({
   initialData,
   redirect = true,
-  onSuccess,
   onLoadingChange,
   formId,
   variant = "page",
@@ -153,7 +152,7 @@ export function PatientForm({
       });
 
       if (variant === "dialog") {
-        // Para dialog, não resetar o form e chamar onSuccess
+        // Para dialog, não resetar o form
         setCreatedPatientId(patient.id);
       } else {
         // Para página, resetar o form
@@ -171,8 +170,8 @@ export function PatientForm({
         // Se não houver colaborador selecionado, redirecionar para a página do paciente
         router.push(`/patients/${patient.id}`);
       } else if (variant === "dialog") {
-        // Para dialog, fechar o dialog
-        onSuccess?.();
+        // Para dialog, chamar onSuccess mas não fechar ainda (aguardar criação da avaliação)
+        // onSuccess será chamado após a criação da avaliação
       }
     },
   });
@@ -186,10 +185,13 @@ export function PatientForm({
         duration: 2000,
       });
       // Em caso de erro na criação da avaliação
-      if (redirect && createdPatientId && variant === "page") {
-        router.push(`/patients/${createdPatientId}`);
-      } else if (variant === "dialog") {
-        onSuccess?.();
+      if (createdPatientId) {
+        if (redirect && variant === "page") {
+          router.push(`/patients/${createdPatientId}`);
+        } else if (variant === "dialog") {
+          // Para dialog, redirecionar para a página do paciente em caso de erro
+          router.push(`/patients/${createdPatientId}`);
+        }
       }
     },
     onSuccess(evaluation) {
@@ -199,12 +201,8 @@ export function PatientForm({
         variant: "default",
         duration: 3000,
       });
-      // Redirecionar para a página da avaliação apenas se não for dialog
-      if (variant === "page") {
-        router.push(`/evaluations/${evaluation.id}`);
-      } else {
-        onSuccess?.();
-      }
+      // Redirecionar para a página da avaliação
+      router.push(`/evaluations/${evaluation.id}`);
     },
   });
 

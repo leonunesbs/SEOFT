@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Medication, type EyeSurgery, type Prisma } from "@prisma/client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { MdCheck, MdOutlineHistory, MdSave } from "react-icons/md";
@@ -149,6 +150,7 @@ export function EvaluationForm({
   medications,
   firstPrescription,
 }: EvaluationFormProps) {
+  const router = useRouter();
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [lastSavedData, setLastSavedData] = useState<{
     done: boolean;
@@ -269,10 +271,16 @@ export function EvaluationForm({
         variant: "default",
       });
 
-      // Salvar dados da última operação e mostrar dialog
+      // Salvar dados da última operação e mostrar dialog apenas quando não for concluída
       if (variables.id) {
         setLastSavedData({ done: variables.done ?? false, id: variables.id });
-        setShowFeedbackDialog(true);
+        // Só mostra o dialog se não for uma conclusão (done = false)
+        if (!variables.done) {
+          setShowFeedbackDialog(true);
+        } else {
+          // Se for uma conclusão, redireciona para a página de summary
+          router.push(`/evaluations/${variables.id}/summary`);
+        }
       }
     },
     onError: (error, variables) => {
@@ -319,6 +327,12 @@ export function EvaluationForm({
     };
 
     updateEvaluation.mutate(payload);
+  };
+
+  const handleConcludeFromDialog = () => {
+    // Marcar a avaliação como concluída usando os dados atuais do formulário
+    const currentData = mainForm.getValues();
+    handleSubmitMainForm(currentData, true);
   };
 
   function FormActions() {
@@ -413,6 +427,7 @@ export function EvaluationForm({
           evaluationId={lastSavedData.id}
           patientName={evaluation.patient.name}
           isDone={lastSavedData.done}
+          onConclude={handleConcludeFromDialog}
         />
       )}
     </div>

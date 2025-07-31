@@ -24,6 +24,7 @@ interface EvaluationFeedbackDialogProps {
   evaluationId: string;
   patientName: string;
   isDone: boolean;
+  onConclude?: () => void;
 }
 
 export function EvaluationFeedbackDialog({
@@ -31,13 +32,18 @@ export function EvaluationFeedbackDialog({
   evaluationId,
   patientName,
   isDone,
+  onConclude,
 }: EvaluationFeedbackDialogProps) {
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
 
   const handleConclude = () => {
     setIsNavigating(true);
-    router.push(`/evaluations/${evaluationId}/summary`);
+    if (onConclude) {
+      onConclude();
+    } else {
+      router.push(`/evaluations/${evaluationId}/summary`);
+    }
   };
 
   const handleUpdate = () => {
