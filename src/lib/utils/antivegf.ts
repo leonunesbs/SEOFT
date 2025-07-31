@@ -10,11 +10,10 @@ export const STATUS_COLORS = {
   CANCELLED: "bg-red-100 text-red-800",
   REJECTED: "bg-red-100 text-red-800",
   // Para appointments
-  scheduled: "bg-blue-100 text-blue-800",
-  confirmed: "bg-green-100 text-green-800",
-  completed: "bg-gray-100 text-gray-800",
-  cancelled: "bg-red-100 text-red-800",
-  "no-show": "bg-yellow-100 text-yellow-800",
+  pending: "bg-yellow-100 text-yellow-800",
+  rescheduled: "bg-orange-100 text-orange-800",
+  confirmed: "bg-blue-100 text-blue-800",
+  completed: "bg-green-100 text-green-800",
 } as const;
 
 // Constantes de prioridade/classificação SWALIS
@@ -49,11 +48,10 @@ export function getStatusText(status: string): string {
     CANCELLED: "Cancelado",
     REJECTED: "Rejeitado",
     // Para appointments
-    scheduled: "Agendado",
+    pending: "Pendente",
+    rescheduled: "Reagendado",
     confirmed: "Confirmado",
     completed: "Concluído",
-    cancelled: "Cancelado",
-    "no-show": "Não compareceu",
   };
   return statusMap[status] || status;
 }

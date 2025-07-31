@@ -79,7 +79,7 @@ interface Appointment {
   duration: number;
   doctor: string;
   room: string;
-  status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no-show";
+  status: "pending" | "rescheduled" | "confirmed" | "completed";
   medication: string;
   priority: "low" | "medium" | "high";
   notes?: string;
@@ -198,11 +198,10 @@ export default function AppointmentsPage() {
       string,
       "PENDING" | "RESCHEDULED" | "CONFIRMED" | "COMPLETED"
     > = {
-      scheduled: "PENDING",
+      pending: "PENDING",
+      rescheduled: "RESCHEDULED",
       confirmed: "CONFIRMED",
       completed: "COMPLETED",
-      cancelled: "PENDING",
-      "no-show": "PENDING",
     };
 
     const backendStatus = statusMap[editingAppointment.status] || "PENDING";
@@ -219,7 +218,10 @@ export default function AppointmentsPage() {
     setEditingAppointment(null);
   };
 
-  const filteredAppointments = appointmentsQuery.data || [];
+  const filteredAppointments = (appointmentsQuery.data || []).filter(
+    (appointment) =>
+      statusFilter === "all" || appointment.status === statusFilter,
+  );
   const availableDays = getAvailableDaysInfo();
 
   return (
@@ -357,11 +359,10 @@ export default function AppointmentsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os status</SelectItem>
-                    <SelectItem value="scheduled">Agendado</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="rescheduled">Reagendado</SelectItem>
                     <SelectItem value="confirmed">Confirmado</SelectItem>
                     <SelectItem value="completed">Concluído</SelectItem>
-                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                    <SelectItem value="no-show">Não compareceu</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -588,11 +589,10 @@ export default function AppointmentsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="scheduled">Agendado</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="rescheduled">Reagendado</SelectItem>
                     <SelectItem value="confirmed">Confirmado</SelectItem>
                     <SelectItem value="completed">Concluído</SelectItem>
-                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                    <SelectItem value="no-show">Não compareceu</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
