@@ -1,16 +1,5 @@
-import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
-
 import { Clock, FileText, User } from "lucide-react";
-import { cookies } from "next/headers";
-import Link from "next/link";
 import {
   MdAccessTime,
   MdEdit,
@@ -18,7 +7,18 @@ import {
   MdOutlineUploadFile,
   MdPerson,
 } from "react-icons/md";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { CollaboratorSwitcher } from "~/components/organisms/collaborator-switcher";
+import Link from "next/link";
+import { cookies } from "next/headers";
 import { db } from "~/server/db";
 
 // Função para calcular tempo decorrido
@@ -216,7 +216,7 @@ export default async function EvaluationPending() {
       {/* Header with Collaborator Info */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <div className="flex items-center gap-4">
               <div className="flex aspect-square size-12 items-center justify-center rounded-lg border bg-background">
                 <MdPerson className="h-6 w-6" />

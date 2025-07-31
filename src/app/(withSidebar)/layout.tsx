@@ -5,20 +5,19 @@ import {
 } from "~/components/ui/sidebar";
 import { auth, signOut } from "~/server/auth";
 
+import { AppSidebar } from "~/components/organisms/app-sidebar";
+import { Button } from "~/components/ui/button";
+import { CommandPalette } from "~/components/organisms/command-palette";
+import { CustomBreadcrumbs } from "~/components/molecules/custom-breadcrumbs";
 import Form from "next/form";
-import { cookies } from "next/headers";
+import { HydrateClient } from "~/trpc/server";
 import Image from "next/image";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { MdLogout } from "react-icons/md";
-import { IntegraButton } from "~/components/atoms/integra-button";
 import { ThemeToggle } from "~/components/atoms/theme-toggle";
-import { CustomBreadcrumbs } from "~/components/molecules/custom-breadcrumbs";
-import { AppSidebar } from "~/components/organisms/app-sidebar";
-import { CommandPalette } from "~/components/organisms/command-palette";
-import { Button } from "~/components/ui/button";
+import { cookies } from "next/headers";
 import { db } from "~/server/db";
-import { HydrateClient } from "~/trpc/server";
+import { redirect } from "next/navigation";
 
 export default async function Layout({
   children,
@@ -76,7 +75,7 @@ export default async function Layout({
           </div>
           <div className="flex items-center gap-2">
             <CommandPalette trigger />
-            <IntegraButton />
+            {/* <IntegraButton /> */}
             <ThemeToggle />
             <Form
               action={async () => {
