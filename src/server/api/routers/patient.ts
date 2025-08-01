@@ -285,7 +285,6 @@ export const patientRouter = createTRPCRouter({
             where: { id: input },
             include: {
               evaluations: {
-                where: { done: true },
                 orderBy: { createdAt: "desc" },
                 include: {
                   clinic: true,
