@@ -4,10 +4,46 @@ import { MdCheck, MdOutlineContentCopy } from "react-icons/md";
 import { getBestRefraction, translateType } from "~/lib/utils";
 
 import { Button } from "~/components/ui/button";
+import { Prisma } from "@prisma/client";
 import { useState } from "react";
 
 interface EvaluationSummaryCopyButtonProps {
-  evaluation: any; // Tipo da avaliação do banco de dados
+  evaluation: Prisma.EvaluationGetPayload<{
+    include: {
+      patient: {
+        include: {
+          evaluations: true;
+        };
+      };
+      collaborator: true;
+      clinic: {
+        include: {
+          collaborators: true;
+        };
+      };
+      eyes: {
+        include: {
+          rightEye: {
+            include: {
+              refraction: true;
+              logs: true;
+              surgeries: true;
+              eyedrops: true;
+            };
+          };
+          leftEye: {
+            include: {
+              refraction: true;
+              logs: true;
+              surgeries: true;
+              eyedrops: true;
+            };
+          };
+        };
+      };
+      prescriptions: true;
+    };
+  }>;
 }
 
 export function EvaluationSummaryCopyButton({
@@ -144,6 +180,13 @@ export function EvaluationSummaryCopyButton({
 
     let output = "";
 
+    // Detalhes do Atendimento
+    output += `\n*🏥 SETOR DE OFTAMOLOGIA -  SEOFT*\n`;
+    output += `━━━━━━━━━━━━━━━━━━\n`;
+    output += `Data da Avaliação: ${evaluation.createdAt ? formatDate(evaluation.createdAt) : "N/A"}\n`;
+    output += `Médico: ${collaborator.name || "N/A"}\n`;
+    output += `Ambulatório: ${clinic?.name || "N/A"}\n`;
+
     // 1. Informações do Paciente
     output += `*📋 INFORMAÇÕES DO PACIENTE*\n`;
     output += `━━━━━━━━━━━━━━━━━━\n`;
@@ -250,19 +293,6 @@ export function EvaluationSummaryCopyButton({
           output += `    Notas: ${eyedrop.notes}\n`;
         }
       });
-    }
-
-    // 4. Detalhes do Atendimento
-    output += `\n*🏥 DETALHES DO ATENDIMENTO*\n`;
-    output += `━━━━━━━━━━━━━━━━━━\n`;
-    output += `Data da Avaliação: ${evaluation.createdAt ? formatDate(evaluation.createdAt) : "N/A"}\n`;
-    output += `Médico: ${collaborator.name || "N/A"}\n`;
-    if (collaborator.persistentNote) {
-      output += `Observação do Médico: ${collaborator.persistentNote}\n`;
-    }
-    output += `Ambulatório: ${clinic?.name || "N/A"}\n`;
-    if (clinic?.collaborators && clinic.collaborators.length > 0) {
-      output += `Equipe do Ambulatório: ${clinic.collaborators.map((c: any) => c.collaborator.name).join(", ")}\n`;
     }
 
     if (evaluation.clinicalData?.trim()) {
