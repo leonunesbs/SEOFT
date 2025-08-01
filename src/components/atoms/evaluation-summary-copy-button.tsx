@@ -186,6 +186,7 @@ export function EvaluationSummaryCopyButton({
     output += `Data da Avaliação: ${evaluation.createdAt ? formatDate(evaluation.createdAt) : "N/A"}\n`;
     output += `Médico: ${collaborator.name || "N/A"}\n`;
     output += `Ambulatório: ${clinic?.name || "N/A"}\n`;
+    output += `\n`;
 
     // 1. Informações do Paciente
     output += `*📋 INFORMAÇÕES DO PACIENTE*\n`;
