@@ -128,12 +128,12 @@ interface State {
   toasts: ToasterToast[];
 }
 
-function dispatch(action: Action) {
+const dispatch = (action: Action) => {
   memoryState = reducer(memoryState, action);
   listeners.forEach((listener) => {
     listener(memoryState);
   });
-}
+};
 
 type Toast = Omit<ToasterToast, "id">;
 

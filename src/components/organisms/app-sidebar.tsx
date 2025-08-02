@@ -8,6 +8,7 @@ import {
   MdOutlineAssignmentInd,
   MdOutlineAssistant,
   MdOutlineAttribution,
+  MdOutlineCalendarToday,
   MdOutlineHome,
   MdOutlineList,
   MdOutlineLocalPharmacy,
@@ -88,6 +89,12 @@ export function AppSidebar({
             ),
           },
         ],
+      },
+      {
+        title: "Agenda",
+        url: "/agenda",
+        icon: <MdOutlineCalendarToday size={18} />,
+        items: [],
       },
       {
         title: "Pacientes",

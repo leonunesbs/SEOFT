@@ -15,9 +15,9 @@ export default function EvaluationSummaryLoading() {
   return (
     <div className="space-y-6">
       {/* Header with buttons */}
-      <div className="flex justify-between">
+      <div className="mb-4 flex flex-col justify-between gap-4 sm:flex-row">
         <Skeleton className="h-8 w-48" />
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Skeleton className="h-10 w-24" />
           <Skeleton className="h-10 w-24" />
           <Skeleton className="h-10 w-24" />
@@ -208,6 +208,36 @@ export default function EvaluationSummaryLoading() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Image Exam Annotations Card */}
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-5 w-32" />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-8" />
+                    <Skeleton className="h-6 w-20" />
+                  </div>
+                  <Skeleton className="h-16 w-full" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-8" />
+                    <Skeleton className="h-6 w-20" />
+                  </div>
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       {/* Evaluation History Card */}
       <Card>

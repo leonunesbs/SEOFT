@@ -46,6 +46,7 @@ import {
 
 // Utilitários
 import { useToast } from "~/hooks/use-toast";
+import { formatDateForAPI } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
 // Tipos
@@ -81,7 +82,7 @@ function useIndicationForm() {
     resolver: zodResolver(antivegfSchema),
     defaultValues: {
       patientId: "",
-      indicationDate: new Date().toISOString().split("T")[0],
+      indicationDate: formatDateForAPI(new Date()),
       indication: "",
       indicationOther: "",
       medication: "",
@@ -175,19 +176,6 @@ function useIndicationMutations() {
   });
 
   return { createIndication, createInjections };
-}
-
-// Utilitários
-function formatDateForAPI(date: Date): string {
-  try {
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(date.getUTCDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  } catch (error) {
-    console.error("Erro ao formatar data:", error, date);
-    return "";
-  }
 }
 
 function createLocalDate(dateString: string): Date {
@@ -536,24 +524,6 @@ export default function NewIndicationPage() {
     remainingOSCustom,
   ] = watchedFields;
 
-  // Gerar datas programadas
-  useEffect(() => {
-    if (medication && treatmentStartDate && startEye) {
-      const medicationData = MEDICATIONS.find((m) => m.value === medication);
-      if (medicationData) {
-        generateScheduledDates();
-      }
-    }
-  }, [
-    medication,
-    treatmentStartDate,
-    startEye,
-    remainingODOption,
-    remainingODCustom,
-    remainingOSOption,
-    remainingOSCustom,
-  ]);
-
   const generateScheduledDates = async () => {
     setIsCalculatingDates(true);
 
@@ -663,6 +633,25 @@ export default function NewIndicationPage() {
       setIsCalculatingDates(false);
     }
   };
+
+  // Gerar datas programadas
+  useEffect(() => {
+    if (medication && treatmentStartDate && startEye) {
+      const medicationData = MEDICATIONS.find((m) => m.value === medication);
+      if (medicationData) {
+        generateScheduledDates();
+      }
+    }
+  }, [
+    medication,
+    treatmentStartDate,
+    startEye,
+    remainingODOption,
+    remainingODCustom,
+    remainingOSOption,
+    remainingOSCustom,
+    generateScheduledDates,
+  ]);
 
   const recalculateDatesFromIndex = (changedIndex: number, newDate: Date) => {
     const updatedDates = [...scheduledDates];

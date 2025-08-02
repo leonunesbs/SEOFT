@@ -1,5 +1,6 @@
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
+import { formatDateForAPI } from "~/lib/utils";
 import { withErrorHandling } from "~/lib/errors";
 import { z } from "zod";
 
@@ -250,7 +251,7 @@ export const scheduleRouter = createTRPCRouter({
 
             // Verificar se é um dia válido
             if (dayOfWeek === 1 || dayOfWeek === 2 || dayOfWeek === 4) {
-              const dateStr = currentDate.toISOString().split("T")[0];
+              const dateStr = formatDateForAPI(currentDate);
 
               // Verificar disponibilidade
               const availability = await ctx.db.injectionDayCapacity.findFirst({

@@ -1,6 +1,7 @@
 import { createNotFoundError, withErrorHandling } from "~/lib/errors";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
+import { formatDateForAPI } from "~/lib/utils";
 import { z } from "zod";
 
 export const indicationRouter = createTRPCRouter({
@@ -190,7 +191,7 @@ export const indicationRouter = createTRPCRouter({
                 });
 
                 console.log(
-                  `Agendado: OD dose ${odCount} - ${currentDate.toISOString().split("T")[0]}`,
+                  `Agendado: OD dose ${odCount} - ${formatDateForAPI(currentDate)}`,
                 );
 
                 // Próxima será OE (se ainda há doses)
@@ -215,7 +216,7 @@ export const indicationRouter = createTRPCRouter({
                 });
 
                 console.log(
-                  `Agendado: OE dose ${oeCount} - ${currentDate.toISOString().split("T")[0]}`,
+                  `Agendado: OE dose ${oeCount} - ${formatDateForAPI(currentDate)}`,
                 );
 
                 // Próxima será OD (se ainda há doses)
@@ -249,7 +250,7 @@ export const indicationRouter = createTRPCRouter({
 
           for (const item of schedule) {
             console.log(
-              `Criando: ${item.eye} dose ${item.doseNumber} em ${item.scheduledDate.toISOString().split("T")[0]}`,
+              `Criando: ${item.eye} dose ${item.doseNumber} em ${formatDateForAPI(item.scheduledDate)}`,
             );
 
             const injection = await ctx.db.intravitrealInjection.create({
@@ -839,7 +840,7 @@ export const indicationRouter = createTRPCRouter({
                   });
 
                   console.log(
-                    `Aprovação - Agendado: OD dose ${odCount} - ${currentDate.toISOString().split("T")[0]}`,
+                    `Aprovação - Agendado: OD dose ${odCount} - ${formatDateForAPI(currentDate)}`,
                   );
 
                   // Próxima será OE (se ainda há doses)
@@ -867,7 +868,7 @@ export const indicationRouter = createTRPCRouter({
                   });
 
                   console.log(
-                    `Aprovação - Agendado: OE dose ${oeCount} - ${currentDate.toISOString().split("T")[0]}`,
+                    `Aprovação - Agendado: OE dose ${oeCount} - ${formatDateForAPI(currentDate)}`,
                   );
 
                   // Próxima será OD (se ainda há doses)
@@ -908,7 +909,7 @@ export const indicationRouter = createTRPCRouter({
 
             for (const item of schedule) {
               console.log(
-                `Aprovação - Criando: ${item.eye} dose ${item.doseNumber} em ${item.scheduledDate.toISOString().split("T")[0]}`,
+                `Aprovação - Criando: ${item.eye} dose ${item.doseNumber} em ${formatDateForAPI(item.scheduledDate)}`,
               );
 
               const injection = await ctx.db.intravitrealInjection.create({

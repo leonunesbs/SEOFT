@@ -41,9 +41,12 @@ export function EvaluationFeedbackDialog({
     setIsNavigating(true);
     if (onConclude) {
       onConclude();
-    } else {
-      router.push(`/evaluations/${evaluationId}/summary`);
     }
+
+    // Redirecionar automaticamente após um pequeno delay para mostrar o loading
+    setTimeout(() => {
+      router.push(`/evaluations/${evaluationId}/summary`);
+    }, 1500);
   };
 
   const handleUpdate = () => {
@@ -75,7 +78,7 @@ export function EvaluationFeedbackDialog({
           </DialogTitle>
           <DialogDescription className="text-center">
             {isDone
-              ? `A avaliação do paciente ${patientName} foi concluída com sucesso.`
+              ? `A avaliação do paciente ${patientName} foi concluída com sucesso. Você será redirecionado para o resumo da avaliação.`
               : `A avaliação do paciente ${patientName} foi salva com sucesso.`}
           </DialogDescription>
         </DialogHeader>
@@ -87,8 +90,17 @@ export function EvaluationFeedbackDialog({
               disabled={isNavigating}
               className="w-full"
             >
-              <MdCheck className="h-4 w-4" />
-              Concluir Avaliação
+              {isNavigating ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Redirecionando...
+                </>
+              ) : (
+                <>
+                  <MdCheck className="h-4 w-4" />
+                  Concluir Avaliação
+                </>
+              )}
             </Button>
           )}
 

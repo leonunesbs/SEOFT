@@ -283,7 +283,7 @@ export function InjectionsForm() {
                     setValue("treatmentStartDate", dateStr);
                   }}
                   maxDates={3}
-                  fromDate={new Date().toISOString().split("T")[0]}
+                  fromDate={formatDateForAPI(new Date())}
                 />
               </div>
             </>

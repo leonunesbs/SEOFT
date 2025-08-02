@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import { Collapsible, CollapsibleContent } from "../ui/collapsible";
 import {
   FormControl,
   FormField,
@@ -12,28 +13,38 @@ import {
   FormMessage,
 } from "../ui/form";
 import {
+  MdAttachFile,
   MdDeleteOutline,
+  MdExpandLess,
+  MdExpandMore,
   MdOutlineCheck,
   MdOutlineFileCopy,
   MdSwitchLeft,
 } from "react-icons/md";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
 import { UseFormReturn, useForm } from "react-hook-form";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { AccessFileButton } from "../atoms/access-file-button";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { EvaluationMainFormValues } from "../organisms/evaluation-main-form";
+import { EyeFileViewer } from "../atoms/eye-file-viewer";
 import { Input } from "../ui/input";
 import { OpticalBiometryFormFields } from "./opticalBiometry-form-fields";
-import { Prisma } from "@prisma/client";
 import { Textarea } from "../ui/textarea";
+
+// Type for lastEvaluationData with annotations
+type LastEvaluationDataWithAnnotations = Prisma.EvaluationGetPayload<{
+  select: {
+    continuousData: true;
+    eyes: {
+      include: {
+        leftEye: { include: { logs: true; refraction: true } };
+        rightEye: { include: { logs: true; refraction: true } };
+      };
+    };
+  };
+}>;
 
 export function AccordionExams({
   form,
@@ -44,27 +55,12 @@ export function AccordionExams({
   form: UseFormReturn<EvaluationMainFormValues>;
   rightEyeId?: string;
   leftEyeId?: string;
-  lastEvaluationData?: Prisma.EvaluationGetPayload<{
-    select: {
-      eyes: {
-        include: {
-          leftEye: {
-            include: {
-              logs: true;
-              refraction: true;
-            };
-          };
-          rightEye: {
-            include: {
-              logs: true;
-              refraction: true;
-            };
-          };
-        };
-      };
-    };
-  }>;
+  lastEvaluationData?: LastEvaluationDataWithAnnotations;
 }) {
+  const [showFileInputs, setShowFileInputs] = useState<Record<string, boolean>>(
+    {},
+  );
+
   const handleCopyLastData = useCallback(
     (fields: Array<keyof EvaluationMainFormValues>) => {
       if (!lastEvaluationData) return;
@@ -103,13 +99,35 @@ export function AccordionExams({
             logTypeRaw.toUpperCase();
 
           const log = eyeLogs?.find((l) => l.type === logType);
-          value = log?.details ?? "";
+
+          // Check if it's an annotation field (contains 'Annotation')
+          if (fieldStr.includes("Annotation")) {
+            // Annotation fields are stored in eye logs
+            value = log?.annotation ?? "";
+          } else {
+            // Regular exam fields are stored in eye logs
+            // For image exams, use fileUrl; for non-image exams, use details
+            const imageExamTypes = [
+              "OCT",
+              "VISUAL_FIELD",
+              "ANGIOGRAPHY",
+              "RETINOGRAPHY",
+              "CT_CORNEA",
+            ];
+            if (imageExamTypes.includes(logType)) {
+              value = log?.fileUrl ?? "";
+            } else {
+              value = log?.details ?? "";
+            }
+          }
         } else {
           // For fields not specific to an eye
-          value = (lastEvaluationData as any)[field] || "";
+          value =
+            (lastEvaluationData as LastEvaluationDataWithAnnotations)[field] ||
+            "";
         }
 
-        form.setValue(field, value as string | FileList | null | undefined);
+        form.setValue(field, value as string | undefined);
       });
     },
     [lastEvaluationData, form],
@@ -125,28 +143,35 @@ export function AccordionExams({
       ] as Array<keyof EvaluationMainFormValues>;
 
       // Check if any of the fields already have data
-      const hasExistingData = defaultFields.some((field) =>
-        form.getValues(field),
-      );
+      const hasExistingData = defaultFields.some((field) => {
+        const value = form.getValues(field);
+        return value && value.toString().trim() !== "";
+      });
 
-      // Only import if there's no existing data
-      if (!hasExistingData) {
+      // Import if there's existing data
+      if (hasExistingData) {
         handleCopyLastData(defaultFields);
       }
     }
   }, [lastEvaluationData, form, handleCopyLastData]);
 
-  const handleCopyODToOE = (
-    fieldOD: keyof EvaluationMainFormValues,
-    fieldOE: keyof EvaluationMainFormValues,
-  ) => {
-    const valueOD = form.getValues(fieldOD);
-    form.setValue(fieldOE, valueOD ?? "");
-  };
+  const handleCopyODToOE = useCallback(
+    (
+      fieldOD: keyof EvaluationMainFormValues,
+      fieldOE: keyof EvaluationMainFormValues,
+    ) => {
+      const valueOD = form.getValues(fieldOD);
+      form.setValue(fieldOE, valueOD ?? "");
+    },
+    [form],
+  );
 
-  const handleClearFields = (fields: Array<keyof EvaluationMainFormValues>) => {
-    fields.forEach((field) => form.setValue(field, ""));
-  };
+  const handleClearFields = useCallback(
+    (fields: Array<keyof EvaluationMainFormValues>) => {
+      fields.forEach((field) => form.setValue(field, ""));
+    },
+    [form],
+  );
 
   const opticalBiometryForm = useForm<{
     OD: {
@@ -184,32 +209,32 @@ export function AccordionExams({
     },
   });
 
-  const handleFileUpload = async (
-    file: File,
-    fieldName: keyof EvaluationMainFormValues,
-  ) => {
-    try {
-      const presignedResponse = await fetch(
-        `/api/s3?action=upload&fileName=${fieldName}-${
-          fieldName.includes("OD") ? rightEyeId : leftEyeId
-        }&contentType=${encodeURIComponent(file.type)}`,
-      );
-      const { signedUrl, objectUrl } = (await presignedResponse.json()) as {
-        signedUrl: string;
-        objectUrl: string;
-      };
+  const handleFileUpload = useCallback(
+    async (file: File, fieldName: keyof EvaluationMainFormValues) => {
+      try {
+        const presignedResponse = await fetch(
+          `/api/s3?action=upload&fileName=${fieldName}-${
+            fieldName.includes("OD") ? rightEyeId : leftEyeId
+          }&contentType=${encodeURIComponent(file.type)}`,
+        );
+        const { signedUrl, objectUrl } = (await presignedResponse.json()) as {
+          signedUrl: string;
+          objectUrl: string;
+        };
 
-      await fetch(signedUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
-      });
+        await fetch(signedUrl, {
+          method: "PUT",
+          body: file,
+          headers: { "Content-Type": file.type },
+        });
 
-      form.setValue(fieldName, objectUrl);
-    } catch (error) {
-      console.error("Erro ao fazer upload do arquivo:", error);
-    }
-  };
+        form.setValue(fieldName, objectUrl);
+      } catch (error) {
+        console.error("Erro ao fazer upload do arquivo:", error);
+      }
+    },
+    [form, rightEyeId, leftEyeId],
+  );
 
   const biomicroscopyOD = form.watch("biomicroscopyOD");
   const biomicroscopyOS = form.watch("biomicroscopyOS");
@@ -233,15 +258,30 @@ export function AccordionExams({
 
   const octOD = form.watch("octOD");
   const octOS = form.watch("octOS");
-  const isOctFilled = !!octOD || !!octOS;
+  const octAnnotationOD = form.watch("octAnnotationOD");
+  const octAnnotationOS = form.watch("octAnnotationOS");
+  const isOctFilled =
+    !!octOD || !!octOS || !!octAnnotationOD || !!octAnnotationOS;
 
   const visualFieldOD = form.watch("visualFieldOD");
   const visualFieldOS = form.watch("visualFieldOS");
-  const isVisualFieldFilled = !!visualFieldOD || !!visualFieldOS;
+  const visualFieldAnnotationOD = form.watch("visualFieldAnnotationOD");
+  const visualFieldAnnotationOS = form.watch("visualFieldAnnotationOS");
+  const isVisualFieldFilled =
+    !!visualFieldOD ||
+    !!visualFieldOS ||
+    !!visualFieldAnnotationOD ||
+    !!visualFieldAnnotationOS;
 
   const angiographyOD = form.watch("angiographyOD");
   const angiographyOS = form.watch("angiographyOS");
-  const isAngiographyFilled = !!angiographyOD || !!angiographyOS;
+  const angiographyAnnotationOD = form.watch("angiographyAnnotationOD");
+  const angiographyAnnotationOS = form.watch("angiographyAnnotationOS");
+  const isAngiographyFilled =
+    !!angiographyOD ||
+    !!angiographyOS ||
+    !!angiographyAnnotationOD ||
+    !!angiographyAnnotationOS;
 
   const opticalBiometryOD = form.watch("opticalBiometryOD");
   const opticalBiometryOS = form.watch("opticalBiometryOS");
@@ -254,23 +294,243 @@ export function AccordionExams({
 
   const ctCorneaOD = form.watch("ctCorneaOD");
   const ctCorneaOS = form.watch("ctCorneaOS");
-  const isCtCorneaFilled = !!ctCorneaOD || !!ctCorneaOS;
+  const ctCorneaAnnotationOD = form.watch("ctCorneaAnnotationOD");
+  const ctCorneaAnnotationOS = form.watch("ctCorneaAnnotationOS");
+  const isCtCorneaFilled =
+    !!ctCorneaOD ||
+    !!ctCorneaOS ||
+    !!ctCorneaAnnotationOD ||
+    !!ctCorneaAnnotationOS;
 
   const retinographyOD = form.watch("retinographyOD");
   const retinographyOS = form.watch("retinographyOS");
-  const isRetinographyFilled = !!retinographyOD || !!retinographyOS;
+  const retinographyAnnotationOD = form.watch("retinographyAnnotationOD");
+  const retinographyAnnotationOS = form.watch("retinographyAnnotationOS");
+  const isRetinographyFilled =
+    !!retinographyOD ||
+    !!retinographyOS ||
+    !!retinographyAnnotationOD ||
+    !!retinographyAnnotationOS;
 
-  const handleOpticalBiometryChange = (value: string, eye: "OD" | "OS") => {
-    form.setValue(`opticalBiometry${eye}`, value);
-  };
+  const handleOpticalBiometryChange = useCallback(
+    (value: string, eye: "OD" | "OS") => {
+      form.setValue(`opticalBiometry${eye}`, value);
+    },
+    [form],
+  );
+
+  const toggleFileInputs = useCallback((examType: string) => {
+    setShowFileInputs((prev) => ({
+      ...prev,
+      [examType]: !prev[examType],
+    }));
+  }, []);
+
+  const ExamImageSection = useCallback(
+    ({
+      examType,
+      examName,
+      isFilled,
+      fileFieldOD,
+      fileFieldOS,
+      annotationFieldOD,
+      annotationFieldOS,
+    }: {
+      examType: string;
+      examName: string;
+      isFilled: boolean;
+      fileFieldOD: keyof EvaluationMainFormValues;
+      fileFieldOS: keyof EvaluationMainFormValues;
+      annotationFieldOD: keyof EvaluationMainFormValues;
+      annotationFieldOS: keyof EvaluationMainFormValues;
+    }) => (
+      <AccordionItem value={examType}>
+        <AccordionTrigger>
+          <h3 className="flex items-center gap-2">
+            {examName}
+            {isFilled && <MdOutlineCheck className="text-green-500" />}
+          </h3>
+        </AccordionTrigger>
+        <AccordionContent className="flex flex-col gap-4 px-2">
+          {/* Text Annotations */}
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="w-full">
+              <FormField
+                control={form.control}
+                name={annotationFieldOD}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>OD - Anotações</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        value={field.value as string}
+                        placeholder="Descreva os achados do exame"
+                        className="min-h-32"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="w-full">
+              <FormField
+                control={form.control}
+                name={annotationFieldOS}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>OE - Anotações</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        value={field.value as string}
+                        placeholder="Descreva os achados do exame"
+                        className="min-h-32"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* File Uploads Section */}
+          <div className="border-t pt-4">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MdAttachFile className="h-5 w-5" />
+                <span className="font-medium">Anexos</span>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => toggleFileInputs(examType)}
+              >
+                {showFileInputs[examType] ? (
+                  <>
+                    <MdExpandLess className="mr-1 h-4 w-4" />
+                    Ocultar arquivos
+                  </>
+                ) : (
+                  <>
+                    <MdExpandMore className="mr-1 h-4 w-4" />
+                    Incluir arquivos
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <Collapsible open={showFileInputs[examType]}>
+              <CollapsibleContent className="space-y-4">
+                {/* Existing Files Display */}
+                <div className="flex justify-between gap-1">
+                  <h4 className="text-sm font-medium text-muted-foreground">
+                    Arquivos existentes
+                  </h4>
+                  <div className="flex gap-2">
+                    {form.getValues(fileFieldOD) && (
+                      <EyeFileViewer
+                        fileName={
+                          form
+                            .getValues(fileFieldOD)
+                            ?.toString()
+                            .split("/")
+                            .pop() || ""
+                        }
+                        title={`OD - ${form.getValues(fileFieldOD)?.toString().split("/").pop()}`}
+                        eye="OD"
+                        className="h-8 px-2 text-xs"
+                      />
+                    )}
+                    {form.getValues(fileFieldOS) && (
+                      <EyeFileViewer
+                        fileName={
+                          form
+                            .getValues(fileFieldOS)
+                            ?.toString()
+                            .split("/")
+                            .pop() || ""
+                        }
+                        title={`OE - ${form.getValues(fileFieldOS)?.toString().split("/").pop()}`}
+                        eye="OE"
+                        className="h-8 px-2 text-xs"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* File Inputs */}
+                <div className="flex flex-col gap-4 sm:flex-row">
+                  <div className="w-full">
+                    <FormField
+                      control={form.control}
+                      name={fileFieldOD}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>OD - Arquivo</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="file"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file)
+                                  void handleFileUpload(file, field.name);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="w-full">
+                    <FormField
+                      control={form.control}
+                      name={fileFieldOS}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>OE - Arquivo</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="file"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file)
+                                  void handleFileUpload(file, field.name);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    ),
+    [form, rightEyeId, leftEyeId, showFileInputs, toggleFileInputs],
+  );
+
   return (
     <Tabs defaultValue="propaedeutics" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger id="propaedeutics" value="propaedeutics">
           Propedêutica
         </TabsTrigger>
-        <TabsTrigger id="images" value="images" disabled>
-          Imagens
+        <TabsTrigger id="images" value="images">
+          <div className="flex items-center gap-2">
+            Imagens
+            <Badge variant="secondary" className="text-xs">
+              Novo
+            </Badge>
+          </div>
         </TabsTrigger>
         <TabsTrigger id="optics" value="optics" disabled>
           Óptica
@@ -960,485 +1220,51 @@ export function AccordionExams({
       </TabsContent>
       <TabsContent value="images">
         <Accordion type="single" collapsible>
-          {/* ANGIOGRAFIA */}
-          <AccordionItem value="angiography">
-            <AccordionTrigger>
-              <h3 className="flex items-center gap-2">
-                Angiografia
-                {isAngiographyFilled && (
-                  <MdOutlineCheck className="text-green-500" />
-                )}
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex justify-between gap-1">
-                <h4>Angiografia</h4>
-                <div className="flex gap-2">
-                  {form.getValues("angiographyOD") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`angiographyOD-${rightEyeId}`}
-                          >
-                            OD
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OD</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  {form.getValues("angiographyOS") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`angiographyOS-${leftEyeId}`}
-                          >
-                            OE
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OE</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                {/* OD */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="angiographyOD"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OD</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {/* OS */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="angiographyOS"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OE</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          {/* CAMPO VISUAL */}
-          <AccordionItem value="visualField">
-            <AccordionTrigger>
-              <h3 className="flex items-center gap-2">
-                Campo Visual
-                {isVisualFieldFilled && (
-                  <MdOutlineCheck className="text-green-500" />
-                )}
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex justify-between gap-1">
-                <h4>Campo Visual</h4>
-                <div className="flex gap-2">
-                  {form.getValues("visualFieldOD") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`visualFieldOD-${rightEyeId}`}
-                          >
-                            OD
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OD</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  {form.getValues("visualFieldOS") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`visualFieldOS-${leftEyeId}`}
-                          >
-                            OE
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OE</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                {/* OD */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="visualFieldOD"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OD</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {/* OS */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="visualFieldOS"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OE</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          {/* OCT */}
-          <AccordionItem value="oct">
-            <AccordionTrigger>
-              <h3 className="flex items-center gap-2">
-                OCT
-                {isOctFilled && <MdOutlineCheck className="text-green-500" />}
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex justify-between gap-1">
-                <h4>OCT</h4>
-                <div className="flex gap-2">
-                  {form.getValues("octOD") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton fileName={`octOD-${rightEyeId}`}>
-                            OD
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OD</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  {form.getValues("octOS") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton fileName={`octOS-${leftEyeId}`}>
-                            OE
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OE</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                {/* OD */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="octOD"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OD</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {/* OS */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="octOS"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OE</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          {/* RETINOGRAFIA */}
-          <AccordionItem value="retinography">
-            <AccordionTrigger>
-              <h3 className="flex items-center gap-2">
-                Retinografia
-                {isRetinographyFilled && (
-                  <MdOutlineCheck className="text-green-500" />
-                )}
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex justify-between gap-1">
-                <h4>Retinografia</h4>
-                <div className="flex gap-2">
-                  {form.getValues("retinographyOD") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`retinographyOD-${rightEyeId}`}
-                          >
-                            OD
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OD</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  {form.getValues("retinographyOS") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`retinographyOS-${leftEyeId}`}
-                          >
-                            OE
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OE</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                {/* OD */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="retinographyOD"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OD</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {/* OS */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="retinographyOS"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OE</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-          {/* TC DE CÓRNEA */}
-          <AccordionItem value="ctCornea">
-            <AccordionTrigger>
-              <h3 className="flex items-center gap-2">
-                TC de Córnea
-                {isCtCorneaFilled && (
-                  <MdOutlineCheck className="text-green-500" />
-                )}
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex justify-between gap-1">
-                <h4>TC de Córnea</h4>
-                <div className="flex gap-2">
-                  {form.getValues("ctCorneaOD") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`ctCorneaOD-${rightEyeId}`}
-                          >
-                            OD
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OD</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  {form.getValues("ctCorneaOS") && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccessFileButton
-                            fileName={`ctCorneaOS-${leftEyeId}`}
-                          >
-                            OE
-                          </AccessFileButton>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Acessar arquivo OE</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4 sm:flex-row">
-                {/* OD */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="ctCorneaOD"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OD</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {/* OS */}
-                <div className="w-full">
-                  <FormField
-                    control={form.control}
-                    name="ctCorneaOS"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>OE</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="file"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) void handleFileUpload(file, field.name);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
+          <ExamImageSection
+            examType="oct"
+            examName="OCT"
+            isFilled={isOctFilled}
+            fileFieldOD="octOD"
+            fileFieldOS="octOS"
+            annotationFieldOD="octAnnotationOD"
+            annotationFieldOS="octAnnotationOS"
+          />
+          <ExamImageSection
+            examType="visualField"
+            examName="Campo Visual"
+            isFilled={isVisualFieldFilled}
+            fileFieldOD="visualFieldOD"
+            fileFieldOS="visualFieldOS"
+            annotationFieldOD="visualFieldAnnotationOD"
+            annotationFieldOS="visualFieldAnnotationOS"
+          />
+          <ExamImageSection
+            examType="angiography"
+            examName="Angiografia"
+            isFilled={isAngiographyFilled}
+            fileFieldOD="angiographyOD"
+            fileFieldOS="angiographyOS"
+            annotationFieldOD="angiographyAnnotationOD"
+            annotationFieldOS="angiographyAnnotationOS"
+          />
+          <ExamImageSection
+            examType="retinography"
+            examName="Retinografia"
+            isFilled={isRetinographyFilled}
+            fileFieldOD="retinographyOD"
+            fileFieldOS="retinographyOS"
+            annotationFieldOD="retinographyAnnotationOD"
+            annotationFieldOS="retinographyAnnotationOS"
+          />
+          <ExamImageSection
+            examType="ctCornea"
+            examName="TC de Córnea"
+            isFilled={isCtCorneaFilled}
+            fileFieldOD="ctCorneaOD"
+            fileFieldOS="ctCorneaOS"
+            annotationFieldOD="ctCorneaAnnotationOD"
+            annotationFieldOS="ctCorneaAnnotationOS"
+          />
         </Accordion>
       </TabsContent>
     </Tabs>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { api } from "~/trpc/react";
+import { formatDateForAPI } from "~/lib/utils";
 
 interface NextAvailableDatesProps {
   onDateSelect?: (date: string) => void;
@@ -32,7 +33,7 @@ export function NextAvailableDates({
       const dayOfWeek = testDate.getDay();
       // Segunda (1), Terça (2) ou Quinta (4)
       if (dayOfWeek === 1 || dayOfWeek === 2 || dayOfWeek === 4) {
-        dates.push(testDate.toISOString().split("T")[0]!);
+        dates.push(formatDateForAPI(testDate));
       }
     }
 

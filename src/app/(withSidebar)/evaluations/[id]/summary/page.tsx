@@ -3,10 +3,10 @@ import { MdOutlineHistory, MdVisibility } from "react-icons/md";
 import { getBestRefraction, isValidURL, translateType } from "~/lib/utils";
 import { notFound, redirect } from "next/navigation";
 
-import { AccessFileButton } from "~/components/atoms/access-file-button";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { EvaluationSummaryCopyButton } from "~/components/atoms/evaluation-summary-copy-button";
+import { FileViewer } from "~/components/atoms/file-viewer";
 import Link from "next/link";
 import { PageHeading } from "~/components/atoms/page-heading";
 import { ReopenEvaluationButton } from "~/components/atoms/reopen-evaluation-button";
@@ -151,22 +151,35 @@ const LogsSection = ({ logs, title }: { logs: any[]; title: string }) => {
                     {translateType(log.type) || "N/A"}
                   </Badge>
                 </div>
+                {/* Exibir details para exames não-imagem */}
                 {log.details && !isValidURL(log.details) && (
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {log.details}
                   </p>
                 )}
+                {/* Exibir annotation para exames de imagem */}
+                {log.annotation && (
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {log.annotation}
+                  </p>
+                )}
               </div>
-              {log.details && isValidURL(log.details) && (
+              {/* Exibir botão de arquivo para exames de imagem com fileUrl */}
+              {log.fileUrl && (
                 <div className="flex-shrink-0">
-                  <AccessFileButton
-                    fileName={log.details.split("/").pop() as string}
-                  >
-                    <Button variant="outline" size="sm" className="h-8 px-3">
-                      <MdVisibility className="mr-1 h-3 w-3" />
-                      Ver
-                    </Button>
-                  </AccessFileButton>
+                  <FileViewer
+                    fileName={log.fileUrl.split("/").pop() || ""}
+                    title={`${translateType(log.type)} - ${log.fileUrl.split("/").pop()}`}
+                  />
+                </div>
+              )}
+              {/* Manter compatibilidade com logs antigos que usam details como URL */}
+              {log.details && isValidURL(log.details) && !log.fileUrl && (
+                <div className="flex-shrink-0">
+                  <FileViewer
+                    fileName={log.details.split("/").pop() || ""}
+                    title={`${translateType(log.type)} - ${log.details.split("/").pop()}`}
+                  />
                 </div>
               )}
             </div>
@@ -324,6 +337,15 @@ export default async function EvaluationSummaryPage({
           },
         },
       },
+      appointments: {
+        include: {
+          clinic: true,
+          collaborator: true,
+        },
+        orderBy: {
+          scheduledDate: "asc",
+        },
+      },
     },
   });
 
@@ -340,11 +362,17 @@ export default async function EvaluationSummaryPage({
 
   const rightEyeLogs =
     eyes?.rightEye?.logs?.filter(
-      (log) => log.details && log.details.trim() !== "",
+      (log) =>
+        (log.details && log.details.trim() !== "") ||
+        (log.fileUrl && log.fileUrl.trim() !== "") ||
+        (log.annotation && log.annotation.trim() !== ""),
     ) ?? [];
   const leftEyeLogs =
     eyes?.leftEye?.logs?.filter(
-      (log) => log.details && log.details.trim() !== "",
+      (log) =>
+        (log.details && log.details.trim() !== "") ||
+        (log.fileUrl && log.fileUrl.trim() !== "") ||
+        (log.annotation && log.annotation.trim() !== ""),
     ) ?? [];
 
   const rightEyeSurgeries = patient.evaluations.flatMap(
@@ -386,6 +414,7 @@ export default async function EvaluationSummaryPage({
           </CardHeader>
           <CardContent className="space-y-0">
             <InfoItem label="Nome" value={patient.name || "N/A"} />
+            <InfoItem label="Prontuário" value={patient.refId || "N/A"} />
             <InfoItem
               label="Idade"
               value={
@@ -463,6 +492,14 @@ export default async function EvaluationSummaryPage({
                 <h4 className="mb-2 font-semibold">Próxima Consulta</h4>
                 <p className="text-sm text-muted-foreground">
                   {evaluation.nextAppointment}
+                </p>
+              </div>
+            )}
+            {evaluation.returnNotes && (
+              <div>
+                <h4 className="mb-2 font-semibold">Notas para o Retorno</h4>
+                <p className="text-sm text-muted-foreground">
+                  {evaluation.returnNotes}
                 </p>
               </div>
             )}

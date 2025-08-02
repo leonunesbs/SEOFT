@@ -162,7 +162,7 @@ export function PatientForm({
 
       // Após criar o paciente, criar automaticamente uma avaliação
       if (collaboratorData?.collaboratorId) {
-        createEvaluation.mutate({
+        createEvaluationMutation.mutate({
           patientId: patient.id,
           collaboratorId: collaboratorData.collaboratorId,
         });
@@ -176,7 +176,7 @@ export function PatientForm({
     },
   });
 
-  const createEvaluation = api.evaluation.create.useMutation({
+  const createEvaluationMutation = api.evaluation.create.useMutation({
     onError(error) {
       toast({
         title: "Erro",
@@ -249,7 +249,7 @@ export function PatientForm({
 
   const isLoading =
     createPatient.isPending ||
-    createEvaluation.isPending ||
+    createEvaluationMutation.isPending ||
     updatePatient.isPending ||
     deletePatient.isPending ||
     isCollaboratorLoading;

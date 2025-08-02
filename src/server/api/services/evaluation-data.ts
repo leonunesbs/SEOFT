@@ -35,6 +35,15 @@ const evaluationInclude = {
       },
     },
   },
+  appointments: {
+    include: {
+      clinic: true,
+      collaborator: true,
+    },
+    orderBy: {
+      scheduledDate: "asc",
+    },
+  },
 } satisfies Prisma.EvaluationInclude;
 
 const lastEvaluationInclude = {
@@ -170,6 +179,66 @@ export async function getEvaluationPrescription(evaluationId: string) {
 }
 
 /**
+ * Busca dados de ocupação de agendamentos por período
+ */
+export async function getOccupancyByPeriod(
+  startDate: Date,
+  endDate: Date,
+  collaboratorId?: string,
+) {
+  const where: Prisma.AppointmentWhereInput = {
+    scheduledDate: {
+      gte: startDate,
+      lte: endDate,
+    },
+    status: {
+      in: ["SCHEDULED", "CONFIRMED"],
+    },
+  };
+
+  if (collaboratorId) {
+    where.collaboratorId = collaboratorId;
+  }
+
+  const appointments = await db.appointment.findMany({
+    where,
+    select: {
+      scheduledDate: true,
+    },
+    orderBy: {
+      scheduledDate: "asc",
+    },
+  });
+
+  // Agrupar por data e turno
+  const occupancyByDate: Record<
+    string,
+    { total: number; morning: number; afternoon: number }
+  > = {};
+
+  appointments.forEach((appointment) => {
+    const dateKey = appointment.scheduledDate.toISOString().split("T")[0];
+    if (dateKey) {
+      if (!occupancyByDate[dateKey]) {
+        occupancyByDate[dateKey] = { total: 0, morning: 0, afternoon: 0 };
+      }
+
+      const hour = appointment.scheduledDate.getHours();
+      const isMorning = hour < 12;
+
+      occupancyByDate[dateKey].total += 1;
+      if (isMorning) {
+        occupancyByDate[dateKey].morning += 1;
+      } else {
+        occupancyByDate[dateKey].afternoon += 1;
+      }
+    }
+  });
+
+  return occupancyByDate;
+}
+
+/**
  * Busca todos os dados necessários para a página de evaluation
  */
 export async function getEvaluationPageData(id: string) {
@@ -190,6 +259,25 @@ export async function getEvaluationPageData(id: string) {
     getPatientSurgeries(evaluation.patientId),
   ]);
 
+  // Carregar dados de ocupação para o mês atual e próximo mês
+  const currentDate = new Date();
+  const startOfCurrentMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1,
+  );
+  const endOfNextMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() + 2,
+    0,
+  );
+
+  const occupancyData = await getOccupancyByPeriod(
+    startOfCurrentMonth,
+    endOfNextMonth,
+    evaluation.collaboratorId,
+  );
+
   return {
     evaluation,
     lastEvaluation,
@@ -206,5 +294,6 @@ export async function getEvaluationPageData(id: string) {
         },
       },
     })),
+    occupancyData,
   };
 }

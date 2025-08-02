@@ -23,6 +23,7 @@ export default async function EvaluationPage({ params }: { params: Params }) {
     medications,
     firstPrescription,
     patientSurgeries,
+    occupancyData,
   } = data;
 
   // Transform the evaluation to match the expected type
@@ -46,6 +47,7 @@ export default async function EvaluationPage({ params }: { params: Params }) {
         medications={medications}
         firstPrescription={firstPrescription ?? undefined}
         patientSurgeries={patientSurgeries}
+        occupancyData={occupancyData}
       />
     </div>
   );

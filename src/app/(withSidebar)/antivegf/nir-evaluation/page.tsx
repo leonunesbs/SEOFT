@@ -40,6 +40,7 @@ import { Button } from "~/components/ui/button";
 import { DatePicker } from "~/components/ui/date-picker";
 import Link from "next/link";
 import { api } from "~/trpc/react";
+import { formatDateForAPI } from "~/lib/utils";
 import { useToast } from "~/hooks/use-toast";
 
 // Função para obter variante do badge baseado no status
@@ -221,6 +222,19 @@ export default function NirEvaluationPage() {
     setIsRescheduleDialogOpen(true);
   };
 
+  const getAvailabilityStatus = () => {
+    if (!availabilityData)
+      return { available: true, capacity: 30, booked: 0, availableSlots: 30 };
+
+    // availabilityData is a single object, not an array
+    return {
+      available: availabilityData.available,
+      capacity: availabilityData.capacity,
+      booked: availabilityData.booked,
+      availableSlots: availabilityData.capacity - availabilityData.booked,
+    };
+  };
+
   const handleUpdateInjectionDate = (injectionId: string, newDate: string) => {
     // Verificar se a data é válida
     if (!newDate) {
@@ -299,19 +313,6 @@ export default function NirEvaluationPage() {
     return classification === "A1" || classification === "A2";
   };
 
-  const getAvailabilityStatus = () => {
-    if (!availabilityData)
-      return { available: true, capacity: 30, booked: 0, availableSlots: 30 };
-
-    // availabilityData is a single object, not an array
-    return {
-      available: availabilityData.available,
-      capacity: availabilityData.capacity,
-      booked: availabilityData.booked,
-      availableSlots: availabilityData.capacity - availabilityData.booked,
-    };
-  };
-
   const getInjectionsForDate = (date: string) => {
     if (!processedIndications) return [];
 
@@ -345,7 +346,7 @@ export default function NirEvaluationPage() {
           today.getMonth(),
           today.getDate() + i,
         );
-        const dateStr = date.toISOString().split("T")[0]!;
+        const dateStr = formatDateForAPI(date);
         return {
           date,
           dateStr,
@@ -379,7 +380,7 @@ export default function NirEvaluationPage() {
     const container = scrollContainerRef.current;
     if (container) {
       container.scrollTo({ left: 0, behavior: "smooth" });
-      setSelectedDate(new Date().toISOString().split("T")[0]!);
+      setSelectedDate(formatDateForAPI(new Date()));
     }
   }, []);
 
@@ -589,9 +590,7 @@ export default function NirEvaluationPage() {
               <DatePicker
                 date={selectedDate ? new Date(selectedDate) : undefined}
                 onDateChange={(date) => {
-                  setSelectedDate(
-                    date ? date.toISOString().split("T")[0]! : "",
-                  );
+                  setSelectedDate(date ? formatDateForAPI(date) : "");
                 }}
                 placeholder="Selecione uma data"
                 className="w-full"
@@ -1588,7 +1587,7 @@ export default function NirEvaluationPage() {
                           if (date) {
                             setUpdatedDates((prev) => ({
                               ...prev,
-                              [injection.id]: date.toISOString().split("T")[0]!,
+                              [injection.id]: formatDateForAPI(date),
                             }));
                           }
                         }}

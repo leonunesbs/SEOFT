@@ -16,7 +16,10 @@ import { RemoveEvaluationButton } from "../atoms/remove-evaluation-button";
 import { Separator } from "../ui/separator";
 import { EvaluationFeedbackDialog } from "./evaluation-feedback-dialog";
 import { EvaluationIdentificationForm } from "./evaluation-identification-form";
-import { EvaluationMainForm } from "./evaluation-main-form";
+import {
+  EvaluationMainForm,
+  type EvaluationMainFormValues,
+} from "./evaluation-main-form";
 import { EvaluationRefractionForm } from "./evaluation-refraction-form";
 import { EvaluationSurgeryForm } from "./evaluation-surgery-form";
 import { PrescriptionCard } from "./prescription-card";
@@ -27,44 +30,100 @@ const identificationSchema = z.object({
   clinic: z.string(),
 });
 
-const mainFormSchema = z.object({
-  date: z.string().optional(),
-  procedure: z.string().optional(),
-  notes: z.string().optional(),
-  biomicroscopyOD: z.string().optional(),
-  biomicroscopyOS: z.string().optional(),
-  fundoscopyOD: z.string().optional(),
-  fundoscopyOS: z.string().optional(),
-  gonioscopyOD: z.string().optional(),
-  gonioscopyOS: z.string().optional(),
-  tonometryOD: z.string().optional(),
-  tonometryOS: z.string().optional(),
-  pachymetryOD: z.string().optional(),
-  pachymetryOS: z.string().optional(),
-  octOD: z.any().optional(),
-  octOS: z.any().optional(),
-  ctCorneaOD: z.any().optional(),
-  ctCorneaOS: z.any().optional(),
-  angiographyOD: z.any().optional(),
-  angiographyOS: z.any().optional(),
-  opticalBiometryOD: z.string().optional(),
-  opticalBiometryOS: z.string().optional(),
-  specularMicroscopyOD: z.string().optional(),
-  specularMicroscopyOS: z.string().optional(),
-  visualFieldOD: z.any().optional(),
-  visualFieldOS: z.any().optional(),
-  retinographyOD: z.any().optional(),
-  retinographyOS: z.any().optional(),
-  clinicalData: z.string().min(1, "Dados clínicos são obrigatórios."),
-  continuousData: z.string().optional(),
-  diagnosis: z.string().min(1, "Diagnóstico é obrigatório."),
-  treatment: z.string().optional(),
-  followUp: z.string().optional(),
-  nextAppointment: z.string().optional(),
-});
+const mainFormSchema = z
+  .object({
+    date: z.string().optional(),
+    procedure: z.string().optional(),
+    notes: z.string().optional(),
+    biomicroscopyOD: z.string().optional(),
+    biomicroscopyOS: z.string().optional(),
+    fundoscopyOD: z.string().optional(),
+    fundoscopyOS: z.string().optional(),
+    gonioscopyOD: z.string().optional(),
+    gonioscopyOS: z.string().optional(),
+    tonometryOD: z.string().optional(),
+    tonometryOS: z.string().optional(),
+    pachymetryOD: z.string().optional(),
+    pachymetryOS: z.string().optional(),
+    octOD: z.string().optional(),
+    octOS: z.string().optional(),
+    ctCorneaOD: z.string().optional(),
+    ctCorneaOS: z.string().optional(),
+    angiographyOD: z.string().optional(),
+    angiographyOS: z.string().optional(),
+    opticalBiometryOD: z.string().optional(),
+    opticalBiometryOS: z.string().optional(),
+    specularMicroscopyOD: z.string().optional(),
+    specularMicroscopyOS: z.string().optional(),
+    visualFieldOD: z.string().optional(),
+    visualFieldOS: z.string().optional(),
+    retinographyOD: z.string().optional(),
+    retinographyOS: z.string().optional(),
+    // Annotation fields for each exam
+    octAnnotationOD: z.string().optional(),
+    octAnnotationOS: z.string().optional(),
+    visualFieldAnnotationOD: z.string().optional(),
+    visualFieldAnnotationOS: z.string().optional(),
+    angiographyAnnotationOD: z.string().optional(),
+    angiographyAnnotationOS: z.string().optional(),
+    ctCorneaAnnotationOD: z.string().optional(),
+    ctCorneaAnnotationOS: z.string().optional(),
+    retinographyAnnotationOD: z.string().optional(),
+    retinographyAnnotationOS: z.string().optional(),
+    clinicalData: z.string().min(1, "Dados clínicos são obrigatórios."),
+    continuousData: z.string().optional(),
+    diagnosis: z.string().min(1, "Diagnóstico é obrigatório."),
+    treatment: z.string().optional(),
+    followUp: z.string().optional(),
+    nextAppointment: z.string().optional(),
+    returnDate: z.string().optional(),
+    returnTime: z.enum(["07:00", "13:00"]).optional(),
+    returnNotes: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // Se returnDate estiver preenchido, returnTime também deve estar
+      if (data.returnDate && !data.returnTime) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Turno é obrigatório quando a data de retorno é selecionada",
+      path: ["returnTime"], // Mostra o erro no campo de turno
+    },
+  )
+  .refine(
+    (data) => {
+      // Se ambos os campos estiverem preenchidos, validar se a data não é no passado
+      if (data.returnDate && data.returnTime) {
+        const scheduledDate = new Date(`${data.returnDate}T${data.returnTime}`);
+        const now = new Date();
+        return scheduledDate > now;
+      }
+      return true;
+    },
+    {
+      message: "A data de retorno não pode ser no passado",
+      path: ["returnDate"],
+    },
+  )
+  .refine(
+    (data) => {
+      // Se returnDate e returnTime estiverem preenchidos, returnNotes deve estar preenchido
+      if (data.returnDate && data.returnTime && !data.returnNotes?.trim()) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message:
+        "Notas para o retorno são obrigatórias quando uma data e turno são selecionados",
+      path: ["returnNotes"],
+    },
+  );
 
 type IdentificationFormValues = z.infer<typeof identificationSchema>;
-type MainFormValues = z.infer<typeof mainFormSchema>;
 
 type EvaluationFormProps = {
   patientSurgeries: Array<{
@@ -140,6 +199,10 @@ type EvaluationFormProps = {
       };
     };
   }>;
+  occupancyData?: Record<
+    string,
+    { total: number; morning: number; afternoon: number }
+  >;
 };
 
 export function EvaluationForm({
@@ -149,6 +212,7 @@ export function EvaluationForm({
   patientSurgeries,
   medications,
   firstPrescription,
+  occupancyData,
 }: EvaluationFormProps) {
   const router = useRouter();
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
@@ -169,7 +233,7 @@ export function EvaluationForm({
   const emptyFundoscopy = "";
   const emptyGonioscopy = "";
 
-  const mainForm = useForm<MainFormValues>({
+  const mainForm = useForm<EvaluationMainFormValues>({
     resolver: zodResolver(mainFormSchema),
     defaultValues: {
       biomicroscopyOD:
@@ -220,34 +284,78 @@ export function EvaluationForm({
         evaluation.eyes?.leftEye?.logs.find(
           (log) => log.type === "SPECULAR_MICROSCOPY",
         )?.details ?? "",
-      octOD: evaluation.eyes?.rightEye?.logs.find((log) => log.type === "OCT")
-        ?.details,
-      octOS: evaluation.eyes?.leftEye?.logs.find((log) => log.type === "OCT")
-        ?.details,
-      ctCorneaOD: evaluation.eyes?.rightEye?.logs.find(
-        (log) => log.type === "CT_CORNEA",
-      )?.details,
-      ctCorneaOS: evaluation.eyes?.leftEye?.logs.find(
-        (log) => log.type === "CT_CORNEA",
-      )?.details,
-      angiographyOD: evaluation.eyes?.rightEye?.logs.find(
-        (log) => log.type === "ANGIOGRAPHY",
-      )?.details,
-      angiographyOS: evaluation.eyes?.leftEye?.logs.find(
-        (log) => log.type === "ANGIOGRAPHY",
-      )?.details,
-      visualFieldOD: evaluation.eyes?.rightEye?.logs.find(
-        (log) => log.type === "VISUAL_FIELD",
-      )?.details,
-      visualFieldOS: evaluation.eyes?.leftEye?.logs.find(
-        (log) => log.type === "VISUAL_FIELD",
-      )?.details,
-      retinographyOD: evaluation.eyes?.rightEye?.logs.find(
-        (log) => log.type === "RETINOGRAPHY",
-      )?.details,
-      retinographyOS: evaluation.eyes?.leftEye?.logs.find(
-        (log) => log.type === "RETINOGRAPHY",
-      )?.details,
+      // Exames de imagem - arquivos
+      octOD:
+        evaluation.eyes?.rightEye?.logs.find((log) => log.type === "OCT")
+          ?.fileUrl ?? "",
+      octOS:
+        evaluation.eyes?.leftEye?.logs.find((log) => log.type === "OCT")
+          ?.fileUrl ?? "",
+      ctCorneaOD:
+        evaluation.eyes?.rightEye?.logs.find((log) => log.type === "CT_CORNEA")
+          ?.fileUrl ?? "",
+      ctCorneaOS:
+        evaluation.eyes?.leftEye?.logs.find((log) => log.type === "CT_CORNEA")
+          ?.fileUrl ?? "",
+      angiographyOD:
+        evaluation.eyes?.rightEye?.logs.find(
+          (log) => log.type === "ANGIOGRAPHY",
+        )?.fileUrl ?? "",
+      angiographyOS:
+        evaluation.eyes?.leftEye?.logs.find((log) => log.type === "ANGIOGRAPHY")
+          ?.fileUrl ?? "",
+      visualFieldOD:
+        evaluation.eyes?.rightEye?.logs.find(
+          (log) => log.type === "VISUAL_FIELD",
+        )?.fileUrl ?? "",
+      visualFieldOS:
+        evaluation.eyes?.leftEye?.logs.find(
+          (log) => log.type === "VISUAL_FIELD",
+        )?.fileUrl ?? "",
+      retinographyOD:
+        evaluation.eyes?.rightEye?.logs.find(
+          (log) => log.type === "RETINOGRAPHY",
+        )?.fileUrl ?? "",
+      retinographyOS:
+        evaluation.eyes?.leftEye?.logs.find(
+          (log) => log.type === "RETINOGRAPHY",
+        )?.fileUrl ?? "",
+      // Exames de imagem - anotações
+      octAnnotationOD:
+        evaluation.eyes?.rightEye?.logs.find((log) => log.type === "OCT")
+          ?.annotation ?? "",
+      octAnnotationOS:
+        evaluation.eyes?.leftEye?.logs.find((log) => log.type === "OCT")
+          ?.annotation ?? "",
+      visualFieldAnnotationOD:
+        evaluation.eyes?.rightEye?.logs.find(
+          (log) => log.type === "VISUAL_FIELD",
+        )?.annotation ?? "",
+      visualFieldAnnotationOS:
+        evaluation.eyes?.leftEye?.logs.find(
+          (log) => log.type === "VISUAL_FIELD",
+        )?.annotation ?? "",
+      angiographyAnnotationOD:
+        evaluation.eyes?.rightEye?.logs.find(
+          (log) => log.type === "ANGIOGRAPHY",
+        )?.annotation ?? "",
+      angiographyAnnotationOS:
+        evaluation.eyes?.leftEye?.logs.find((log) => log.type === "ANGIOGRAPHY")
+          ?.annotation ?? "",
+      ctCorneaAnnotationOD:
+        evaluation.eyes?.rightEye?.logs.find((log) => log.type === "CT_CORNEA")
+          ?.annotation ?? "",
+      ctCorneaAnnotationOS:
+        evaluation.eyes?.leftEye?.logs.find((log) => log.type === "CT_CORNEA")
+          ?.annotation ?? "",
+      retinographyAnnotationOD:
+        evaluation.eyes?.rightEye?.logs.find(
+          (log) => log.type === "RETINOGRAPHY",
+        )?.annotation ?? "",
+      retinographyAnnotationOS:
+        evaluation.eyes?.leftEye?.logs.find(
+          (log) => log.type === "RETINOGRAPHY",
+        )?.annotation ?? "",
       clinicalData: evaluation.clinicalData ?? "",
       continuousData:
         (evaluation.continuousData || lastEvaluationData?.continuousData) ?? "",
@@ -255,11 +363,14 @@ export function EvaluationForm({
       treatment: evaluation.treatment ?? "",
       followUp: evaluation.followUp ?? "",
       nextAppointment: evaluation.nextAppointment ?? "",
+      returnDate: "",
+      returnTime: undefined,
+      returnNotes: evaluation.returnNotes ?? "",
     },
   });
 
   const updateEvaluation = api.evaluation.update.useMutation({
-    onSuccess: (data, variables) => {
+    onSuccess: (variables) => {
       const message = variables.done
         ? "A avaliação foi marcada como concluída com sucesso."
         : "A avaliação foi salva com sucesso.";
@@ -296,9 +407,30 @@ export function EvaluationForm({
     },
   });
 
-  const isSubmitting = updateEvaluation.isPending;
+  const createAppointment = api.appointment.create.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Agendamento criado!",
+        description:
+          "O retorno foi agendado automaticamente com o turno selecionado.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao agendar",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
-  const handleSubmitMainForm = (data: MainFormValues, done = false) => {
+  const isSubmitting =
+    updateEvaluation.isPending || createAppointment.isPending;
+
+  const handleSubmitMainForm = (
+    data: EvaluationMainFormValues,
+    done = false,
+  ) => {
     if (identificationForm.getValues("clinic") === "") {
       identificationForm.setFocus("clinic");
       identificationForm.setError("clinic", {
@@ -326,7 +458,39 @@ export function EvaluationForm({
       leftEyeId: evaluation.eyes?.leftEyeId,
     };
 
-    updateEvaluation.mutate(payload);
+    updateEvaluation.mutate(payload, {
+      onSuccess: () => {
+        // Se os campos de data e horário estiverem preenchidos, criar agendamento automaticamente
+        if (data.returnDate && data.returnTime && done) {
+          const scheduledDate = new Date(
+            `${data.returnDate}T${data.returnTime}`,
+          );
+
+          const turnoText =
+            data.returnTime === "07:00" ? "Manhã (07h)" : "Tarde (13h)";
+
+          // Construir as notas do agendamento
+          let appointmentNotes = `Retorno agendado automaticamente durante a avaliação - Turno: ${turnoText}.`;
+
+          if (data.nextAppointment) {
+            appointmentNotes += ` Próxima consulta: ${data.nextAppointment}.`;
+          }
+
+          if (data.returnNotes) {
+            appointmentNotes += ` Notas para retorno: ${data.returnNotes}.`;
+          }
+
+          createAppointment.mutate({
+            patientId: evaluation.patient.id,
+            collaboratorId: evaluation.collaborator.id,
+            clinicId: identificationForm.getValues().clinic,
+            evaluationId: evaluation.id,
+            scheduledDate,
+            notes: appointmentNotes,
+          });
+        }
+      },
+    });
   };
 
   const handleConcludeFromDialog = () => {
@@ -398,6 +562,9 @@ export function EvaluationForm({
           lastEvaluationData={lastEvaluationData}
           leftEyeId={evaluation.eyes?.leftEyeId}
           rightEyeId={evaluation.eyes?.rightEyeId}
+          collaboratorId={evaluation.collaborator.id}
+          patientId={evaluation.patient.id}
+          occupancyData={occupancyData}
         />
         <div className="flex w-full flex-col space-y-4 text-sm sm:max-w-xs">
           <EvaluationRefractionForm

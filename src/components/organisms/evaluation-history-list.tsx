@@ -138,6 +138,11 @@ export function EvaluationHistoryList({
                 <strong>Próxima consulta:</strong>{" "}
                 {evaluation.nextAppointment || "N/A"}
               </p>
+              {evaluation.returnNotes && (
+                <p>
+                  <strong>Notas para retorno:</strong> {evaluation.returnNotes}
+                </p>
+              )}
             </CardContent>
 
             <CardFooter className="flex items-center justify-between">

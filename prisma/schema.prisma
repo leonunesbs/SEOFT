@@ -14,10 +14,11 @@ model Patient {
   name      String
   birthDate DateTime
 
-  createdAt   DateTime                          @default(now())
-  updatedAt   DateTime                          @updatedAt
-  evaluations Evaluation[]
-  injections  IntravitrealInjectionIndication[]
+  createdAt    DateTime                          @default(now())
+  updatedAt    DateTime                          @updatedAt
+  evaluations  Evaluation[]
+  injections   IntravitrealInjectionIndication[]
+  appointments Appointment[]
 }
 
 model Clinic {
@@ -26,6 +27,7 @@ model Clinic {
   collaborators ClinicCollaborator[]
   evaluations   Evaluation[]
   injections    IntravitrealInjectionIndication[]
+  appointments  Appointment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -40,6 +42,7 @@ model Collaborator {
   clinics        ClinicCollaborator[]
   evaluations    Evaluation[]
   indications    IntravitrealInjectionIndication[]
+  appointments   Appointment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -70,6 +73,7 @@ model Evaluation {
   treatment       String?
   followUp        String?
   nextAppointment String?
+  returnNotes     String?
 
   // Form inputs
   swalisClassification String?
@@ -79,8 +83,17 @@ model Evaluation {
   medication           String?
   medicationOther      String?
 
+  // Optical biometry (mantido no Evaluation pois não é exame de imagem)
+  opticalBiometryOD String?
+  opticalBiometryOS String?
+
+  // Specular microscopy (mantido no Evaluation pois não é exame de imagem)
+  specularMicroscopyOD String?
+  specularMicroscopyOS String?
+
   eyes          Eyes?
   prescriptions Prescription[]
+  appointments  Appointment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -117,7 +130,9 @@ model EyeLog {
   id         String     @default(cuid())
   type       EyeLogType
   eyeId      String
-  details    String?
+  details    String? // Para exames que não são de imagem
+  fileUrl    String? // Para arquivos de exames de imagem
+  annotation String? // Para anotações de exames de imagem
   recordedAt DateTime   @default(now())
   eye        Eye        @relation(fields: [eyeId], references: [id], onDelete: Cascade)
 
@@ -334,6 +349,35 @@ model IntravitrealInjection {
   updatedAt           DateTime        @updatedAt
 
   indication IntravitrealInjectionIndication @relation(fields: [indicationId], references: [id], onDelete: Cascade)
+}
+
+// Modelo para agendamentos de retorno
+model Appointment {
+  id             String            @id @default(cuid())
+  patientId      String
+  collaboratorId String
+  clinicId       String?
+  evaluationId   String?
+  scheduledDate  DateTime
+  status         AppointmentStatus @default(SCHEDULED)
+  notes          String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  collaborator Collaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  clinic       Clinic?      @relation(fields: [clinicId], references: [id], onDelete: SetNull)
+  evaluation   Evaluation?  @relation(fields: [evaluationId], references: [id], onDelete: SetNull)
+
+  @@unique([patientId, scheduledDate], name: "unique_patient_date")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
 }
 
 // NextAuth models omitted for brevity

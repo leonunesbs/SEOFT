@@ -42,6 +42,12 @@ interface EvaluationSummaryCopyButtonProps {
         };
       };
       prescriptions: true;
+      appointments: {
+        include: {
+          clinic: true;
+          collaborator: true;
+        };
+      };
     };
   }>;
 }
@@ -104,6 +110,31 @@ export function EvaluationSummaryCopyButton({
     if (!date) return "";
     return new Date(date).toLocaleDateString("pt-BR", {
       timeZone: "America/Sao_Paulo",
+    });
+  };
+
+  // Função para determinar o turno baseado no horário
+  const getShift = (date: Date | string) => {
+    const dateObj = new Date(date);
+    const hour = dateObj.getHours();
+
+    if (hour < 12) {
+      return "Manhã";
+    } else {
+      return "Tarde";
+    }
+  };
+
+  // Função para formatar data e hora
+  const formatDateTime = (date: Date | string | null | undefined) => {
+    if (!date) return "";
+    return new Date(date).toLocaleString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -310,6 +341,47 @@ export function EvaluationSummaryCopyButton({
 
     if (evaluation.nextAppointment) {
       output += `Próxima Consulta: ${evaluation.nextAppointment}\n`;
+    }
+
+    if (evaluation.returnNotes) {
+      output += `Notas para o Retorno: ${evaluation.returnNotes}\n`;
+    }
+
+    // 4. Agendamentos Marcados
+    const appointments = evaluation.appointments || [];
+    if (appointments.length > 0) {
+      output += `\n*📅 AGENDAMENTOS MARCADOS*\n`;
+      output += `━━━━━━━━━━━━━━━━━━\n`;
+
+      // Ordenar agendamentos por data
+      const sortedAppointments = appointments.sort(
+        (a, b) =>
+          new Date(a.scheduledDate).getTime() -
+          new Date(b.scheduledDate).getTime(),
+      );
+
+      sortedAppointments.forEach((appointment: any, index: number) => {
+        const appointmentDate = new Date(appointment.scheduledDate);
+        const dayOfWeek = appointmentDate.toLocaleDateString("pt-BR", {
+          weekday: "long",
+          timeZone: "America/Sao_Paulo",
+        });
+        const shift = getShift(appointment.scheduledDate);
+
+        output += `Agendamento ${index + 1}:\n`;
+        output += `  • Dia: ${dayOfWeek}\n`;
+        output += `  • Data: ${formatDate(appointment.scheduledDate)}\n`;
+        output += `  • Horário: ${formatDateTime(appointment.scheduledDate)}\n`;
+        output += `  • Turno: ${shift}\n`;
+        output += `  • Clínica: ${appointment.clinic?.name || "N/A"}\n`;
+        output += `  • Médico: ${appointment.collaborator?.name || "N/A"}\n`;
+        output += `  • Status: ${appointment.status || "N/A"}\n`;
+
+        if (appointment.notes) {
+          output += `  • Observações: ${appointment.notes}\n`;
+        }
+        output += `\n`;
+      });
     }
 
     // 5. Prescrições
