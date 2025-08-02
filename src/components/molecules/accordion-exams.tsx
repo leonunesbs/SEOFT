@@ -31,6 +31,7 @@ import { EvaluationMainFormValues } from "../organisms/evaluation-main-form";
 import { EyeFileViewer } from "../atoms/eye-file-viewer";
 import { Input } from "../ui/input";
 import { OpticalBiometryFormFields } from "./opticalBiometry-form-fields";
+import { Prisma } from "@prisma/client";
 import { Textarea } from "../ui/textarea";
 
 // Type for lastEvaluationData with annotations
@@ -123,11 +124,12 @@ export function AccordionExams({
         } else {
           // For fields not specific to an eye
           value =
-            (lastEvaluationData as LastEvaluationDataWithAnnotations)[field] ||
-            "";
-        }
+            (lastEvaluationData as LastEvaluationDataWithAnnotations)?.[
+              field as keyof LastEvaluationDataWithAnnotations
+            ] ?? "";
 
-        form.setValue(field, value as string | undefined);
+          form.setValue(field, value as string | undefined);
+        }
       });
     },
     [lastEvaluationData, form],

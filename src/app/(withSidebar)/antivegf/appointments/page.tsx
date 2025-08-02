@@ -30,19 +30,6 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import {
-  STATUS_COLORS,
-  SWALIS_COLORS,
-  formatDateAndWeekday,
-  formatDateForAPI,
-  formatDateForDisplay,
-  getAvailableDaysInfo,
-  getEyeIcon,
-  getEyeLabel,
-  getPriorityText,
-  getStatusText,
-  isValidAppointmentDate,
-} from "~/lib/utils/antivegf";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -57,16 +44,29 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import {
+  STATUS_COLORS,
+  SWALIS_COLORS,
+  formatDateAndWeekday,
+  formatDateForAPI,
+  formatDateForDisplay,
+  getAvailableDaysInfo,
+  getEyeIcon,
+  getEyeLabel,
+  getPriorityText,
+  getStatusText,
+  isValidAppointmentDate,
+} from "~/lib/utils/antivegf";
 
+import Link from "next/link";
+import { useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
-import Link from "next/link";
 import { ScheduleDatePicker } from "~/components/ui/schedule-date-picker";
 import { Textarea } from "~/components/ui/textarea";
-import { api } from "~/trpc/react";
-import { useState } from "react";
 import { useToast } from "~/hooks/use-toast";
+import { api } from "~/trpc/react";
 
 // Tipos para os agendamentos
 interface Appointment {
@@ -79,7 +79,7 @@ interface Appointment {
   duration: number;
   doctor: string;
   room: string;
-  status: "pending" | "rescheduled" | "confirmed" | "completed";
+  status: "SCHEDULED" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
   medication: string;
   priority: "low" | "medium" | "high";
   notes?: string;
@@ -136,8 +136,15 @@ export default function AppointmentsPage() {
   );
 
   // Query para buscar agendamentos da data selecionada
-  const appointmentsQuery = api.appointment.getByDate.useQuery(
-    { date: formatDateForAPI(selectedDate) },
+  const appointmentsQuery = api.appointment.getAll.useQuery(
+    {
+      startDate: selectedDate
+        ? new Date(selectedDate.setHours(0, 0, 0, 0))
+        : undefined,
+      endDate: selectedDate
+        ? new Date(selectedDate.setHours(23, 59, 59, 999))
+        : undefined,
+    },
     {
       enabled: !!selectedDate && isValidAppointmentDate(selectedDate),
       refetchInterval: 30000, // Refetch a cada 30 segundos
@@ -193,22 +200,9 @@ export default function AppointmentsPage() {
   const handleSaveEdit = () => {
     if (!editingAppointment) return;
 
-    // Converter status do frontend para o formato do backend
-    const statusMap: Record<
-      string,
-      "PENDING" | "RESCHEDULED" | "CONFIRMED" | "COMPLETED"
-    > = {
-      pending: "PENDING",
-      rescheduled: "RESCHEDULED",
-      confirmed: "CONFIRMED",
-      completed: "COMPLETED",
-    };
-
-    const backendStatus = statusMap[editingAppointment.status] || "PENDING";
-
     updateAppointmentMutation.mutate({
       id: editingAppointment.id,
-      status: backendStatus,
+      status: editingAppointment.status,
       scheduledDate: new Date(
         editingAppointment.date + "T" + editingAppointment.time,
       ),
@@ -218,8 +212,8 @@ export default function AppointmentsPage() {
     setEditingAppointment(null);
   };
 
-  const filteredAppointments = (appointmentsQuery.data || []).filter(
-    (appointment) =>
+  const filteredAppointments = (appointmentsQuery.data?.items || []).filter(
+    (appointment: any) =>
       statusFilter === "all" || appointment.status === statusFilter,
   );
   const availableDays = getAvailableDaysInfo();
@@ -359,10 +353,11 @@ export default function AppointmentsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os status</SelectItem>
-                    <SelectItem value="pending">Pendente</SelectItem>
-                    <SelectItem value="rescheduled">Reagendado</SelectItem>
-                    <SelectItem value="confirmed">Confirmado</SelectItem>
-                    <SelectItem value="completed">Concluído</SelectItem>
+                    <SelectItem value="SCHEDULED">Agendado</SelectItem>
+                    <SelectItem value="CONFIRMED">Confirmado</SelectItem>
+                    <SelectItem value="COMPLETED">Concluído</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelado</SelectItem>
+                    <SelectItem value="NO_SHOW">Não compareceu</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -426,7 +421,7 @@ export default function AppointmentsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredAppointments.map((appointment) => (
+                    {filteredAppointments.map((appointment: any) => (
                       <TableRow
                         key={appointment.id}
                         className="border-border/30 hover:bg-muted/50 dark:border-border/20 dark:hover:bg-muted/30"
@@ -436,10 +431,10 @@ export default function AppointmentsPage() {
                             <User className="h-4 w-4 text-muted-foreground dark:text-muted-foreground/70" />
                             <div>
                               <div className="font-medium text-foreground dark:text-foreground/90">
-                                {appointment.patientName}
+                                {appointment.patient?.name || "N/A"}
                               </div>
                               <div className="text-sm text-muted-foreground dark:text-muted-foreground/70">
-                                {appointment.patientPhone}
+                                {appointment.patient?.refId || "N/A"}
                               </div>
                             </div>
                           </div>
@@ -447,19 +442,30 @@ export default function AppointmentsPage() {
                         <TableCell className="text-foreground dark:text-foreground/90">
                           <div className="flex items-center space-x-2">
                             <Clock className="h-4 w-4 text-muted-foreground dark:text-muted-foreground/70" />
-                            <span>{appointment.time}</span>
+                            <span>
+                              {appointment.scheduledDate
+                                ? new Date(
+                                    appointment.scheduledDate,
+                                  ).toLocaleTimeString("pt-BR", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
+                                : "N/A"}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell className="hidden text-foreground dark:text-foreground/90 md:table-cell">
-                          {appointment.medication}
+                          {appointment.medication || "N/A"}
                         </TableCell>
                         <TableCell className="text-foreground dark:text-foreground/90">
                           <div className="flex items-center space-x-2">
-                            <span>{getEyeIcon(appointment.eye)}</span>
+                            <span>{getEyeIcon(appointment.eye || "OD")}</span>
                             <span className="hidden sm:inline">
-                              {getEyeLabel(appointment.eye)}
+                              {getEyeLabel(appointment.eye || "OD")}
                             </span>
-                            <span className="sm:hidden">{appointment.eye}</span>
+                            <span className="sm:hidden">
+                              {appointment.eye || "OD"}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
@@ -467,7 +473,7 @@ export default function AppointmentsPage() {
                             variant="outline"
                             className="border-border/50 dark:border-border/30"
                           >
-                            {appointment.doseNumber}ª dose
+                            {appointment.doseNumber || 1}ª dose
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -485,12 +491,12 @@ export default function AppointmentsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden text-foreground dark:text-foreground/90 lg:table-cell">
-                          {appointment.doctor}
+                          {appointment.collaborator?.name || "N/A"}
                         </TableCell>
                         <TableCell className="hidden text-foreground dark:text-foreground/90 md:table-cell">
                           <div className="flex items-center space-x-2">
                             <MapPin className="h-4 w-4 text-muted-foreground dark:text-muted-foreground/70" />
-                            <span>{appointment.room}</span>
+                            <span>{appointment.clinic?.name || "N/A"}</span>
                           </div>
                         </TableCell>
                         <TableCell className="hidden xl:table-cell">
@@ -589,10 +595,11 @@ export default function AppointmentsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Pendente</SelectItem>
-                    <SelectItem value="rescheduled">Reagendado</SelectItem>
-                    <SelectItem value="confirmed">Confirmado</SelectItem>
-                    <SelectItem value="completed">Concluído</SelectItem>
+                    <SelectItem value="SCHEDULED">Agendado</SelectItem>
+                    <SelectItem value="CONFIRMED">Confirmado</SelectItem>
+                    <SelectItem value="COMPLETED">Concluído</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelado</SelectItem>
+                    <SelectItem value="NO_SHOW">Não compareceu</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
