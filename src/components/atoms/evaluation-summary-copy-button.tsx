@@ -178,17 +178,29 @@ export function EvaluationSummaryCopyButton({
       bestLeftRefraction?.correctionType || "sc",
     );
 
-    // Logs dos olhos - incluir todos os logs, não apenas os com details
-    const rightEyeLogs = eyes?.rightEye?.logs ?? [];
-    const leftEyeLogs = eyes?.leftEye?.logs ?? [];
+    // Logs dos olhos - filtrar apenas logs com dados relevantes
+    const rightEyeLogs =
+      eyes?.rightEye?.logs?.filter((log: any) => {
+        // Incluir se tem details, annotation ou fileUrl
+        return (
+          (log.details && log.details.trim() !== "") ||
+          (log.annotation && log.annotation.trim() !== "") ||
+          log.fileUrl
+        );
+      }) ?? [];
+    const leftEyeLogs =
+      eyes?.leftEye?.logs?.filter((log: any) => {
+        // Incluir se tem details, annotation ou fileUrl
+        return (
+          (log.details && log.details.trim() !== "") ||
+          (log.annotation && log.annotation.trim() !== "") ||
+          log.fileUrl
+        );
+      }) ?? [];
 
-    // Cirurgias dos olhos
-    const rightEyeSurgeries = patient.evaluations.flatMap(
-      (evalData: any) => evalData.eyes?.rightEye?.surgeries ?? [],
-    );
-    const leftEyeSurgeries = patient.evaluations.flatMap(
-      (evalData: any) => evalData.eyes?.leftEye?.surgeries ?? [],
-    );
+    // Cirurgias dos olhos - apenas da avaliação atual
+    const rightEyeSurgeries = eyes?.rightEye?.surgeries ?? [];
+    const leftEyeSurgeries = eyes?.leftEye?.surgeries ?? [];
 
     // Colírios dos olhos (apenas da avaliação atual)
     const rightEyeEyedrops = eyes?.rightEye?.eyedrops ?? [];
@@ -253,17 +265,11 @@ export function EvaluationSummaryCopyButton({
           output += ` (${formatDate(log.recordedAt)})`;
         }
 
-        // Para exames de imagem, mostrar se há arquivo ou anotação
-        if (log.fileUrl) {
-          output += ` (Arquivo disponível)`;
-        }
-
-        if (log.details && log.details.trim() !== "") {
-          output += `: ${log.details}`;
-        }
-
+        // Para exames de imagem, mostrar apenas anotação se disponível
         if (log.annotation && log.annotation.trim() !== "") {
-          output += `\n    Anotação: ${log.annotation}`;
+          output += `: ${log.annotation}`;
+        } else if (log.details && log.details.trim() !== "") {
+          output += `: ${log.details}`;
         }
 
         output += `\n`;
@@ -322,17 +328,11 @@ export function EvaluationSummaryCopyButton({
           output += ` (${formatDate(log.recordedAt)})`;
         }
 
-        // Para exames de imagem, mostrar se há arquivo ou anotação
-        if (log.fileUrl) {
-          output += ` (Arquivo disponível)`;
-        }
-
-        if (log.details && log.details.trim() !== "") {
-          output += `: ${log.details}`;
-        }
-
+        // Para exames de imagem, mostrar apenas anotação se disponível
         if (log.annotation && log.annotation.trim() !== "") {
-          output += `\n    Anotação: ${log.annotation}`;
+          output += `: ${log.annotation}`;
+        } else if (log.details && log.details.trim() !== "") {
+          output += `: ${log.details}`;
         }
 
         output += `\n`;
@@ -363,26 +363,32 @@ export function EvaluationSummaryCopyButton({
       });
     }
 
-    // Biometria Óptica (dados do Evaluation)
-    if (evaluation.opticalBiometryOD || evaluation.opticalBiometryOS) {
+    // Biometria Óptica (dados do Evaluation) - apenas se preenchido
+    if (
+      evaluation.opticalBiometryOD?.trim() ||
+      evaluation.opticalBiometryOS?.trim()
+    ) {
       output += `\n*🔬 BIOMETRIA ÓPTICA*\n`;
       output += `━━━━━━━━━━━━━━━━━━\n`;
-      if (evaluation.opticalBiometryOD) {
+      if (evaluation.opticalBiometryOD?.trim()) {
         output += `Olho Direito (OD): ${evaluation.opticalBiometryOD}\n`;
       }
-      if (evaluation.opticalBiometryOS) {
+      if (evaluation.opticalBiometryOS?.trim()) {
         output += `Olho Esquerdo (OE): ${evaluation.opticalBiometryOS}\n`;
       }
     }
 
-    // Microscopia Especular (dados do Evaluation)
-    if (evaluation.specularMicroscopyOD || evaluation.specularMicroscopyOS) {
+    // Microscopia Especular (dados do Evaluation) - apenas se preenchido
+    if (
+      evaluation.specularMicroscopyOD?.trim() ||
+      evaluation.specularMicroscopyOS?.trim()
+    ) {
       output += `\n*🔬 MICROSCOPIA ESPECULAR*\n`;
       output += `━━━━━━━━━━━━━━━━━━\n`;
-      if (evaluation.specularMicroscopyOD) {
+      if (evaluation.specularMicroscopyOD?.trim()) {
         output += `Olho Direito (OD): ${evaluation.specularMicroscopyOD}\n`;
       }
-      if (evaluation.specularMicroscopyOS) {
+      if (evaluation.specularMicroscopyOS?.trim()) {
         output += `Olho Esquerdo (OE): ${evaluation.specularMicroscopyOS}\n`;
       }
     }
@@ -395,45 +401,46 @@ export function EvaluationSummaryCopyButton({
       output += `\nDados Persistentes:\n${evaluation.continuousData.trim()}\n`;
     }
 
-    // Dados específicos do Antivegf (se disponíveis)
+    // Dados específicos do Antivegf (se disponíveis) - apenas se preenchido
     if (
-      evaluation.swalisClassification ||
-      evaluation.indication ||
-      evaluation.medication
+      evaluation.swalisClassification?.trim() ||
+      evaluation.indication?.trim() ||
+      evaluation.medication?.trim() ||
+      evaluation.observations?.trim()
     ) {
       output += `\n*💉 DADOS ANTIVEGF*\n`;
       output += `━━━━━━━━━━━━━━━━━━\n`;
-      if (evaluation.swalisClassification) {
+      if (evaluation.swalisClassification?.trim()) {
         output += `Classificação Swalis: ${evaluation.swalisClassification}\n`;
       }
-      if (evaluation.indication) {
+      if (evaluation.indication?.trim()) {
         output += `Indicação: ${evaluation.indication}`;
-        if (evaluation.indicationOther) {
+        if (evaluation.indicationOther?.trim()) {
           output += ` - ${evaluation.indicationOther}`;
         }
         output += `\n`;
       }
-      if (evaluation.medication) {
+      if (evaluation.medication?.trim()) {
         output += `Medicação: ${evaluation.medication}`;
-        if (evaluation.medicationOther) {
+        if (evaluation.medicationOther?.trim()) {
           output += ` - ${evaluation.medicationOther}`;
         }
         output += `\n`;
       }
-      if (evaluation.observations) {
+      if (evaluation.observations?.trim()) {
         output += `Observações: ${evaluation.observations}\n`;
       }
     }
 
-    output += `\nDiagnóstico: ${evaluation.diagnosis || "N/A"}\n`;
-    output += `Tratamento: ${evaluation.treatment || "N/A"}\n`;
-    output += `Acompanhamento: ${evaluation.followUp || "N/A"}\n`;
+    output += `\nDiagnóstico: ${evaluation.diagnosis?.trim() || "N/A"}\n`;
+    output += `Tratamento: ${evaluation.treatment?.trim() || "N/A"}\n`;
+    output += `Acompanhamento: ${evaluation.followUp?.trim() || "N/A"}\n`;
 
-    if (evaluation.nextAppointment) {
+    if (evaluation.nextAppointment?.trim()) {
       output += `Próxima Consulta: ${evaluation.nextAppointment}\n`;
     }
 
-    if (evaluation.returnNotes) {
+    if (evaluation.returnNotes?.trim()) {
       output += `Notas para o Retorno: ${evaluation.returnNotes}\n`;
     }
 
@@ -515,7 +522,8 @@ export function EvaluationSummaryCopyButton({
       output += `━━━━━━━━━━━━━━━━━━\n`;
       patientEvaluations.slice(0, 5).forEach((ev: any) => {
         const isCurrent = ev.id === evaluation.id;
-        output += `${isCurrent ? "→ " : "  "}${formatDate(ev.createdAt)}: ${ev.diagnosis || "N/A"}\n`;
+        const diagnosis = ev.diagnosis?.trim() || "N/A";
+        output += `${isCurrent ? "→ " : "  "}${formatDate(ev.createdAt)}: ${diagnosis}\n`;
       });
       if (patientEvaluations.length > 5) {
         output += `  ... e mais ${patientEvaluations.length - 5} avaliações\n`;
