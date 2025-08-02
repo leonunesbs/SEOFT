@@ -1,165 +1,51 @@
 import { notFound, redirect } from "next/navigation";
 
 import { EvaluationForm } from "~/components/organisms/evaluation-form";
-import { PageHeading } from "~/components/atoms/page-heading";
-import { db } from "~/server/db";
+import { EvaluationHeader } from "~/components/molecules/evaluation-header";
+import { getEvaluationPageData } from "~/server/api/services/evaluation-data";
 
 type Params = Promise<{ id: string }>;
 
 export default async function EvaluationPage({ params }: { params: Params }) {
   const { id } = await params;
 
-  const evaluation = await db.evaluation.findUnique({
-    where: {
-      id,
-    },
-    include: {
-      clinic: true,
-      collaborator: true,
-      patient: true,
-      eyes: {
-        include: {
-          leftEye: {
-            include: {
-              logs: true,
-              refraction: true,
-              surgeries: {
-                orderBy: {
-                  date: "asc",
-                },
-              },
-            },
-          },
-          rightEye: {
-            include: {
-              logs: true,
-              refraction: true,
-              surgeries: {
-                orderBy: {
-                  date: "asc",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-  const lastEvaluation = (await db.evaluation.findFirst({
-    where: {
-      done: true,
-      patientId: evaluation?.patientId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      eyes: {
-        include: {
-          leftEye: {
-            include: {
-              logs: true,
-              refraction: true,
-              surgeries: true,
-            },
-          },
-          rightEye: {
-            include: {
-              logs: true,
-              refraction: true,
-              surgeries: true,
-            },
-          },
-        },
-      },
-    },
-  }))!;
+  // Buscar todos os dados necessários de uma vez
+  const data = await getEvaluationPageData(id);
 
-  if (!evaluation) notFound();
+  if (!data) {
+    notFound();
+  }
 
-  const clinics = await db.clinic.findMany({
-    include: {
-      collaborators: {
-        select: {
-          collaborator: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-    },
-  });
-  const patientSurgeries = await db.evaluation.findMany({
-    where: {
-      patientId: evaluation.patientId,
-    },
-    include: {
-      eyes: {
-        include: {
-          leftEye: {
-            include: {
-              surgeries: {
-                orderBy: {
-                  date: "asc",
-                },
-              },
-            },
-          },
-          rightEye: {
-            include: {
-              surgeries: {
-                orderBy: {
-                  date: "asc",
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
+  const {
+    evaluation: rawEvaluation,
+    lastEvaluation,
+    clinics,
+    medications,
+    firstPrescription,
+    patientSurgeries,
+  } = data;
 
-  const medications = await db.medication.findMany({
-    orderBy: {
-      name: "asc",
-    },
-  });
+  // Transform the evaluation to match the expected type
+  const evaluation = rawEvaluation as any;
 
-  const firstPrescription = await db.prescription.findFirst({
-    where: {
-      evaluationId: id,
-    },
-    include: {
-      prescriptionItems: {
-        include: {
-          medication: true,
-        },
-      },
-    },
-  });
-  if (evaluation.done) redirect(`/evaluations/${id}/summary`);
+  // Redirecionar se a avaliação já estiver completa
+  if (evaluation.done) {
+    redirect(`/evaluations/${id}/summary`);
+  }
+
   return (
-    <div>
-      <div className="flex justify-between">
-        <PageHeading>Avaliação</PageHeading>
-      </div>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <EvaluationHeader evaluation={evaluation} />
+
+      {/* Evaluation Form */}
       <EvaluationForm
         evaluation={evaluation}
-        lastEvaluationData={lastEvaluation}
+        lastEvaluationData={lastEvaluation ?? undefined}
         clinics={clinics}
         medications={medications}
         firstPrescription={firstPrescription ?? undefined}
-        patientSurgeries={patientSurgeries.map((evaluation) => ({
-          eyes: {
-            leftEye: {
-              surgeries: evaluation.eyes?.leftEye.surgeries ?? [],
-            },
-            rightEye: {
-              surgeries: evaluation.eyes?.rightEye.surgeries ?? [],
-            },
-          },
-        }))}
+        patientSurgeries={patientSurgeries}
       />
     </div>
   );

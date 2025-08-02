@@ -121,6 +121,58 @@ const routeConfig: RouteConfig[] = [
       },
     ],
   },
+  {
+    path: "/antivegf",
+    label: () => "AntiVEGF",
+    redirectUrl: "/antivegf",
+    children: [
+      {
+        path: "/antivegf/indications",
+        label: () => "Indicações",
+        redirectUrl: "/antivegf/indications",
+      },
+      {
+        path: "/antivegf/indications/new",
+        label: () => "Nova Indicação",
+        redirectUrl: "/antivegf/indications/new",
+      },
+      {
+        path: "/antivegf/indications/:id",
+        label: () => "Detalhes da Indicação",
+        redirectUrl: "/antivegf/indications",
+      },
+      {
+        path: "/antivegf/indications/:id/edit",
+        label: () => "Editar Indicação",
+        redirectUrl: "/antivegf/indications",
+      },
+      {
+        path: "/antivegf/appointments",
+        label: () => "Agendamentos",
+        redirectUrl: "/antivegf/appointments",
+      },
+      {
+        path: "/antivegf/injection-day-management",
+        label: () => "Gestão de Injeções",
+        redirectUrl: "/antivegf/injection-day-management",
+      },
+      {
+        path: "/antivegf/schedule-management",
+        label: () => "Gestão de Agenda",
+        redirectUrl: "/antivegf/schedule-management",
+      },
+      {
+        path: "/antivegf/schedule-management/capacity",
+        label: () => "Capacidade",
+        redirectUrl: "/antivegf/schedule-management/capacity",
+      },
+      {
+        path: "/antivegf/nir-evaluation",
+        label: () => "Avaliação NIR",
+        redirectUrl: "/antivegf/nir-evaluation",
+      },
+    ],
+  },
 ];
 
 // Função para gerar breadcrumbs a partir do caminho

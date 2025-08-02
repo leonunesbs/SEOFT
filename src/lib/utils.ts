@@ -95,3 +95,96 @@ export function isValidURL(string: string) {
     return false;
   }
 }
+
+// Funções utilitárias para trabalhar com datas em UTC
+export function createUTCDate(year: number, month: number, day: number): Date {
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+export function normalizeToUTC(date: Date): Date {
+  return new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+  );
+}
+
+export function parseDateStringToUTC(dateString: string): Date | null {
+  const [year, month, day] = dateString.split("-").map(Number);
+  if (!year || !month || !day) {
+    return null;
+  }
+  return createUTCDate(year, month, day);
+}
+
+// Funções para converter entre timezone local (America/Sao_Paulo) e UTC
+export function localToUTC(date: Date): Date {
+  // Converter data local para UTC
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+
+  // Criar data UTC no meio-dia para evitar problemas de fuso horário
+  return new Date(Date.UTC(year, month, day, 12, 0, 0, 0));
+}
+
+export function utcToLocal(date: Date): Date {
+  // Converter data UTC para timezone local (America/Sao_Paulo)
+  return new Date(
+    date.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }),
+  );
+}
+
+export function formatDateForDisplay(
+  date: Date | string | null | undefined,
+  timezone: "UTC" | "America/Sao_Paulo" = "UTC",
+): string {
+  if (!date) return "";
+
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  return dateObj.toLocaleDateString("pt-BR", {
+    timeZone: timezone,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+export function formatDateTimeForDisplay(
+  date: Date | string | null | undefined,
+  timezone: "UTC" | "America/Sao_Paulo" = "UTC",
+): string {
+  if (!date) return "";
+
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+
+  return dateObj.toLocaleDateString("pt-BR", {
+    timeZone: timezone,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// Função para criar data a partir de string no formato YYYY-MM-DD considerando timezone local
+export function parseLocalDateString(dateString: string): Date | null {
+  const [year, month, day] = dateString.split("-").map(Number);
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  // Criar data no timezone local
+  const localDate = new Date(year, month - 1, day);
+
+  // Converter para UTC para armazenamento
+  return localToUTC(localDate);
+}
+
+// Função para formatar data para API (sempre em UTC)
+export function formatDateForAPI(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}

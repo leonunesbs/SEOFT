@@ -1,6 +1,5 @@
 export function applyDateMask(event: React.ChangeEvent<HTMLInputElement>) {
-  const input = event.target;
-  let value = input.value.replace(/\D/g, ""); // Remove caracteres não numéricos
+  let value = event.target.value.replace(/\D/g, ""); // Remove caracteres não numéricos
 
   if (value.length > 2) {
     value = `${value.slice(0, 2)}/${value.slice(2)}`;
@@ -9,7 +8,7 @@ export function applyDateMask(event: React.ChangeEvent<HTMLInputElement>) {
     value = `${value.slice(0, 5)}/${value.slice(5, 9)}`;
   }
 
-  input.value = value.slice(0, 10); // Limita ao máximo de 10 caracteres
+  event.target.value = value.slice(0, 10); // Limita ao máximo de 10 caracteres
 }
 export function formatToDDMMYYYY(date: string) {
   return new Date(date).toLocaleDateString("pt-br", {

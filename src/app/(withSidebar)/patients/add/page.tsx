@@ -1,9 +1,9 @@
-import { PatientForm } from "~/components/organisms/patient-form";
+import { PatientFormPage } from "~/components/organisms/patient-form-page";
 
 export default function AddPatient() {
   return (
     <div>
-      <PatientForm />
+      <PatientFormPage />
     </div>
   );
 }

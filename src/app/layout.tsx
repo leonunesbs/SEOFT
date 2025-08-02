@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 
 import { Analytics } from "@vercel/analytics/next";
+import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "~/components/organisms/theme-provider";
 import { Toaster } from "~/components/ui/toaster";
 import { TRPCReactProvider } from "~/trpc/react";
@@ -108,10 +109,12 @@ export default function RootLayout({
       </head>
       <body className={openSans.className}>
         <TRPCReactProvider>
-          <ThemeProvider>
-            {children}
-            <Toaster />
-          </ThemeProvider>
+          <SessionProvider>
+            <ThemeProvider>
+              {children}
+              <Toaster />
+            </ThemeProvider>
+          </SessionProvider>
         </TRPCReactProvider>
       </body>
       <Analytics />

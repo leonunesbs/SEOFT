@@ -1,4 +1,4 @@
-import { track } from "@vercel/analytics";
+import { track } from "@vercel/analytics/server";
 
 // ============================================================================
 // UTILITÁRIOS DE ANALYTICS

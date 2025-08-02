@@ -497,6 +497,7 @@ export default async function PatientHistoryPage({
                         <TableHead>Profissional</TableHead>
                         <TableHead>Olho</TableHead>
                         <TableHead>Medicamento</TableHead>
+                        <TableHead>Quantidade</TableHead>
                         <TableHead>Instruções</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -515,6 +516,22 @@ export default async function PatientHistoryPage({
                             <TableCell>{item.eye}</TableCell>
                             <TableCell>
                               {item.medication?.name || "N/A"}
+                            </TableCell>
+                            <TableCell>
+                              {item.quantity === 0 ? (
+                                "Uso contínuo"
+                              ) : (
+                                <>
+                                  {item.quantity} {item.medication?.unit}
+                                  {item.daysOfUse && item.daysOfUse > 0 && (
+                                    <span className="text-muted-foreground">
+                                      {" "}
+                                      - {item.daysOfUse} dia
+                                      {item.daysOfUse > 1 ? "s" : ""}
+                                    </span>
+                                  )}
+                                </>
+                              )}
                             </TableCell>
                             <TableCell className="whitespace-pre-wrap">
                               {item.selectedMedicationInstruction ||

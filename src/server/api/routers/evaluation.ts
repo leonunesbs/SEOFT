@@ -201,4 +201,48 @@ export const evaluationRouter = createTRPCRouter({
 
       return evaluations.length;
     }),
+  getStats: protectedProcedure.query(async ({ ctx }) => {
+    const now = new Date();
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const [pending, thisWeek, thisMonth, activePatients] = await Promise.all([
+      ctx.db.evaluation.count({
+        where: { done: false },
+      }),
+      ctx.db.evaluation.count({
+        where: {
+          createdAt: {
+            gte: startOfWeek,
+          },
+        },
+      }),
+      ctx.db.evaluation.count({
+        where: {
+          createdAt: {
+            gte: startOfMonth,
+          },
+        },
+      }),
+      ctx.db.patient.count({
+        where: {
+          evaluations: {
+            some: {
+              createdAt: {
+                gte: thirtyDaysAgo,
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      pending,
+      thisWeek,
+      thisMonth,
+      activePatients,
+    };
+  }),
 });

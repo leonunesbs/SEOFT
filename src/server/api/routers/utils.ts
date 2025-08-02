@@ -14,8 +14,8 @@ export const utilsRouter = createTRPCRouter({
     .input(z.string())
     .mutation(async ({ input }) => {
       const cookieStore = await cookies();
-      cookieStore.set("switcher:selected-collaborator", input, {
-        maxAge: 60 * 60 * 24 * 7, // 1 week
+      cookieStore.set("selected-collaborator", input, {
+        maxAge: 60 * 60 * 24 * 30, // 30 dias
         path: "/",
       });
       return { collaboratorId: input };

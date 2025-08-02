@@ -303,7 +303,7 @@ export function AccordionExams({
               );
             }}
           >
-            <MdOutlineFileCopy size={18} className="mr-2" />
+            <MdOutlineFileCopy size={18} />
             Importar propedêutica
           </Button>
         </div>
@@ -322,7 +322,7 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <Button
                   size="sm"
                   type="button"
@@ -422,7 +422,7 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <Button
                   size="sm"
                   type="button"
@@ -521,7 +521,7 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <Button
                   size="sm"
                   type="button"
@@ -619,7 +619,7 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <Button
                   size="sm"
                   type="button"
@@ -717,7 +717,7 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 p-2">
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <Button
                   size="sm"
                   type="button"
@@ -871,7 +871,7 @@ export function AccordionExams({
               </h3>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 px-2">
-              <div className="flex gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <Button
                   size="sm"
                   type="button"

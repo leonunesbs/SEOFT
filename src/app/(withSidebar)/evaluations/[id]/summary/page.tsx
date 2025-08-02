@@ -194,9 +194,9 @@ const SurgeriesSection = ({
       <h4 className="text-sm font-semibold">{title}</h4>
       <div className="space-y-2">
         {surgeries.map((surgery, index) => (
-          <div key={index} className="rounded-lg border border-gray-100 p-3">
+          <div key={index} className="rounded-md border p-3">
             <div className="mb-2 flex items-start justify-between gap-3">
-              <h5 className="text-sm font-medium text-gray-900">
+              <h5 className="text-sm font-medium">
                 {surgery.procedure || "N/A"}
               </h5>
               {surgery.date && (
