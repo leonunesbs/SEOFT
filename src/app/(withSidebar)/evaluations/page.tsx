@@ -4,15 +4,42 @@ import {
   ClipboardList,
   FileSearch,
   Plus,
+  TrendingDown,
   TrendingUp,
   Users,
 } from "lucide-react";
-import { cookies } from "next/headers";
-import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import Link from "next/link";
+import { cookies } from "next/headers";
 import { db } from "~/server/db";
+
+// Função para calcular a tendência percentual
+function calculateTrend(current: number, previous: number): string | null {
+  if (previous === 0) {
+    return current > 0 ? "+100%" : null;
+  }
+
+  const change = ((current - previous) / previous) * 100;
+  const sign = change >= 0 ? "+" : "";
+  return `${sign}${Math.round(change)}%`;
+}
+
+// Função para obter o ícone da tendência
+function getTrendIcon(trend: string | null | undefined) {
+  if (!trend) return null;
+  const isPositive = trend.startsWith("+");
+  return isPositive ? TrendingUp : TrendingDown;
+}
+
+// Função para obter a cor da tendência
+function getTrendColor(trend: string | null | undefined) {
+  if (!trend) return "text-muted-foreground";
+  const isPositive = trend.startsWith("+");
+  return isPositive ? "text-green-600" : "text-red-600";
+}
 
 // Componente para métricas rápidas
 function MetricCard({
@@ -27,9 +54,12 @@ function MetricCard({
   value: string | number;
   description: string;
   icon: any;
-  trend?: string;
+  trend?: string | null;
   href?: string;
 }) {
+  const TrendIcon = getTrendIcon(trend);
+  const trendColor = getTrendColor(trend);
+
   const content = (
     <Card
       className={href ? "cursor-pointer transition-shadow hover:shadow-lg" : ""}
@@ -42,9 +72,9 @@ function MetricCard({
         <div className="text-2xl font-bold">{value}</div>
         <p className="text-xs text-muted-foreground">
           {description}
-          {trend && (
-            <span className="ml-1 text-green-600">
-              <TrendingUp className="inline h-3 w-3" /> {trend}
+          {trend && TrendIcon && (
+            <span className={`ml-1 ${trendColor}`}>
+              <TrendIcon className="inline h-3 w-3" /> {trend}
             </span>
           )}
         </p>
@@ -60,15 +90,40 @@ export default async function EvaluationsPage() {
   const collaboratorId =
     cookieStore.get("selected-collaborator")?.value ?? null;
 
-  // Buscar estatísticas básicas
-  const [totalPending, recentEvaluations, totalPatients] = await Promise.all([
+  // Calcular períodos para comparação
+  const now = new Date();
+  const currentWeekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const previousWeekStart = new Date(
+    currentWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000,
+  );
+  const currentMonthStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const previousMonthStart = new Date(
+    currentMonthStart.getTime() - 30 * 24 * 60 * 60 * 1000,
+  );
+
+  // Buscar estatísticas básicas e dados para tendências
+  const [
+    totalPending,
+    currentWeekEvaluations,
+    previousWeekEvaluations,
+    currentMonthPatients,
+    previousMonthPatients,
+  ] = await Promise.all([
     db.evaluation.count({
       where: { done: false },
     }),
     db.evaluation.count({
       where: {
         createdAt: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // última semana
+          gte: currentWeekStart,
+        },
+      },
+    }),
+    db.evaluation.count({
+      where: {
+        createdAt: {
+          gte: previousWeekStart,
+          lt: currentWeekStart,
         },
       },
     }),
@@ -77,7 +132,19 @@ export default async function EvaluationsPage() {
         evaluations: {
           some: {
             createdAt: {
-              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // último mês
+              gte: currentMonthStart,
+            },
+          },
+        },
+      },
+    }),
+    db.patient.count({
+      where: {
+        evaluations: {
+          some: {
+            createdAt: {
+              gte: previousMonthStart,
+              lt: currentMonthStart,
             },
           },
         },
@@ -94,6 +161,16 @@ export default async function EvaluationsPage() {
         },
       })
     : 0;
+
+  // Calcular tendências
+  const evaluationsTrend = calculateTrend(
+    currentWeekEvaluations,
+    previousWeekEvaluations,
+  );
+  const patientsTrend = calculateTrend(
+    currentMonthPatients,
+    previousMonthPatients,
+  );
 
   // Buscar últimas avaliações completadas
   const recentCompletedEvaluations = await db.evaluation.findMany({
@@ -141,17 +218,18 @@ export default async function EvaluationsPage() {
 
         <MetricCard
           title="Esta Semana"
-          value={recentEvaluations}
+          value={currentWeekEvaluations}
           description="Avaliações realizadas"
           icon={Calendar}
-          trend="+12%"
+          trend={evaluationsTrend}
         />
 
         <MetricCard
           title="Pacientes Ativos"
-          value={totalPatients}
+          value={currentMonthPatients}
           description="Com avaliações recentes"
           icon={Users}
+          trend={patientsTrend}
         />
       </div>
 

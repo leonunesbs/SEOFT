@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 
 import { AccessFileButton } from "./access-file-button";
 import { Button } from "../ui/button";
+import Image from "next/image";
 
 type FileViewerProps = {
   fileName: string;
@@ -184,7 +185,7 @@ export function FileViewer({ fileName, title, className }: FileViewerProps) {
                 )}
                 {isImage && (
                   <div className="flex h-full items-center justify-center">
-                    <img
+                    <Image
                       src={downloadUrl}
                       alt={title || "Imagem"}
                       className="max-h-full max-w-full rounded-md object-contain"

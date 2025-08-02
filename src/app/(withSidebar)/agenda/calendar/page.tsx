@@ -1,11 +1,5 @@
 "use client";
 
-import type {
-  Appointment,
-  Clinic,
-  Collaborator,
-  Patient,
-} from "@prisma/client";
 import {
   AlertCircle,
   Calendar,
@@ -16,16 +10,23 @@ import {
   Sun,
   Sunset,
 } from "lucide-react";
-import React, { useCallback, useMemo, useState } from "react";
+import type {
+  Appointment,
+  Clinic,
+  Collaborator,
+  Patient,
+} from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import React, { useCallback, useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
-import Link from "next/link";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import Link from "next/link";
 import { TooltipProvider } from "~/components/ui/tooltip";
-import { formatDateForAPI } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { formatDateForAPI } from "~/lib/utils";
+import { useIsMobile } from "~/hooks/use-mobile";
 
 // Tipos baseados no Prisma
 type AppointmentWithRelations = Appointment & {
@@ -247,6 +248,7 @@ export default function AgendaCalendarPage() {
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [currentWeek, setCurrentWeek] = useState(0); // 0 = current week, 1 = next week, -1 = previous week
   const itemsPerPage = 20;
+  const isMobile = useIsMobile();
 
   // Buscar dados via tRPC
   const {
@@ -414,17 +416,19 @@ export default function AgendaCalendarPage() {
     <TooltipProvider>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Calendário de Agendamentos</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl font-bold sm:text-2xl">
+              Calendário de Agendamentos
+            </h1>
+            <p className="text-sm text-muted-foreground sm:text-base">
               Visualize e gerencie os agendamentos da semana
             </p>
           </div>
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/patients/search">
               <Calendar className="mr-2 h-4 w-4" />
-              Novo Agendamento
+              {isMobile ? "Novo" : "Novo Agendamento"}
             </Link>
           </Button>
         </div>
@@ -432,25 +436,25 @@ export default function AgendaCalendarPage() {
         {/* Navegação semanal */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 variant="outline"
                 onClick={() => setCurrentWeek(currentWeek - 1)}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2"
               >
                 <ChevronLeft className="h-4 w-4" />
-                Semana Anterior
+                {isMobile ? "Anterior" : "Semana Anterior"}
               </Button>
 
               <div className="text-center">
-                <h3 className="text-lg font-semibold">
+                <h3 className="text-base font-semibold sm:text-lg">
                   {currentWeek === 0
                     ? "Esta Semana"
                     : currentWeek > 0
                       ? `${currentWeek} Semana${currentWeek > 1 ? "s" : ""} à Frente`
                       : `${Math.abs(currentWeek)} Semana${Math.abs(currentWeek) > 1 ? "s" : ""} Atrás`}
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground sm:text-sm">
                   {weekDays[0] && formatDate(weekDays[0])} -{" "}
                   {weekDays[6] && formatDate(weekDays[6])}
                 </p>
@@ -459,9 +463,9 @@ export default function AgendaCalendarPage() {
               <Button
                 variant="outline"
                 onClick={() => setCurrentWeek(currentWeek + 1)}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2"
               >
-                Próxima Semana
+                {isMobile ? "Próxima" : "Próxima Semana"}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -469,47 +473,59 @@ export default function AgendaCalendarPage() {
         </Card>
 
         {/* Estatísticas rápidas */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Total
+              </CardTitle>
+              <Calendar className="h-3 w-3 text-muted-foreground sm:h-4 sm:w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
+              <div className="text-xl font-bold sm:text-2xl">{stats.total}</div>
               <p className="text-xs text-muted-foreground">Esta semana</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Hoje</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Hoje
+              </CardTitle>
+              <Clock className="h-3 w-3 text-muted-foreground sm:h-4 sm:w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.today}</div>
+              <div className="text-xl font-bold sm:text-2xl">{stats.today}</div>
               <p className="text-xs text-muted-foreground">Agendamentos hoje</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Confirmados</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Confirmados
+              </CardTitle>
+              <CheckCircle className="h-3 w-3 text-muted-foreground sm:h-4 sm:w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.confirmed}</div>
+              <div className="text-xl font-bold sm:text-2xl">
+                {stats.confirmed}
+              </div>
               <p className="text-xs text-muted-foreground">Status confirmado</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Pendentes
+              </CardTitle>
+              <AlertCircle className="h-3 w-3 text-muted-foreground sm:h-4 sm:w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.pending}</div>
+              <div className="text-xl font-bold sm:text-2xl">
+                {stats.pending}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Aguardando confirmação
               </p>
@@ -523,13 +539,13 @@ export default function AgendaCalendarPage() {
           onValueChange={(value) => setViewMode(value as "calendar" | "list")}
         >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="calendar">Vista Calendário</TabsTrigger>
-            <TabsTrigger value="list">Vista Lista</TabsTrigger>
+            <TabsTrigger value="calendar">Calendário</TabsTrigger>
+            <TabsTrigger value="list">Lista</TabsTrigger>
           </TabsList>
 
           <TabsContent value="calendar" className="space-y-4">
             {/* Calendário semanal otimizado */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-7">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-7">
               {weekDays.map((date) => {
                 const dateKey = formatDateForAPI(date);
                 const dayAppointments = appointmentsByDayAndShift[dateKey] || {
@@ -548,7 +564,7 @@ export default function AgendaCalendarPage() {
                     className={isToday ? "ring-2 ring-primary" : ""}
                   >
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium">
+                      <CardTitle className="text-xs font-medium sm:text-sm">
                         {formatDate(date)}
                       </CardTitle>
                       {isToday && (
@@ -613,14 +629,14 @@ export default function AgendaCalendarPage() {
                       return (
                         <div
                           key={appointment.id}
-                          className="flex items-center justify-between rounded-lg border p-2 transition-colors hover:bg-muted/50"
+                          className="flex flex-col gap-2 rounded-lg border p-2 transition-colors hover:bg-muted/50 sm:flex-row sm:items-center sm:justify-between"
                         >
                           <div className="min-w-0 flex-1 space-y-1">
-                            <div className="flex flex-wrap items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
                               <Badge variant="outline" className="text-xs">
                                 #{appointment.patient.refId}
                               </Badge>
-                              <span className="truncate font-medium">
+                              <span className="truncate text-sm font-medium sm:text-base">
                                 {appointment.patient.name}
                               </span>
                               {getStatusBadge(appointment.status)}
@@ -633,7 +649,7 @@ export default function AgendaCalendarPage() {
                                 {shiftInfo.name}
                               </Badge>
                             </div>
-                            <p className="truncate text-sm text-muted-foreground">
+                            <p className="truncate text-xs text-muted-foreground sm:text-sm">
                               {appointment.clinic?.name &&
                                 `${appointment.clinic.name} • `}
                               {formatDate(appointment.scheduledDate)} às{" "}
@@ -644,7 +660,7 @@ export default function AgendaCalendarPage() {
                             variant="ghost"
                             size="sm"
                             asChild
-                            className="ml-2 flex-shrink-0"
+                            className="self-end sm:ml-2 sm:flex-shrink-0"
                           >
                             <Link href={`/agenda/${appointment.id}`}>Ver</Link>
                           </Button>
@@ -654,12 +670,12 @@ export default function AgendaCalendarPage() {
 
                     {/* Paginação */}
                     {totalPages > 1 && (
-                      <div className="flex items-center justify-between pt-4">
-                        <p className="text-sm text-muted-foreground">
+                      <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs text-muted-foreground sm:text-sm">
                           Página {currentPage} de {totalPages} (
                           {appointments.length} resultados)
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center gap-2">
                           <Button
                             variant="outline"
                             size="sm"
