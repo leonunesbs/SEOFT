@@ -1,5 +1,11 @@
 "use client";
 
+import type {
+  Appointment,
+  Clinic,
+  Collaborator,
+  Patient,
+} from "@prisma/client";
 import {
   AlertCircle,
   Calendar,
@@ -10,22 +16,16 @@ import {
   Sun,
   Sunset,
 } from "lucide-react";
-import type {
-  Appointment,
-  Clinic,
-  Collaborator,
-  Patient,
-} from "@prisma/client";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import React, { useCallback, useMemo, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
+import Link from "next/link";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import Link from "next/link";
 import { TooltipProvider } from "~/components/ui/tooltip";
-import { api } from "~/trpc/react";
 import { formatDateForAPI } from "~/lib/utils";
+import { api } from "~/trpc/react";
 
 // Tipos baseados no Prisma
 type AppointmentWithRelations = Appointment & {

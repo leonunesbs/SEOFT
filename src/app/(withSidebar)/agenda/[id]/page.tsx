@@ -13,16 +13,16 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
+import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import Link from "next/link";
 import { api } from "~/trpc/server";
-import { notFound } from "next/navigation";
 
 interface AppointmentDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Utility functions
@@ -161,7 +161,8 @@ const extractReturnNotes = (notes: string) => {
 export default async function AppointmentDetailPage({
   params,
 }: AppointmentDetailPageProps) {
-  const appointment = await api.appointment.getById({ id: params.id });
+  const { id } = await params;
+  const appointment = await api.appointment.getById({ id });
 
   if (!appointment) {
     notFound();
