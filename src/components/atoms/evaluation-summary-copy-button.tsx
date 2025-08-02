@@ -178,15 +178,9 @@ export function EvaluationSummaryCopyButton({
       bestLeftRefraction?.correctionType || "sc",
     );
 
-    // Logs dos olhos
-    const rightEyeLogs =
-      eyes?.rightEye?.logs?.filter(
-        (log: any) => log.details && log.details.trim() !== "",
-      ) ?? [];
-    const leftEyeLogs =
-      eyes?.leftEye?.logs?.filter(
-        (log: any) => log.details && log.details.trim() !== "",
-      ) ?? [];
+    // Logs dos olhos - incluir todos os logs, não apenas os com details
+    const rightEyeLogs = eyes?.rightEye?.logs ?? [];
+    const leftEyeLogs = eyes?.leftEye?.logs ?? [];
 
     // Cirurgias dos olhos
     const rightEyeSurgeries = patient.evaluations.flatMap(
@@ -251,7 +245,28 @@ export function EvaluationSummaryCopyButton({
     if (rightEyeLogs.length) {
       output += `\nExames Realizados:\n`;
       rightEyeLogs.forEach((log: any) => {
-        output += `  • ${translateType(log.type) || log.type || "N/A"}: ${log.details || "N/A"}\n`;
+        const examType = translateType(log.type) || log.type || "N/A";
+        output += `  • ${examType}`;
+
+        // Mostrar data do exame se disponível
+        if (log.recordedAt) {
+          output += ` (${formatDate(log.recordedAt)})`;
+        }
+
+        // Para exames de imagem, mostrar se há arquivo ou anotação
+        if (log.fileUrl) {
+          output += ` (Arquivo disponível)`;
+        }
+
+        if (log.details && log.details.trim() !== "") {
+          output += `: ${log.details}`;
+        }
+
+        if (log.annotation && log.annotation.trim() !== "") {
+          output += `\n    Anotação: ${log.annotation}`;
+        }
+
+        output += `\n`;
       });
     }
 
@@ -299,7 +314,28 @@ export function EvaluationSummaryCopyButton({
     if (leftEyeLogs.length) {
       output += `\nExames Realizados:\n`;
       leftEyeLogs.forEach((log: any) => {
-        output += `  • ${translateType(log.type) || log.type || "N/A"}: ${log.details || "N/A"}\n`;
+        const examType = translateType(log.type) || log.type || "N/A";
+        output += `  • ${examType}`;
+
+        // Mostrar data do exame se disponível
+        if (log.recordedAt) {
+          output += ` (${formatDate(log.recordedAt)})`;
+        }
+
+        // Para exames de imagem, mostrar se há arquivo ou anotação
+        if (log.fileUrl) {
+          output += ` (Arquivo disponível)`;
+        }
+
+        if (log.details && log.details.trim() !== "") {
+          output += `: ${log.details}`;
+        }
+
+        if (log.annotation && log.annotation.trim() !== "") {
+          output += `\n    Anotação: ${log.annotation}`;
+        }
+
+        output += `\n`;
       });
     }
 
@@ -327,12 +363,66 @@ export function EvaluationSummaryCopyButton({
       });
     }
 
+    // Biometria Óptica (dados do Evaluation)
+    if (evaluation.opticalBiometryOD || evaluation.opticalBiometryOS) {
+      output += `\n*🔬 BIOMETRIA ÓPTICA*\n`;
+      output += `━━━━━━━━━━━━━━━━━━\n`;
+      if (evaluation.opticalBiometryOD) {
+        output += `Olho Direito (OD): ${evaluation.opticalBiometryOD}\n`;
+      }
+      if (evaluation.opticalBiometryOS) {
+        output += `Olho Esquerdo (OE): ${evaluation.opticalBiometryOS}\n`;
+      }
+    }
+
+    // Microscopia Especular (dados do Evaluation)
+    if (evaluation.specularMicroscopyOD || evaluation.specularMicroscopyOS) {
+      output += `\n*🔬 MICROSCOPIA ESPECULAR*\n`;
+      output += `━━━━━━━━━━━━━━━━━━\n`;
+      if (evaluation.specularMicroscopyOD) {
+        output += `Olho Direito (OD): ${evaluation.specularMicroscopyOD}\n`;
+      }
+      if (evaluation.specularMicroscopyOS) {
+        output += `Olho Esquerdo (OE): ${evaluation.specularMicroscopyOS}\n`;
+      }
+    }
+
     if (evaluation.clinicalData?.trim()) {
       output += `\nDados Clínicos:\n${evaluation.clinicalData.trim()}\n`;
     }
 
     if (evaluation.continuousData?.trim()) {
       output += `\nDados Persistentes:\n${evaluation.continuousData.trim()}\n`;
+    }
+
+    // Dados específicos do Antivegf (se disponíveis)
+    if (
+      evaluation.swalisClassification ||
+      evaluation.indication ||
+      evaluation.medication
+    ) {
+      output += `\n*💉 DADOS ANTIVEGF*\n`;
+      output += `━━━━━━━━━━━━━━━━━━\n`;
+      if (evaluation.swalisClassification) {
+        output += `Classificação Swalis: ${evaluation.swalisClassification}\n`;
+      }
+      if (evaluation.indication) {
+        output += `Indicação: ${evaluation.indication}`;
+        if (evaluation.indicationOther) {
+          output += ` - ${evaluation.indicationOther}`;
+        }
+        output += `\n`;
+      }
+      if (evaluation.medication) {
+        output += `Medicação: ${evaluation.medication}`;
+        if (evaluation.medicationOther) {
+          output += ` - ${evaluation.medicationOther}`;
+        }
+        output += `\n`;
+      }
+      if (evaluation.observations) {
+        output += `Observações: ${evaluation.observations}\n`;
+      }
     }
 
     output += `\nDiagnóstico: ${evaluation.diagnosis || "N/A"}\n`;

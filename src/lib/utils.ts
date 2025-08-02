@@ -75,11 +75,23 @@ export function translateType(type: string) {
     case "FUNDOSCOPY":
       return "FUNDOSCOPIA";
     case "CT_CORNEA":
-      return "TC CÓRNEA";
+      return "TOMOGRAFIA DE CÓRNEA";
     case "GONIOSCOPY":
       return "GONIOSCOPIA";
+    case "ANGIOGRAPHY":
+      return "ANGIOGRAFIA";
+    case "OPTICAL_BIOMETRY":
+      return "BIOMETRIA ÓPTICA";
+    case "SPECULAR_MICROSCOPY":
+      return "MICROSCOPIA ESPECULAR";
+    case "OTHER_1":
+      return "OUTRO EXAME 1";
+    case "OTHER_2":
+      return "OUTRO EXAME 2";
+    case "OTHER_3":
+      return "OUTRO EXAME 3";
     default:
-      return "N/A";
+      return type;
   }
 }
 

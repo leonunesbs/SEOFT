@@ -527,7 +527,7 @@ export function AccordionExams({
           Propedêutica
         </TabsTrigger>
         <TabsTrigger id="images" value="images">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-center gap-2 sm:flex-row">
             Imagens
             <Badge variant="secondary" className="text-xs">
               Novo
