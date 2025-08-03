@@ -1,22 +1,18 @@
 import {
-  AlertCircle,
   ArrowLeft,
   Calendar,
-  CheckCircle,
   Clock,
-  Edit,
   FileText,
   MapPin,
   StickyNote,
   User,
-  XCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import { AppointmentDetailWrapper } from "~/components/organisms/appointment-detail-wrapper";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import Link from "next/link";
 import { api } from "~/trpc/server";
 
 interface AppointmentDetailPageProps {
@@ -53,42 +49,6 @@ const calculateAge = (birthDate: Date) => {
   }
 
   return age;
-};
-
-// Status configuration
-const STATUS_CONFIG = {
-  SCHEDULED: {
-    icon: <AlertCircle className="h-4 w-4 text-yellow-600" />,
-    badge: <Badge variant="outline">Agendado</Badge>,
-    label: "Agendado",
-  },
-  CONFIRMED: {
-    icon: <CheckCircle className="h-4 w-4 text-blue-600" />,
-    badge: <Badge variant="secondary">Confirmado</Badge>,
-    label: "Confirmado",
-  },
-  COMPLETED: {
-    icon: <CheckCircle className="h-4 w-4 text-green-600" />,
-    badge: <Badge variant="default">Concluído</Badge>,
-    label: "Concluído",
-  },
-  CANCELLED: {
-    icon: <XCircle className="h-4 w-4 text-red-600" />,
-    badge: <Badge variant="destructive">Cancelado</Badge>,
-    label: "Cancelado",
-  },
-  NO_SHOW: {
-    icon: <XCircle className="h-4 w-4 text-red-600" />,
-    badge: <Badge variant="destructive">Não Compareceu</Badge>,
-    label: "Não Compareceu",
-  },
-} as const;
-
-const getStatusConfig = (status: string) => {
-  return (
-    STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] ||
-    STATUS_CONFIG.SCHEDULED
-  );
 };
 
 // Reusable components
@@ -162,13 +122,15 @@ export default async function AppointmentDetailPage({
   params,
 }: AppointmentDetailPageProps) {
   const { id } = await params;
-  const appointment = await api.appointment.getById({ id });
+
+  const appointment = await api.appointment.getById({
+    id,
+  });
 
   if (!appointment) {
-    notFound();
+    return <div>Agendamento não encontrado</div>;
   }
 
-  const statusConfig = getStatusConfig(appointment.status);
   const returnNotesFromAppointment = extractReturnNotes(
     appointment.notes || "",
   );
@@ -193,13 +155,6 @@ export default async function AppointmentDetailPage({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {statusConfig.badge}
-          <Button variant="outline" size="sm" className="shrink-0">
-            <Edit className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Editar</span>
-          </Button>
-        </div>
       </div>
 
       {/* Informações principais */}
@@ -223,10 +178,9 @@ export default async function AppointmentDetailPage({
                 </div>
               </InfoField>
 
-              <InfoField label="Status" icon={AlertCircle}>
-                <div className="flex items-center gap-2">
-                  {statusConfig.icon}
-                  <span className="break-words">{statusConfig.label}</span>
+              <InfoField label="Clínica" icon={MapPin}>
+                <div className="break-words">
+                  {appointment.clinic?.name || "Não especificada"}
                 </div>
               </InfoField>
 
@@ -239,12 +193,6 @@ export default async function AppointmentDetailPage({
                       (CRM: {appointment.collaborator.crm})
                     </span>
                   )}
-                </div>
-              </InfoField>
-
-              <InfoField label="Clínica" icon={MapPin}>
-                <div className="break-words">
-                  {appointment.clinic?.name || "Não especificada"}
                 </div>
               </InfoField>
             </div>
@@ -311,16 +259,11 @@ export default async function AppointmentDetailPage({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
+              <div className="space-x-2 space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">
                   Status da Avaliação
                 </label>
-                <Badge
-                  variant={appointment.evaluation.done ? "default" : "outline"}
-                  className={
-                    appointment.evaluation.done ? "text-green-500" : ""
-                  }
-                >
+                <Badge>
                   {appointment.evaluation.done ? "Concluída" : "Pendente"}
                 </Badge>
               </div>
@@ -397,59 +340,8 @@ export default async function AppointmentDetailPage({
         </Card>
       )}
 
-      {/* Ações rápidas */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">Ações Rápidas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Button variant="outline" asChild className="justify-start">
-              <Link
-                href={`/evaluations/new?patientId=${appointment.patient.refId}`}
-              >
-                <Edit className="mr-2 h-4 w-4" />
-                Nova Avaliação
-              </Link>
-            </Button>
-
-            <Button variant="outline" asChild className="justify-start">
-              <Link href={`/patients/${appointment.patient.refId}`}>
-                <User className="mr-2 h-4 w-4" />
-                Ver Histórico do Paciente
-              </Link>
-            </Button>
-
-            <Button variant="outline" asChild className="justify-start">
-              <Link href={`/patients/${appointment.patient.refId}/history`}>
-                <Calendar className="mr-2 h-4 w-4" />
-                Histórico de Agendamentos
-              </Link>
-            </Button>
-
-            {appointment.status === "SCHEDULED" && (
-              <Button variant="default" className="justify-start">
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Confirmar Agendamento
-              </Button>
-            )}
-
-            {appointment.status === "CONFIRMED" && (
-              <Button variant="default" className="justify-start">
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Marcar como Concluído
-              </Button>
-            )}
-
-            {["SCHEDULED", "CONFIRMED"].includes(appointment.status) && (
-              <Button variant="destructive" className="justify-start">
-                <XCircle className="mr-2 h-4 w-4" />
-                Cancelar Agendamento
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Seção Interativa - Client Components */}
+      <AppointmentDetailWrapper appointment={appointment} />
     </div>
   );
 }

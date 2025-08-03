@@ -200,3 +200,10 @@ export function formatDateForAPI(date: Date): string {
   const day = String(date.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+
+// Função para extrair horário de uma data no formato HH:MM
+export function extractTimeFromDate(date: Date): string {
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+}

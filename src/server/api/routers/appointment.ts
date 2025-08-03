@@ -207,6 +207,7 @@ export const appointmentRouter = createTRPCRouter({
         include: {
           patient: {
             select: {
+              id: true,
               name: true,
               refId: true,
               birthDate: true,

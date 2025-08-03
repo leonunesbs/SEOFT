@@ -355,7 +355,6 @@ export default async function AgendaPage() {
                       {getStatusBadge(appointment.status)}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {appointment.collaborator.name} •{" "}
                       {appointment.clinic?.name} •{" "}
                       {new Date(appointment.scheduledDate).toLocaleDateString(
                         "pt-BR",

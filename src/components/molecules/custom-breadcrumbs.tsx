@@ -173,6 +173,23 @@ const routeConfig: RouteConfig[] = [
       },
     ],
   },
+  {
+    path: "/agenda",
+    label: () => "Agenda",
+    redirectUrl: "/agenda",
+    children: [
+      {
+        path: "/agenda/calendar",
+        label: () => "Calendário",
+        redirectUrl: "/agenda/calendar",
+      },
+      {
+        path: "/agenda/:id",
+        label: (params) => `Agendamento #${params?.id || ""}`,
+        redirectUrl: "/agenda",
+      },
+    ],
+  },
 ];
 
 // Função para gerar breadcrumbs a partir do caminho
