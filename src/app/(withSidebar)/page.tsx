@@ -6,9 +6,12 @@ import {
   MdOutlineArchive,
   MdOutlineCalendarToday,
   MdOutlineCheckCircle,
+  MdOutlineEvent,
   MdOutlineGroup,
   MdOutlineLocalHospital,
   MdOutlinePending,
+  MdOutlinePersonAdd,
+  MdOutlineSchedule,
 } from "react-icons/md";
 import {
   Table,
@@ -20,14 +23,20 @@ import {
 } from "~/components/ui/table";
 
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { DashboardCharts } from "~/components/organisms/dashboard-charts";
 import { DashboardMetrics } from "~/components/organisms/dashboard-metrics";
 import { DashboardQuickActions } from "~/components/organisms/dashboard-quick-actions";
 import { HydrateClient } from "~/trpc/server";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { db } from "~/server/db";
 
 export default async function Dashboard() {
+  const cookieStore = await cookies();
+  const collaboratorId =
+    cookieStore.get("selected-collaborator")?.value ?? null;
+
   // Métricas básicas
   const patientsCount = await db.patient.count();
   const clinicsCount = await db.clinic.count();
@@ -42,6 +51,52 @@ export default async function Dashboard() {
   const pendingEvaluations = await db.evaluation.count({
     where: { done: false },
   });
+
+  // Métricas de agendamentos
+  const [
+    totalScheduled,
+    todayAppointments,
+    completedToday,
+    myTodayAppointments,
+  ] = await Promise.all([
+    db.appointment.count({
+      where: { status: "SCHEDULED" },
+    }),
+    db.appointment.count({
+      where: {
+        scheduledDate: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          lt: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+        status: {
+          in: ["SCHEDULED", "CONFIRMED"],
+        },
+      },
+    }),
+    db.appointment.count({
+      where: {
+        scheduledDate: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          lt: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+        status: "COMPLETED",
+      },
+    }),
+    collaboratorId
+      ? db.appointment.count({
+          where: {
+            collaboratorId,
+            scheduledDate: {
+              gte: new Date(new Date().setHours(0, 0, 0, 0)),
+              lt: new Date(new Date().setHours(23, 59, 59, 999)),
+            },
+            status: {
+              in: ["SCHEDULED", "CONFIRMED"],
+            },
+          },
+        })
+      : Promise.resolve(0),
+  ]);
 
   // Métricas temporais (últimos 30 dias)
   const thirtyDaysAgo = new Date();
@@ -133,6 +188,75 @@ export default async function Dashboard() {
     },
   });
 
+  // Agendamentos de hoje
+  const todayAppointmentsList = await db.appointment.findMany({
+    where: {
+      scheduledDate: {
+        gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        lt: new Date(new Date().setHours(23, 59, 59, 999)),
+      },
+      status: {
+        in: ["SCHEDULED", "CONFIRMED"],
+      },
+    },
+    include: {
+      patient: {
+        select: {
+          name: true,
+          refId: true,
+        },
+      },
+      collaborator: {
+        select: {
+          name: true,
+        },
+      },
+      clinic: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      scheduledDate: "asc",
+    },
+    take: 5,
+  });
+
+  // Próximos agendamentos
+  const upcomingAppointmentsList = await db.appointment.findMany({
+    where: {
+      scheduledDate: {
+        gte: new Date(),
+      },
+      status: {
+        in: ["SCHEDULED", "CONFIRMED"],
+      },
+    },
+    include: {
+      patient: {
+        select: {
+          name: true,
+          refId: true,
+        },
+      },
+      collaborator: {
+        select: {
+          name: true,
+        },
+      },
+      clinic: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      scheduledDate: "asc",
+    },
+    take: 5,
+  });
+
   // Dados para gráficos
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
@@ -170,6 +294,29 @@ export default async function Dashboard() {
       };
     }),
   );
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            Concluído
+          </Badge>
+        );
+      case "CANCELLED":
+        return <Badge variant="destructive">Cancelado</Badge>;
+      case "NO_SHOW":
+        return <Badge variant="destructive">Não Compareceu</Badge>;
+      case "CONFIRMED":
+        return (
+          <Badge variant="default" className="bg-blue-100 text-blue-800">
+            Confirmado
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">Agendado</Badge>;
+    }
+  };
 
   return (
     <HydrateClient>
@@ -262,8 +409,181 @@ export default async function Dashboard() {
           </Card>
         </div>
 
+        {/* Métricas de Agenda */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Agendamentos
+              </CardTitle>
+              <MdOutlineSchedule className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {totalScheduled.toLocaleString("pt-BR")}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Total de agendamentos ativos
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Agendamentos Hoje
+              </CardTitle>
+              <MdOutlineEvent className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {todayAppointments.toLocaleString("pt-BR")}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {completedToday} já concluídos
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Meus Agendamentos
+              </CardTitle>
+              <MdOutlinePersonAdd className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {myTodayAppointments.toLocaleString("pt-BR")}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Seus agendamentos hoje
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Próximos</CardTitle>
+              <MdOutlineAccessTime className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {upcomingAppointmentsList.length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Próximos agendamentos
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Ações Rápidas */}
         <DashboardQuickActions />
+
+        {/* Seção de Agenda */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Ações rápidas de agenda */}
+          <Card className="lg:col-span-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MdOutlineSchedule className="h-5 w-5" />
+                Ações de Agenda
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button asChild className="w-full justify-start">
+                <Link href="/patients/search">
+                  <MdOutlinePersonAdd className="mr-2 h-4 w-4" />
+                  Novo Agendamento
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                variant="outline"
+                className="w-full justify-start"
+              >
+                <Link href="/agenda/calendar">
+                  <MdOutlineCalendarToday className="mr-2 h-4 w-4" />
+                  Ver Calendário
+                </Link>
+              </Button>
+
+              <Button
+                asChild
+                variant="outline"
+                className="w-full justify-start"
+              >
+                <Link href="/agenda">
+                  <MdOutlineEvent className="mr-2 h-4 w-4" />
+                  Gerenciar Agenda
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Agendamentos de hoje */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <MdOutlineEvent className="h-5 w-5" />
+                Agendamentos de Hoje
+              </CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/agenda/calendar">
+                  Ver calendário
+                  <MdOutlineAccessTime className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {todayAppointmentsList.length === 0 ? (
+                <div className="py-8 text-center text-muted-foreground">
+                  <MdOutlineEvent className="mx-auto h-12 w-12 opacity-50" />
+                  <p className="mt-2">Nenhum agendamento para hoje</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {todayAppointmentsList.map((appointment) => (
+                    <div
+                      key={appointment.id}
+                      className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            #{appointment.patient.refId}
+                          </Badge>
+                          <span className="font-medium">
+                            {appointment.patient.name}
+                          </span>
+                          {getStatusBadge(appointment.status)}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {appointment.collaborator.name} •{" "}
+                          {appointment.clinic?.name} •{" "}
+                          {new Date(
+                            appointment.scheduledDate,
+                          ).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/agenda/${appointment.id}`}>
+                          Ver
+                          <MdOutlineAccessTime className="ml-1 h-3 w-3" />
+                        </Link>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Gráficos e Métricas Detalhadas */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -282,6 +602,68 @@ export default async function Dashboard() {
             totalPatients={patientsCount}
           />
         </div>
+
+        {/* Próximos Agendamentos */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <MdOutlineAccessTime className="h-5 w-5" />
+              Próximos Agendamentos
+            </CardTitle>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/agenda/calendar">
+                Ver todos
+                <MdOutlineAccessTime className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {upcomingAppointmentsList.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground">
+                <MdOutlineEvent className="mx-auto h-12 w-12 opacity-50" />
+                <p className="mt-2">Nenhum agendamento futuro</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {upcomingAppointmentsList.map((appointment) => (
+                  <div
+                    key={appointment.id}
+                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          #{appointment.patient.refId}
+                        </Badge>
+                        <span className="font-medium">
+                          {appointment.patient.name}
+                        </span>
+                        {getStatusBadge(appointment.status)}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {appointment.clinic?.name} •{" "}
+                        {new Date(appointment.scheduledDate).toLocaleDateString(
+                          "pt-BR",
+                        )}{" "}
+                        às{" "}
+                        {new Date(appointment.scheduledDate).toLocaleTimeString(
+                          "pt-BR",
+                          { hour: "2-digit", minute: "2-digit" },
+                        )}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href={`/agenda/${appointment.id}`}>
+                        Ver
+                        <MdOutlineAccessTime className="ml-1 h-3 w-3" />
+                      </Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Avaliações Recentes */}
         <Card>

@@ -153,34 +153,25 @@ export function AppointmentRescheduleCard({
   if (!isOpen) return null;
 
   return (
-    <Card className="border-l-4 border-l-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+    <Card>
       <CardHeader className="pb-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <CalendarDays className="h-5 w-5 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <CardTitle className="text-lg">Reagendar Atendimento</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Paciente:{" "}
-                <span className="font-medium text-foreground">
-                  {patientName}
-                </span>
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <CalendarDays className="h-5 w-5 text-muted-foreground" />
+          <div className="min-w-0 flex-1">
+            <CardTitle className="text-lg">Reagendar Atendimento</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Paciente: <span className="font-medium">{patientName}</span>
+            </p>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-6">
         {/* Informações atuais */}
-        <div className="rounded-lg bg-muted/50 p-4">
+        <div className="rounded-md border bg-muted/30 p-4">
           <div className="mb-3 flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">
-              Agendamento Atual
-            </span>
+            <span className="text-sm font-medium">Agendamento Atual</span>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="flex items-center gap-2">
@@ -246,9 +237,7 @@ export function AppointmentRescheduleCard({
                     </FormControl>
                     <FormMessage />
                     <FormDescription>
-                      <span className="text-xs text-muted-foreground">
-                        Os indicadores coloridos mostram a lotação atual do dia
-                      </span>
+                      Indicadores mostram a lotação atual do dia
                     </FormDescription>
                   </FormItem>
                 )}
@@ -275,7 +264,7 @@ export function AppointmentRescheduleCard({
                           <SelectContent>
                             <SelectItem value="07:00">
                               <div className="flex items-center gap-2">
-                                <span>🌅 Manhã</span>
+                                <span>Manhã</span>
                                 <Badge variant="outline" className="text-xs">
                                   07:00
                                 </Badge>
@@ -283,7 +272,7 @@ export function AppointmentRescheduleCard({
                             </SelectItem>
                             <SelectItem value="13:00">
                               <div className="flex items-center gap-2">
-                                <span>🌆 Tarde</span>
+                                <span>Tarde</span>
                                 <Badge variant="outline" className="text-xs">
                                   13:00
                                 </Badge>
@@ -294,9 +283,7 @@ export function AppointmentRescheduleCard({
                       </FormControl>
                       <FormMessage />
                       <FormDescription>
-                        <span className="text-xs text-muted-foreground">
-                          Escolha o turno para o novo agendamento
-                        </span>
+                        Escolha o turno para o novo agendamento
                       </FormDescription>
                     </FormItem>
                   )}
@@ -311,7 +298,7 @@ export function AppointmentRescheduleCard({
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Observações do Reagendamento
+                    Observações
                   </FormLabel>
                   <FormControl>
                     <Textarea
@@ -322,9 +309,7 @@ export function AppointmentRescheduleCard({
                   </FormControl>
                   <FormMessage />
                   <FormDescription>
-                    <span className="text-xs text-muted-foreground">
-                      Opcional: Informações sobre o motivo da mudança
-                    </span>
+                    Opcional: Informações sobre o motivo da mudança
                   </FormDescription>
                 </FormItem>
               )}
@@ -336,11 +321,9 @@ export function AppointmentRescheduleCard({
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CheckCircle className="h-4 w-4 shrink-0" />
-                <span className="text-xs sm:text-sm">
-                  Confirme os novos dados antes de salvar
-                </span>
+                <span>Confirme os novos dados antes de salvar</span>
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Button
                   type="button"
                   variant="outline"

@@ -24,7 +24,23 @@ export default function DashboardLoading() {
         </div>
       </div>
 
-      {/* Metrics cards skeleton */}
+      {/* First set of metrics cards skeleton */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="mt-2 h-3 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Second set of metrics cards skeleton (Agenda) */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i}>
@@ -60,6 +76,49 @@ export default function DashboardLoading() {
         </CardContent>
       </Card>
 
+      {/* Agenda section skeleton */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Agenda actions skeleton */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Today's appointments skeleton */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-8 w-24" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-12 rounded-full" />
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                    <Skeleton className="h-3 w-48" />
+                  </div>
+                  <Skeleton className="h-8 w-12" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Charts and metrics skeleton */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
@@ -87,6 +146,34 @@ export default function DashboardLoading() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Upcoming appointments skeleton */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-8 w-20" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between rounded-lg border p-3"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-12 rounded-full" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <Skeleton className="h-8 w-12" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Recent evaluations table skeleton */}
       <Card>
