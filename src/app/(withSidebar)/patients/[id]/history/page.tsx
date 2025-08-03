@@ -1,5 +1,15 @@
+import {
+  Activity,
+  ArrowLeft,
+  Calendar,
+  Eye,
+  FileText,
+  Pill,
+  Stethoscope,
+  User,
+} from "lucide-react";
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Eye, FileText, Pill, Stethoscope } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -9,8 +19,17 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { EvaluationHistoryList } from "~/components/organisms/evaluation-history-list";
+import { HistoryStats } from "~/components/molecules/history-stats";
 import Link from "next/link";
 import { PageHeading } from "~/components/atoms/page-heading";
 import { Separator } from "~/components/ui/separator";
@@ -68,6 +87,24 @@ const getBestRefraction = (refractions: any[]) => {
   }, null);
 };
 
+// Função para gerar iniciais do nome
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((word) => word.charAt(0))
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+// Função para formatar data
+function formatDate(date: Date | string): string {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return dateObj.toLocaleDateString("pt-BR", {
+    timeZone: "UTC",
+  });
+}
+
 export default async function PatientHistoryPage({
   params,
   searchParams,
@@ -95,87 +132,116 @@ export default async function PatientHistoryPage({
   }
 
   const totalEvaluations = patient.evaluations.length;
-  const lastEvaluationDate = patient.evaluations[0]?.createdAt || "N/A";
+  const lastEvaluationDate = patient.evaluations[0]?.createdAt || null;
   const lastEvaluationClinic = patient.evaluations[0]?.clinic?.name || "N/A";
+  const initials = getInitials(patient.name);
 
   return (
-    <div className="space-y-4">
-      <PageHeading>Histórico do Paciente</PageHeading>
+    <div className="space-y-6">
+      {/* Header com informações do paciente */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
+          <Avatar className="h-16 w-16">
+            <AvatarFallback className="text-lg font-semibold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card className="flex flex-col justify-between p-4">
-          <h2 className="font-semibold text-muted-foreground">
-            Total de Avaliações
-          </h2>
-          <p className="text-right text-lg">{totalEvaluations}</p>
-        </Card>
-        <Card className="flex flex-col justify-between p-4">
-          <h2 className="font-semibold text-muted-foreground">
-            Útima Avaliação
-          </h2>
-          <p className="text-right text-sm">{lastEvaluationClinic}</p>
-          <p className="text-right text-sm">
-            {new Date(lastEvaluationDate).toLocaleString("pt-BR", {
-              timeZone: "America/Sao_Paulo",
-            })}
-          </p>
-        </Card>
-        <Card className="flex flex-col justify-between p-4">
-          <h2 className="font-semibold text-muted-foreground">
-            ID do Paciente
-          </h2>
-          <Link
-            className="text-right hover:underline"
-            href={`/patients/${patient.id}`}
-            aria-label="Ver detalhes do paciente"
-          >
-            {patient.id}
-          </Link>
-        </Card>
+          <div className="space-y-1">
+            <PageHeading className="text-2xl">
+              Histórico do Paciente
+            </PageHeading>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <User className="h-4 w-4" />
+                <span>{patient.name}</span>
+              </div>
+              <Separator orientation="vertical" className="h-4" />
+              <div className="flex items-center gap-1">
+                <Activity className="h-4 w-4" />
+                <span>{totalEvaluations} avaliações</span>
+              </div>
+              {lastEvaluationDate && (
+                <>
+                  <Separator orientation="vertical" className="h-4" />
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    <span>Última: {formatDate(lastEvaluationDate)}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Botões de ação */}
+        <div className="flex gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild variant="outline">
+                  <Link href={`/patients/${patient.id}`}>
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Voltar</span>
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Voltar para detalhes do paciente</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
+
+      {/* Estatísticas do histórico */}
+      <HistoryStats
+        patient={patient}
+        stats={{
+          totalEvaluations,
+          lastEvaluationDate,
+          lastEvaluationClinic,
+          // Aqui você pode adicionar mais estatísticas quando disponíveis
+        }}
+      />
 
       <Separator />
 
       <Tabs value={currentTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview" asChild className="w-full sm:w-auto">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview" asChild>
             <Link
               href={`/patients/${id}/history?tab=overview`}
               className="flex items-center gap-2"
             >
-              <Eye className="h-4 w-4 sm:hidden" />
+              <Eye className="h-4 w-4" />
               <span className="hidden sm:inline">Visão Geral</span>
             </Link>
           </TabsTrigger>
-          <TabsTrigger value="evaluations" asChild className="w-full sm:w-auto">
+          <TabsTrigger value="evaluations" asChild>
             <Link
               href={`/patients/${id}/history?tab=evaluations`}
               className="flex items-center gap-2"
             >
-              <FileText className="h-4 w-4 sm:hidden" />
+              <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">Avaliações</span>
             </Link>
           </TabsTrigger>
-          <TabsTrigger
-            value="prescriptions"
-            asChild
-            className="w-full sm:w-auto"
-          >
+          <TabsTrigger value="prescriptions" asChild>
             <Link
               href={`/patients/${id}/history?tab=prescriptions`}
               className="flex items-center gap-2"
             >
-              <Pill className="h-4 w-4 sm:hidden" />
+              <Pill className="h-4 w-4" />
               <span className="hidden sm:inline">Prescrições</span>
             </Link>
           </TabsTrigger>
-          <TabsTrigger value="surgeries" asChild className="w-full sm:w-auto">
+          <TabsTrigger value="surgeries" asChild>
             <Link
               href={`/patients/${id}/history?tab=surgeries`}
               className="flex items-center gap-2"
             >
-              <Stethoscope className="h-4 w-4 sm:hidden" />
+              <Stethoscope className="h-4 w-4" />
               <span className="hidden sm:inline">Cirurgias</span>
             </Link>
           </TabsTrigger>
@@ -186,7 +252,10 @@ export default async function PatientHistoryPage({
             {/* Card de Melhor Acuidade Visual */}
             <Card>
               <CardHeader>
-                <CardTitle>Melhor Acuidade Visual</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  Melhor Acuidade Visual
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {(() => {
@@ -204,8 +273,9 @@ export default async function PatientHistoryPage({
 
                   if (allRefractions.length === 0) {
                     return (
-                      <div className="text-muted">
-                        Nenhuma refração registrada.
+                      <div className="py-8 text-center text-muted-foreground">
+                        <Eye className="mx-auto mb-2 h-8 w-8 opacity-50" />
+                        <p>Nenhuma refração registrada.</p>
                       </div>
                     );
                   }
@@ -236,16 +306,18 @@ export default async function PatientHistoryPage({
                         {bestRightRefraction && (
                           <TableRow>
                             <TableCell className="font-semibold">
-                              {bestRightRefraction.eye}
+                              <Badge variant="outline">
+                                {bestRightRefraction.eye}
+                              </Badge>
                             </TableCell>
                             <TableCell>
-                              {bestRightRefraction.visualAcuity || "N/A"}
+                              <span className="font-medium">
+                                {bestRightRefraction.visualAcuity || "N/A"}
+                              </span>
                             </TableCell>
                             <TableCell>
                               {bestRightRefraction.recordedAt
-                                ? new Date(
-                                    bestRightRefraction.recordedAt,
-                                  ).toLocaleDateString("pt-BR")
+                                ? formatDate(bestRightRefraction.recordedAt)
                                 : "N/A"}
                             </TableCell>
                           </TableRow>
@@ -253,16 +325,18 @@ export default async function PatientHistoryPage({
                         {bestLeftRefraction && (
                           <TableRow>
                             <TableCell className="font-semibold">
-                              {bestLeftRefraction.eye}
+                              <Badge variant="outline">
+                                {bestLeftRefraction.eye}
+                              </Badge>
                             </TableCell>
                             <TableCell>
-                              {bestLeftRefraction.visualAcuity || "N/A"}
+                              <span className="font-medium">
+                                {bestLeftRefraction.visualAcuity || "N/A"}
+                              </span>
                             </TableCell>
                             <TableCell>
                               {bestLeftRefraction.recordedAt
-                                ? new Date(
-                                    bestLeftRefraction.recordedAt,
-                                  ).toLocaleDateString("pt-BR")
+                                ? formatDate(bestLeftRefraction.recordedAt)
                                 : "N/A"}
                             </TableCell>
                           </TableRow>
@@ -277,7 +351,10 @@ export default async function PatientHistoryPage({
             {/* Card de Última Gonioscopia */}
             <Card>
               <CardHeader>
-                <CardTitle>Última Gonioscopia</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  Última Gonioscopia
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {(() => {
@@ -303,7 +380,12 @@ export default async function PatientHistoryPage({
                     );
 
                   if (gonioscopies.length === 0) {
-                    return null;
+                    return (
+                      <div className="py-8 text-center text-muted-foreground">
+                        <Eye className="mx-auto mb-2 h-8 w-8 opacity-50" />
+                        <p>Nenhuma gonioscopia registrada.</p>
+                      </div>
+                    );
                   }
 
                   const lastGonioscopyOD = gonioscopies.find(
@@ -326,14 +408,14 @@ export default async function PatientHistoryPage({
                         {lastGonioscopyOD && (
                           <TableRow>
                             <TableCell className="font-semibold">
-                              {lastGonioscopyOD.eye}
+                              <Badge variant="outline">
+                                {lastGonioscopyOD.eye}
+                              </Badge>
                             </TableCell>
                             <TableCell>
-                              {new Date(
-                                lastGonioscopyOD.recordedAt,
-                              ).toLocaleDateString("pt-BR")}
+                              {formatDate(lastGonioscopyOD.recordedAt)}
                             </TableCell>
-                            <TableCell className="whitespace-pre-wrap">
+                            <TableCell className="whitespace-pre-wrap text-sm">
                               {lastGonioscopyOD.details}
                             </TableCell>
                           </TableRow>
@@ -341,14 +423,14 @@ export default async function PatientHistoryPage({
                         {lastGonioscopyOS && (
                           <TableRow>
                             <TableCell className="font-semibold">
-                              {lastGonioscopyOS.eye}
+                              <Badge variant="outline">
+                                {lastGonioscopyOS.eye}
+                              </Badge>
                             </TableCell>
                             <TableCell>
-                              {new Date(
-                                lastGonioscopyOS.recordedAt,
-                              ).toLocaleDateString("pt-BR")}
+                              {formatDate(lastGonioscopyOS.recordedAt)}
                             </TableCell>
-                            <TableCell className="whitespace-pre-wrap">
+                            <TableCell className="whitespace-pre-wrap text-sm">
                               {lastGonioscopyOS.details}
                             </TableCell>
                           </TableRow>
@@ -363,7 +445,10 @@ export default async function PatientHistoryPage({
             {/* Card de Última Paquimetria */}
             <Card>
               <CardHeader>
-                <CardTitle>Última Paquimetria</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  Última Paquimetria
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {(() => {
@@ -389,7 +474,12 @@ export default async function PatientHistoryPage({
                     );
 
                   if (pachymetries.length === 0) {
-                    return null;
+                    return (
+                      <div className="py-8 text-center text-muted-foreground">
+                        <Eye className="mx-auto mb-2 h-8 w-8 opacity-50" />
+                        <p>Nenhuma paquimetria registrada.</p>
+                      </div>
+                    );
                   }
 
                   const lastPachymetryOD = pachymetries.find(
@@ -412,14 +502,14 @@ export default async function PatientHistoryPage({
                         {lastPachymetryOD && (
                           <TableRow>
                             <TableCell className="font-semibold">
-                              {lastPachymetryOD.eye}
+                              <Badge variant="outline">
+                                {lastPachymetryOD.eye}
+                              </Badge>
                             </TableCell>
                             <TableCell>
-                              {new Date(
-                                lastPachymetryOD.recordedAt,
-                              ).toLocaleDateString("pt-BR")}
+                              {formatDate(lastPachymetryOD.recordedAt)}
                             </TableCell>
-                            <TableCell className="whitespace-pre-wrap">
+                            <TableCell className="whitespace-pre-wrap text-sm">
                               {lastPachymetryOD.details}
                             </TableCell>
                           </TableRow>
@@ -427,14 +517,14 @@ export default async function PatientHistoryPage({
                         {lastPachymetryOS && (
                           <TableRow>
                             <TableCell className="font-semibold">
-                              {lastPachymetryOS.eye}
+                              <Badge variant="outline">
+                                {lastPachymetryOS.eye}
+                              </Badge>
                             </TableCell>
                             <TableCell>
-                              {new Date(
-                                lastPachymetryOS.recordedAt,
-                              ).toLocaleDateString("pt-BR")}
+                              {formatDate(lastPachymetryOS.recordedAt)}
                             </TableCell>
-                            <TableCell className="whitespace-pre-wrap">
+                            <TableCell className="whitespace-pre-wrap text-sm">
                               {lastPachymetryOS.details}
                             </TableCell>
                           </TableRow>
@@ -449,7 +539,10 @@ export default async function PatientHistoryPage({
 
           <Card>
             <CardHeader>
-              <CardTitle>Gráfico de Tonometria</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Gráfico de Tonometria
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <TonometryChart evaluations={patient.evaluations} />
@@ -460,7 +553,10 @@ export default async function PatientHistoryPage({
         <TabsContent value="prescriptions" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Histórico de Prescrições</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Pill className="h-4 w-4" />
+                Histórico de Prescrições
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {(() => {
@@ -483,66 +579,76 @@ export default async function PatientHistoryPage({
 
                 if (prescriptions.length === 0) {
                   return (
-                    <div className="text-muted">
-                      Nenhuma prescrição registrada.
+                    <div className="py-8 text-center text-muted-foreground">
+                      <Pill className="mx-auto mb-2 h-8 w-8 opacity-50" />
+                      <p>Nenhuma prescrição registrada.</p>
                     </div>
                   );
                 }
 
                 return (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Profissional</TableHead>
-                        <TableHead>Olho</TableHead>
-                        <TableHead>Medicamento</TableHead>
-                        <TableHead>Quantidade</TableHead>
-                        <TableHead>Instruções</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {prescriptions.map((prescription) =>
-                        prescription.prescriptionItems.map((item) => (
-                          <TableRow key={item.id}>
-                            <TableCell>
-                              {new Date(
-                                prescription.evaluationDate,
-                              ).toLocaleDateString("pt-BR")}
-                            </TableCell>
-                            <TableCell>
-                              {prescription.collaborator.name}
-                            </TableCell>
-                            <TableCell>{item.eye}</TableCell>
-                            <TableCell>
-                              {item.medication?.name || "N/A"}
-                            </TableCell>
-                            <TableCell>
-                              {item.quantity === 0 ? (
-                                "Uso contínuo"
-                              ) : (
-                                <>
-                                  {item.quantity} {item.medication?.unit}
-                                  {item.daysOfUse && item.daysOfUse > 0 && (
-                                    <span className="text-muted-foreground">
-                                      {" "}
-                                      - {item.daysOfUse} dia
-                                      {item.daysOfUse > 1 ? "s" : ""}
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Profissional</TableHead>
+                          <TableHead>Olho</TableHead>
+                          <TableHead>Medicamento</TableHead>
+                          <TableHead>Quantidade</TableHead>
+                          <TableHead>Instruções</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {prescriptions.map((prescription) =>
+                          prescription.prescriptionItems.map((item) => (
+                            <TableRow key={item.id}>
+                              <TableCell className="font-medium">
+                                {formatDate(prescription.evaluationDate)}
+                              </TableCell>
+                              <TableCell>
+                                <span className="font-medium">
+                                  {prescription.collaborator.name}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{item.eye}</Badge>
+                              </TableCell>
+                              <TableCell>
+                                <span className="font-medium">
+                                  {item.medication?.name || "N/A"}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                {item.quantity === 0 ? (
+                                  <Badge variant="secondary">
+                                    Uso contínuo
+                                  </Badge>
+                                ) : (
+                                  <div className="space-y-1">
+                                    <span className="font-medium">
+                                      {item.quantity} {item.medication?.unit}
                                     </span>
-                                  )}
-                                </>
-                              )}
-                            </TableCell>
-                            <TableCell className="whitespace-pre-wrap">
-                              {item.selectedMedicationInstruction ||
-                                item.customInstruction ||
-                                "-"}
-                            </TableCell>
-                          </TableRow>
-                        )),
-                      )}
-                    </TableBody>
-                  </Table>
+                                    {item.daysOfUse && item.daysOfUse > 0 && (
+                                      <span className="block text-xs text-muted-foreground">
+                                        {item.daysOfUse} dia
+                                        {item.daysOfUse > 1 ? "s" : ""}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell className="max-w-xs whitespace-pre-wrap text-sm">
+                                {item.selectedMedicationInstruction ||
+                                  item.customInstruction ||
+                                  "-"}
+                              </TableCell>
+                            </TableRow>
+                          )),
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 );
               })()}
             </CardContent>
@@ -552,7 +658,10 @@ export default async function PatientHistoryPage({
         <TabsContent value="surgeries" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Histórico de Cirurgias</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Stethoscope className="h-4 w-4" />
+                Histórico de Cirurgias
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {(() => {
@@ -591,8 +700,9 @@ export default async function PatientHistoryPage({
                   );
                 if (surgeries.length === 0) {
                   return (
-                    <div className="text-muted">
-                      Nenhuma cirurgia registrada.
+                    <div className="py-8 text-center text-muted-foreground">
+                      <Stethoscope className="mx-auto mb-2 h-8 w-8 opacity-50" />
+                      <p>Nenhuma cirurgia registrada.</p>
                     </div>
                   );
                 }
@@ -611,17 +721,19 @@ export default async function PatientHistoryPage({
                         {surgeries.map((surgery, idx) => (
                           <TableRow key={surgery.id + surgery.eye + idx}>
                             <TableCell className="font-semibold">
-                              {surgery.eye}
+                              <Badge variant="outline">{surgery.eye}</Badge>
                             </TableCell>
-                            <TableCell>{surgery.procedure || "N/A"}</TableCell>
                             <TableCell>
-                              {surgery.date
-                                ? new Date(surgery.date).toLocaleDateString(
-                                    "pt-BR",
-                                  )
-                                : "N/A"}
+                              <span className="font-medium">
+                                {surgery.procedure || "N/A"}
+                              </span>
                             </TableCell>
-                            <TableCell>{surgery.notes || "-"}</TableCell>
+                            <TableCell>
+                              {surgery.date ? formatDate(surgery.date) : "N/A"}
+                            </TableCell>
+                            <TableCell className="max-w-xs whitespace-pre-wrap text-sm">
+                              {surgery.notes || "-"}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

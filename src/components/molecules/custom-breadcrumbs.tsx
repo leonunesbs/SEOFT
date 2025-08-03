@@ -185,7 +185,7 @@ const routeConfig: RouteConfig[] = [
       },
       {
         path: "/agenda/:id",
-        label: (params) => `Agendamento #${params?.id || ""}`,
+        label: () => "Detalhes",
         redirectUrl: "/agenda",
       },
     ],

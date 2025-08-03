@@ -335,6 +335,11 @@ export function PatientForm({
                   aria-disabled={isEditing}
                 >
                   Nº do prontuário
+                  {isEditing && (
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      (não pode ser alterado)
+                    </span>
+                  )}
                 </FormLabel>
                 <FormControl>
                   <div className="relative flex w-full items-center">
@@ -346,6 +351,7 @@ export function PatientForm({
                       aria-disabled={isEditing}
                       aria-invalid={fieldState.invalid}
                       aria-describedby="refId-error"
+                      className={isEditing ? "bg-muted" : ""}
                     />
                   </div>
                 </FormControl>
@@ -374,11 +380,12 @@ export function PatientForm({
                     {...field}
                     aria-invalid={fieldState.invalid}
                     aria-describedby="name-error"
+                    autoComplete="name"
                   />
                 </FormControl>
                 {showDescriptions && !isEditing && (
                   <FormDescription id="name-description">
-                    Exemplo: João da Silva.
+                    Exemplo: João da Silva Santos
                   </FormDescription>
                 )}
                 <FormMessage id="name-error" className={messageSize} />
@@ -397,7 +404,7 @@ export function PatientForm({
                 <FormControl>
                   <Input
                     id="birthDate"
-                    placeholder="DD/MM/YYYY"
+                    placeholder="DD/MM/AAAA"
                     {...field}
                     onChange={(event) => {
                       applyDateMask(event);
@@ -405,11 +412,13 @@ export function PatientForm({
                     }}
                     aria-invalid={fieldState.invalid}
                     aria-describedby="birthDate-error"
+                    autoComplete="bday"
+                    maxLength={10}
                   />
                 </FormControl>
                 {showDescriptions && !isEditing && (
                   <FormDescription id="birthDate-description">
-                    Insira a data no formato DD/MM/YYYY. Digite apenas números.
+                    Digite apenas números no formato DD/MM/AAAA
                   </FormDescription>
                 )}
                 <FormMessage id="birthDate-error" className={messageSize} />
@@ -420,7 +429,7 @@ export function PatientForm({
 
         {/* Botões específicos para cada situação */}
         {variant === "page" && (
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             {isEditing && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -428,14 +437,17 @@ export function PatientForm({
                     variant="destructive"
                     type="button"
                     disabled={deletePatient.isPending}
+                    className="w-full sm:w-auto"
                   >
-                    <MdDelete size={20} />
-                    {deletePatient.isPending ? "Excluindo..." : "Excluir"}
+                    <MdDelete className="h-4 w-4" />
+                    {deletePatient.isPending
+                      ? "Excluindo..."
+                      : "Excluir Paciente"}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                    <AlertDialogTitle>Excluir Paciente</AlertDialogTitle>
                     <AlertDialogDescription>
                       Esta ação não pode ser desfeita. Isso excluirá
                       permanentemente este paciente e removerá todos os dados de
@@ -444,21 +456,28 @@ export function PatientForm({
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
                       Excluir
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            <Button type="submit" disabled={isLoading}>
-              <MdSave size={20} />
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full sm:w-auto"
+            >
+              <MdSave className="h-4 w-4" />
               {isLoading
                 ? isEditing
                   ? "Salvando..."
                   : "Criando paciente e avaliação..."
                 : isEditing
-                  ? "Salvar"
+                  ? "Salvar Alterações"
                   : "Salvar Paciente e Criar Avaliação"}
             </Button>
           </div>
