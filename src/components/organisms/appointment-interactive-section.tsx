@@ -52,7 +52,15 @@ export function AppointmentInteractiveSection({
   return (
     <>
       <AppointmentActions
-        appointment={appointment}
+        appointment={{
+          id: appointment.id,
+          status: appointment.status,
+          patient: {
+            id: appointment.patientId,
+            name: appointment.patient.name,
+            refId: appointment.patient.refId,
+          },
+        }}
         onRescheduleClick={handleRescheduleClick}
         onAppointmentUpdate={onAppointmentUpdate}
       />
