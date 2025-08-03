@@ -30,6 +30,9 @@ interface AppointmentActionsProps {
       name: string;
       refId: string;
     };
+    evaluation?: {
+      id: string;
+    } | null;
   };
   onRescheduleClick: () => void;
   onAppointmentUpdate?: () => void;
@@ -43,11 +46,15 @@ export function AppointmentActions({
   const { toast } = useToast();
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
-  const cancelAppointmentMutation = api.appointment.updateStatus.useMutation({
+  // Verificar se o agendamento pode ser excluído
+  const canDelete =
+    appointment.status !== "COMPLETED" && !appointment.evaluation;
+
+  const cancelAppointmentMutation = api.appointment.delete.useMutation({
     onSuccess: () => {
       toast({
-        title: "Agendamento cancelado",
-        description: "O agendamento foi cancelado com sucesso.",
+        title: "Agendamento excluído",
+        description: "O agendamento foi excluído com sucesso.",
         variant: "default",
       });
       setIsCancelDialogOpen(false);
@@ -55,9 +62,9 @@ export function AppointmentActions({
     },
     onError: (error) => {
       toast({
-        title: "Erro ao cancelar",
+        title: "Erro ao excluir",
         description:
-          error.message || "Ocorreu um erro ao cancelar o agendamento.",
+          error.message || "Ocorreu um erro ao excluir o agendamento.",
         variant: "destructive",
       });
     },
@@ -66,7 +73,6 @@ export function AppointmentActions({
   const handleCancelAppointment = () => {
     cancelAppointmentMutation.mutate({
       id: appointment.id,
-      status: "CANCELLED",
     });
   };
 
@@ -150,6 +156,13 @@ export function AppointmentActions({
 
           {/* Ações de cancelamento */}
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            {!canDelete && (
+              <div className="text-xs text-muted-foreground">
+                {appointment.evaluation
+                  ? "Não é possível excluir um agendamento com avaliação associada"
+                  : "Não é possível excluir um agendamento já realizado"}
+              </div>
+            )}
             <AlertDialog
               open={isCancelDialogOpen}
               onOpenChange={setIsCancelDialogOpen}
@@ -158,24 +171,32 @@ export function AppointmentActions({
                 <Button
                   variant="destructive"
                   className="justify-start sm:justify-center"
-                  disabled={cancelAppointmentMutation.isPending}
+                  disabled={cancelAppointmentMutation.isPending || !canDelete}
+                  title={
+                    !canDelete
+                      ? appointment.evaluation
+                        ? "Não é possível excluir um agendamento com avaliação associada"
+                        : "Não é possível excluir um agendamento já realizado"
+                      : "Excluir agendamento"
+                  }
                 >
                   <XCircle className="mr-2 h-4 w-4" />
                   {cancelAppointmentMutation.isPending
-                    ? "Cancelando..."
-                    : "Cancelar Agendamento"}
+                    ? "Excluindo..."
+                    : "Excluir Agendamento"}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Confirmar cancelamento</AlertDialogTitle>
+                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Tem certeza que deseja cancelar o agendamento do paciente{" "}
+                    Tem certeza que deseja excluir o agendamento do paciente{" "}
                     <strong>{appointment.patient.name}</strong> (ID:{" "}
                     {appointment.patient.refId})?
                     <br />
                     <br />
-                    Esta ação não pode ser desfeita.
+                    Esta ação irá excluir permanentemente o agendamento e não
+                    pode ser desfeita.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -190,8 +211,8 @@ export function AppointmentActions({
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
                     {cancelAppointmentMutation.isPending
-                      ? "Cancelando..."
-                      : "Sim, cancelar"}
+                      ? "Excluindo..."
+                      : "Sim, excluir"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

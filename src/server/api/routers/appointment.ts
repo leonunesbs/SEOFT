@@ -367,6 +367,34 @@ export const appointmentRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      // Verificar se o agendamento existe
+      const appointment = await ctx.db.appointment.findUnique({
+        where: { id: input.id },
+        include: {
+          evaluation: {
+            select: { id: true },
+          },
+        },
+      });
+
+      if (!appointment) {
+        throw new Error("Agendamento não encontrado");
+      }
+
+      // Verificar se há uma avaliação associada
+      if (appointment.evaluation) {
+        throw new Error(
+          "Não é possível excluir um agendamento que possui uma avaliação associada. Considere cancelar o agendamento em vez de excluí-lo.",
+        );
+      }
+
+      // Verificar se o agendamento já foi realizado
+      if (appointment.status === "COMPLETED") {
+        throw new Error(
+          "Não é possível excluir um agendamento que já foi realizado.",
+        );
+      }
+
       return await ctx.db.appointment.delete({
         where: { id: input.id },
       });

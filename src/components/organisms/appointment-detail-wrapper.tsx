@@ -41,16 +41,13 @@ export function AppointmentDetailWrapper({
   const utils = api.useUtils();
 
   const handleAppointmentUpdate = () => {
-    // Revalidar os dados do agendamento específico
-    utils.appointment.getById.invalidate({ id: appointment.id });
-
     // Revalidar outras queries relacionadas
     utils.appointment.getAll.invalidate();
     utils.appointment.getToday.invalidate();
     utils.appointment.getUpcoming.invalidate();
 
-    // Recarregar a página para garantir que os dados estejam atualizados
-    router.refresh();
+    // Redirecionar para a agenda após a exclusão
+    router.push("/agenda");
   };
 
   return (

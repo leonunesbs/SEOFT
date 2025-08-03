@@ -60,6 +60,7 @@ export function AppointmentInteractiveSection({
             name: appointment.patient.name,
             refId: appointment.patient.refId,
           },
+          evaluation: appointment.evaluation,
         }}
         onRescheduleClick={handleRescheduleClick}
         onAppointmentUpdate={onAppointmentUpdate}
