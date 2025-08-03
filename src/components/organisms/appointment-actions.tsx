@@ -102,7 +102,7 @@ export function AppointmentActions({
               asChild
               className="h-auto justify-start py-3"
             >
-              <Link href={`/patients/${appointment.patient.refId}`}>
+              <Link href={`/patients/${appointment.patient.id}`}>
                 <User className="mr-2 h-4 w-4 flex-shrink-0" />
                 <span className="text-left">
                   <span className="block font-medium">
@@ -120,7 +120,7 @@ export function AppointmentActions({
               asChild
               className="h-auto justify-start py-3"
             >
-              <Link href={`/patients/${appointment.patient.refId}/history`}>
+              <Link href={`/patients/${appointment.patient.id}/history`}>
                 <Calendar className="mr-2 h-4 w-4 flex-shrink-0" />
                 <span className="text-left">
                   <span className="block font-medium">
