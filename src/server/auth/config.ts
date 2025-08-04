@@ -81,4 +81,7 @@ export const authConfig = {
       },
     }),
   },
+  pages: {
+    verifyRequest: "/verify-request",
+  },
 } satisfies NextAuthConfig;
