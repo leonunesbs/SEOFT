@@ -1,24 +1,23 @@
 "use client";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
-import {
   MdCheck,
   MdHome,
   MdPending,
   MdRefresh,
   MdSearch,
 } from "react-icons/md";
-import { MdEdit } from "react-icons/md";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 
-import { Button } from "~/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "~/components/ui/button";
 
 interface EvaluationFeedbackDialogProps {
   open: boolean;
@@ -26,7 +25,6 @@ interface EvaluationFeedbackDialogProps {
   patientName: string;
   isDone: boolean;
   onConclude?: () => void;
-  onReopen?: () => void;
 }
 
 export function EvaluationFeedbackDialog({
@@ -35,7 +33,6 @@ export function EvaluationFeedbackDialog({
   patientName,
   isDone,
   onConclude,
-  onReopen,
 }: EvaluationFeedbackDialogProps) {
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
@@ -81,37 +78,12 @@ export function EvaluationFeedbackDialog({
           </DialogTitle>
           <DialogDescription className="text-center">
             {isDone
-              ? `A avaliação do paciente ${patientName} foi concluída com sucesso. Você pode abrir o resumo ou desfazer e reabrir a avaliação.`
+              ? `A avaliação do paciente ${patientName} foi concluída com sucesso. Você será redirecionado para o resumo da avaliação.`
               : `A avaliação do paciente ${patientName} foi salva com sucesso.`}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-2">
-          {isDone && (
-            <>
-              <Button
-                onClick={() =>
-                  router.push(`/evaluations/${evaluationId}/summary`)
-                }
-                disabled={isNavigating}
-                className="w-full"
-              >
-                <MdCheck className="h-4 w-4" />
-                Ver Resumo
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (onReopen) onReopen();
-                }}
-                disabled={isNavigating}
-                className="w-full"
-              >
-                <MdEdit className="h-4 w-4" />
-                Desfazer e Reabrir
-              </Button>
-            </>
-          )}
           {!isDone && (
             <Button
               onClick={handleConclude}
