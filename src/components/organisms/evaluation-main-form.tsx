@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  formatDateForAPI,
+  localToUTC,
+  parseLocalDateString,
+} from "~/lib/utils";
+import {
   Form,
   FormControl,
   FormDescription,
@@ -16,18 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import {
-  formatDateForAPI,
-  localToUTC,
-  parseLocalDateString,
-} from "~/lib/utils";
 
+import { Prisma, type EyeSurgery } from "@prisma/client";
+import { UseFormReturn } from "react-hook-form";
 import { AccordionExams } from "../molecules/accordion-exams";
 import { DatePickerWithOccupancy } from "../ui/date-picker-with-occupancy";
 import { Input } from "../ui/input";
-import { Prisma } from "@prisma/client";
 import { Textarea } from "../ui/textarea";
-import { UseFormReturn } from "react-hook-form";
+import { EvaluationSurgeryForm } from "./evaluation-surgery-form";
 
 export type EvaluationMainFormValues = {
   biomicroscopyOD?: string;
@@ -108,6 +109,12 @@ type EvaluationMainFormProps = {
     string,
     { total: number; morning: number; afternoon: number }
   >;
+  patientSurgeries: Array<{
+    eyes: {
+      leftEye: { surgeries: EyeSurgery[] };
+      rightEye: { surgeries: EyeSurgery[] };
+    };
+  }>;
 };
 
 export function EvaluationMainForm({
@@ -118,6 +125,7 @@ export function EvaluationMainForm({
   collaboratorId,
   patientId,
   occupancyData,
+  patientSurgeries,
 }: EvaluationMainFormProps) {
   // Monitorar o valor dos campos returnDate e returnTime para controlar a visibilidade
   const returnDate = form.watch("returnDate");
@@ -145,6 +153,12 @@ export function EvaluationMainForm({
               </FormDescription>
             </FormItem>
           )}
+        />
+        {/* Cirurgias e Procedimentos */}
+        <EvaluationSurgeryForm
+          rightEyeId={rightEyeId}
+          leftEyeId={leftEyeId}
+          patientSurgeries={patientSurgeries}
         />
         {/* Dados contínuos */}
         <FormField

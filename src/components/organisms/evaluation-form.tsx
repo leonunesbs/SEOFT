@@ -32,7 +32,6 @@ import {
   type EvaluationMainFormValues,
 } from "./evaluation-main-form";
 import { EvaluationRefractionForm } from "./evaluation-refraction-form";
-import { EvaluationSurgeryForm } from "./evaluation-surgery-form";
 import { PrescriptionCard } from "./prescription-card";
 
 // Schemas de validação
@@ -597,6 +596,7 @@ export function EvaluationForm({
           collaboratorId={evaluation.collaborator.id}
           patientId={evaluation.patient.id}
           occupancyData={occupancyData}
+          patientSurgeries={patientSurgeries}
         />
         <div className="flex w-full flex-col space-y-4 text-sm sm:max-w-xs">
           <EvaluationRefractionForm
@@ -606,10 +606,6 @@ export function EvaluationForm({
               leftEye: lastEvaluationData?.eyes?.leftEye,
               rightEye: lastEvaluationData?.eyes?.rightEye,
             }}
-          />
-          <EvaluationSurgeryForm
-            evaluation={evaluation}
-            patientSurgeries={patientSurgeries}
           />
           <PrescriptionCard
             medications={medications}
