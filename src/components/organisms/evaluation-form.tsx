@@ -382,16 +382,10 @@ export function EvaluationForm({
         variant: "default",
       });
 
-      // Salvar dados da última operação e mostrar dialog apenas quando não for concluída
+      // Salvar dados da última operação e mostrar dialog, inclusive quando concluída
       if (variables.id) {
         setLastSavedData({ done: variables.done ?? false, id: variables.id });
-        // Só mostra o dialog se não for uma conclusão (done = false)
-        if (!variables.done) {
-          setShowFeedbackDialog(true);
-        } else {
-          // Se for uma conclusão, redireciona para a página de summary
-          router.push(`/evaluations/${variables.id}/summary`);
-        }
+        setShowFeedbackDialog(true);
       }
     },
     onError: (error, variables) => {
@@ -402,6 +396,25 @@ export function EvaluationForm({
       toast({
         title: "Erro",
         description: message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const reopenEvaluation = api.evaluation.update.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Avaliação reaberta",
+        description: "A avaliação foi reaberta com sucesso.",
+        variant: "default",
+      });
+      setShowFeedbackDialog(false);
+      router.refresh();
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Erro ao reabrir a avaliação.",
         variant: "destructive",
       });
     },
@@ -497,6 +510,18 @@ export function EvaluationForm({
     // Marcar a avaliação como concluída usando os dados atuais do formulário
     const currentData = mainForm.getValues();
     handleSubmitMainForm(currentData, true);
+  };
+
+  const handleReopenFromDialog = () => {
+    reopenEvaluation.mutate({
+      id: evaluation.id,
+      patientId: evaluation.patient.id,
+      collaboratorId: evaluation.collaborator.id,
+      clinicId: evaluation.clinic?.id ?? undefined,
+      rightEyeId: evaluation.eyes?.rightEyeId,
+      leftEyeId: evaluation.eyes?.leftEyeId,
+      done: false,
+    });
   };
 
   function FormActions() {
@@ -595,6 +620,7 @@ export function EvaluationForm({
           patientName={evaluation.patient.name}
           isDone={lastSavedData.done}
           onConclude={handleConcludeFromDialog}
+          onReopen={handleReopenFromDialog}
         />
       )}
     </div>

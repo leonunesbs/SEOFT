@@ -4,6 +4,7 @@ import { Activity, Calendar, Eye, Pill, Stethoscope, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import Link from "next/link";
 
 interface HistoryStatsProps {
@@ -15,6 +16,7 @@ interface HistoryStatsProps {
     totalEvaluations: number;
     lastEvaluationDate?: Date | string | null;
     lastEvaluationClinic?: string;
+    lastEvaluationId?: string;
     totalPrescriptions?: number;
     totalSurgeries?: number;
     averageEvaluationsPerMonth?: number;
@@ -68,6 +70,27 @@ export function HistoryStats({ patient, stats }: HistoryStatsProps) {
                 {formatDateTime(stats.lastEvaluationDate)}
               </p>
             )}
+          </div>
+
+          <div className="mt-3">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto"
+              aria-label="Ver última avaliação"
+            >
+              <Link
+                href={
+                  stats.lastEvaluationId
+                    ? `/evaluations/${stats.lastEvaluationId}`
+                    : `/patients/${patient.id}/history`
+                }
+              >
+                <Eye className="h-4 w-4" />
+                <span className="hidden sm:inline">Ver última avaliação</span>
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
