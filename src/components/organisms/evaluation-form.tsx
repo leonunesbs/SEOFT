@@ -8,8 +8,19 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { MdCheck, MdOutlineHistory, MdSave } from "react-icons/md";
 import { z } from "zod";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
 import { toast } from "~/hooks/use-toast";
+import { useUnsavedChanges } from "~/hooks/use-unsaved-changes";
 import { api } from "~/trpc/react";
 import { ElapsedTime } from "../atoms/elapsed-time";
 import { RemoveEvaluationButton } from "../atoms/remove-evaluation-button";
@@ -216,6 +227,8 @@ export function EvaluationForm({
 }: EvaluationFormProps) {
   const router = useRouter();
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
   const [lastSavedData, setLastSavedData] = useState<{
     done: boolean;
     id: string;
@@ -369,8 +382,20 @@ export function EvaluationForm({
     },
   });
 
+  // Guardar navegação quando houver alterações não salvas
+  const hasUnsavedChanges =
+    identificationForm.formState.isDirty || mainForm.formState.isDirty;
+  useUnsavedChanges(hasUnsavedChanges, undefined, (href) => {
+    setPendingHref(href);
+    setShowUnsavedDialog(true);
+  });
+
   const updateEvaluation = api.evaluation.update.useMutation({
     onSuccess: (variables) => {
+      // Resetar estado "dirty" após salvar com sucesso
+      identificationForm.reset(identificationForm.getValues());
+      mainForm.reset(mainForm.getValues());
+
       const message = variables.done
         ? "A avaliação foi marcada como concluída com sucesso."
         : "A avaliação foi salva com sucesso.";
@@ -499,6 +524,13 @@ export function EvaluationForm({
     handleSubmitMainForm(currentData, true);
   };
 
+  const handleConfirmNavigation = () => {
+    const href = pendingHref;
+    setShowUnsavedDialog(false);
+    setPendingHref(null);
+    if (href) router.push(href);
+  };
+
   function FormActions() {
     return (
       <div className="flex flex-col items-end gap-2">
@@ -597,6 +629,27 @@ export function EvaluationForm({
           onConclude={handleConcludeFromDialog}
         />
       )}
+
+      {/* Dialog de saída com alterações não salvas */}
+      <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza que deseja sair?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem alterações não salvas. Se sair agora, suas mudanças serão
+              perdidas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingHref(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmNavigation}>
+              Sair sem salvar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
