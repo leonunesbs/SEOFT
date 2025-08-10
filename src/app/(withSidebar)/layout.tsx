@@ -21,8 +21,10 @@ import { redirect } from "next/navigation";
 
 export default async function Layout({
   children,
+  modal,
 }: {
   children: React.ReactNode;
+  modal: React.ReactNode;
 }) {
   const session = await auth();
   if (!session?.user) {
@@ -93,6 +95,7 @@ export default async function Layout({
         <main className="mx-auto flex w-full max-w-screen-2xl flex-1 flex-col gap-4 px-2 py-4 sm:px-4 md:px-8">
           {children}
         </main>
+        {modal}
         <footer className="flex">
           <span className="w-full bg-sidebar-primary py-1 text-center text-xs text-sidebar-primary-foreground">
             Coded with ❤️ by{" "}

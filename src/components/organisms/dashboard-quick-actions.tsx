@@ -11,7 +11,6 @@ import {
   MdOutlineSpeed,
 } from "react-icons/md";
 
-import { AddPatientDialog } from "./add-patient-dialog";
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
 
@@ -21,7 +20,11 @@ export function DashboardQuickActions() {
       title: "Novo Paciente",
       description: "Adicionar paciente e iniciar avaliação",
       icon: <MdOutlinePersonAdd className="h-5 w-5" />,
-      action: <AddPatientDialog />,
+      action: (
+        <Link href="/patients/add">
+          <Button size="sm">Adicionar</Button>
+        </Link>
+      ),
       color: "text-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-950",
     },
